@@ -21,10 +21,10 @@ const checkEmail = async () => {
   error.value = ''
   try {
     const res = await gatewayUrl.get(`/api/auth/checkEmail?email=${email.value}`)
-
-    if (res.data === 'GOOGLE') {
+    const type = res.data.type;
+    if (type === 'GOOGLE') {
       showGoogle.value = true
-    } else if (res.data === 'LOCAL') {
+    } else if (type === 'LOCAL') {
       showPasswordForm.value = true
     } else {
       error.value = 'Email chưa tồn tại'

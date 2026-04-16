@@ -2,12 +2,17 @@
 import {onMounted, ref} from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import Sidebar from '@/components/Sidebar.vue'
-import axios from "axios";
 import gatewayUrl from "@/api/authApi.ts";
 
-const isLoggedIn = ref(true)
-const name = ref('')
+const isLoggedIn = ref<boolean>(
+  localStorage.getItem('isLoggedIn') === 'true'
+)
 
+const name = ref<string>(
+  localStorage.getItem('name') || ''
+)
+
+// 👉 gọi API chỉ để sync lại (không ảnh hưởng UI ban đầu)
 onMounted(async () => {
   try {
     const res = await gatewayUrl.get('/api/auth/checkLogin', {
@@ -16,8 +21,14 @@ onMounted(async () => {
 
     isLoggedIn.value = res.data.isLoggedIn
     name.value = res.data.name || ''
+
+    // sync lại localStorage
+    localStorage.setItem('isLoggedIn', String(res.data.isLoggedIn))
+    localStorage.setItem('name', res.data.name || '')
   } catch (e) {
     isLoggedIn.value = false
+    localStorage.removeItem('isLoggedIn')
+    localStorage.removeItem('name')
   }
 })
 

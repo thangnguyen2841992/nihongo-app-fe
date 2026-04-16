@@ -95,7 +95,25 @@ const register = async () => {
           <i class="bi bi-person-plus"></i> Đăng ký
         </button>
       </form>
+      <a
+        href="http://localhost:8180/realms/nihongo/protocol/openid-connect/auth
+?client_id=japanese_app
+&response_type=code
+&scope=openid%20email%20profile
+&redirect_uri=http://localhost:8082/api/auth/callbackGoogle
+&kc_idp_hint=google"
+        class="btn-google w-100 mb-3 mt-3"
+      >
+        <!-- SVG Google icon -->
+        <svg width="20" height="20" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.7 1.22 9.2 3.6l6.85-6.85C35.9 2.4 30.4 0 24 0 14.6 0 6.4 5.4 2.6 13.3l8 6.2C12.4 13.3 17.7 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.1 24.5c0-1.6-.15-3.1-.4-4.5H24v9h12.5c-.54 2.9-2.2 5.4-4.7 7.1l7.3 5.7c4.3-4 7-9.9 7-17.3z"/>
+          <path fill="#FBBC05" d="M10.6 28.5c-1-2.9-1-6.1 0-9l-8-6.2C.9 17.2 0 20.5 0 24s.9 6.8 2.6 10.7l8-6.2z"/>
+          <path fill="#34A853" d="M24 48c6.4 0 11.9-2.1 15.9-5.7l-7.3-5.7c-2 1.4-4.6 2.2-8.6 2.2-6.3 0-11.6-3.8-13.4-9.2l-8 6.2C6.4 42.6 14.6 48 24 48z"/>
+        </svg>
 
+        <span>Đăng ký bằng Google</span>
+      </a>
       <!-- Footer -->
       <div class="footer">
         Đã có tài khoản?
@@ -177,5 +195,46 @@ const register = async () => {
 
 .login-link:hover {
   text-decoration: underline;
+}
+
+/* Google button */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 10px;
+
+  font-weight: 500;
+  color: #444;
+
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+/* Hover effect */
+.btn-google:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+/* Click effect */
+.btn-google:active {
+  transform: scale(0.97);
+}
+
+/* SVG animation */
+.btn-google svg {
+  transition: transform 0.3s ease;
+}
+
+/* Khi hover thì icon xoay nhẹ */
+.btn-google:hover svg {
+  transform: rotate(8deg) scale(1.1);
 }
 </style>

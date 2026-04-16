@@ -35,10 +35,35 @@ const logout = async () => {
     <span class="fw-bold text-primary">🇯🇵 NihongoApp</span>
 
     <div class="ms-auto">
-      <span v-if="isLoggedIn">
-        Xin chào, <b>{{ name }}</b>
-        <button @click="logout" class="btn btn-outline-danger btn-sm ms-2">Logout</button>
-      </span>
+      <!-- loading -->
+      <span v-if="isLoggedIn === null">
+    <!-- có thể để trống hoặc loading -->
+  </span>
+
+      <!-- đã đăng nhập -->
+      <span v-else-if="isLoggedIn">
+    Xin chào, <b>{{ name }}</b>
+    <button @click="logout" class="btn btn-outline-danger btn-sm ms-2">
+      Logout
+    </button>
+  </span>
+
+      <!-- chưa đăng nhập -->
+      <span v-else>
+    <button
+      @click="router.push('/login')"
+      class="btn btn-outline-primary btn-sm me-2"
+    >
+      Đăng nhập
+    </button>
+
+    <button
+      @click="router.push('/register')"
+      class="btn btn-primary btn-sm"
+    >
+      Đăng ký
+    </button>
+  </span>
     </div>
   </nav>
 </template>
