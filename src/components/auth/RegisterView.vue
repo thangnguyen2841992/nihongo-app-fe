@@ -46,12 +46,10 @@ const register = async () => {
     })
 
     sessionStorage.setItem('email-register', res.data.email)
+    sessionStorage.setItem('userId-register', res.data.userId)
 
     await router.push({
       path: '/check-email',
-      query: {
-        userId: res.data.userId,
-      }
     })
 
   } catch (e: any) {

@@ -6,7 +6,7 @@ import gatewayUrl from '@/api/authApi'
 const route = useRoute()
 
 const email = ref(sessionStorage.getItem('email-register') || '')
-const userId = ref(route.query.userId as string)
+const userId = ref(sessionStorage.getItem('userId-register') || '')
 
 const timeLeft = ref(60)
 const showButton = ref(false)
