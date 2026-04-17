@@ -29,7 +29,10 @@ onMounted(async () => {
         query: {email: data.email}
       })
     } else if (data.status === 'EXPIRED') {
-      await router.push('/active-expired')
+      await router.push({
+        path: '/active-expired',
+        query: {userId: data.userId}
+      })
     } else {
       await router.push('/active-failed')
     }

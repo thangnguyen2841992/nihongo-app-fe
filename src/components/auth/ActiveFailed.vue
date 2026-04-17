@@ -26,7 +26,7 @@ const goLogin = () => router.push('/login')
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: url('@/assets/images/register.jpg') no-repeat center/cover;
 }
 .card {
   background: #fff;

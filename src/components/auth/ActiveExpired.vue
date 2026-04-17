@@ -92,7 +92,7 @@ const resendEmail = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #f59e0b, #f97316);
+  background: url('@/assets/images/register.jpg') no-repeat center/cover;
 }
 
 .card {
