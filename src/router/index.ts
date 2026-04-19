@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
 
 import MainLayout from '@/layouts/MainLayout.vue'
 import Home from '@/views/Home-User.vue'
@@ -12,6 +12,8 @@ import ResetPassword from '@/components/auth/ResetPassword.vue'
 import ActiveExpired from '@/components/auth/ActiveExpired.vue'
 import ActiveFailed from '@/components/auth/ActiveFailed.vue'
 import RegisterView from "@/components/auth/RegisterView.vue";
+import AdminHome from "@/components/admin/Admin-home.vue";
+import AdminLayout from "@/components/admin/AdminLayout.vue";
 
 const routes = [
   // 🔥 layout chính
@@ -19,7 +21,7 @@ const routes = [
     path: '/',
     component: MainLayout,
     children: [
-      { path: '', component: Home }
+      {path: '', component: Home}
     ]
   },
 
@@ -55,6 +57,21 @@ const routes = [
   {
     path: '/active-failed',
     component: ActiveFailed
+  },
+  //admin
+  {
+    path: '/admin',
+    component: AdminLayout,
+    children: [
+      {
+        path: '',
+        component: AdminHome
+      },
+      {
+        path: 'admin-home',
+        component: () => import('@/components/admin/Admin-home.vue')
+      }
+    ]
   }
 ]
 
