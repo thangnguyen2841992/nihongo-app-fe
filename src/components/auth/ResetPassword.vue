@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import gatewayUrl from '@/api/authApi'
 
@@ -80,6 +80,11 @@ const handleEnterPassword = () => {
 const handleEnterConfirm = () => {
   submit()
 }
+
+onMounted(async () => {
+  await nextTick()
+  passwordRef.value?.focus()
+})
 </script>
 
 <template>

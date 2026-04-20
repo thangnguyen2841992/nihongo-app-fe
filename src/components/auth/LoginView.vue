@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import gatewayUrl from "@/api/authApi"
 import {useRouter} from "vue-router";
+import { ref, nextTick, onMounted } from 'vue'
 
 // state
 const email = ref('')
@@ -14,7 +14,8 @@ const showGoogle = ref(false)
 const googleLoading = ref(false)
 
 const router = useRouter()
-
+const passwordRef = ref<HTMLInputElement | null>(null)
+const emailRef = ref<HTMLInputElement | null>(null)
 // toggle password
 const togglePassword = () => {
   showPassword.value = !showPassword.value
@@ -46,6 +47,9 @@ const checkEmail = async () => {
       showGoogle.value = true
     } else if (type === 'LOCAL') {
       showPasswordForm.value = true
+      // 👇 đợi DOM render rồi mới focus
+      await nextTick()
+      passwordRef.value?.focus()
     } else {
       error.value = 'Email chưa tồn tại'
     }
@@ -94,6 +98,10 @@ const handleSubmit = () => {
   }
 }
 
+onMounted(async () => {
+  await nextTick()
+  emailRef.value?.focus()
+})
 </script>
 
 <template>
@@ -115,6 +123,7 @@ const handleSubmit = () => {
             class="form-control"
             placeholder="Email"
             :disabled="showPasswordForm || showGoogle"
+            ref="emailRef"
             required
           />
         </div>
@@ -139,6 +148,7 @@ const handleSubmit = () => {
               v-model="password"
               class="form-control"
               placeholder="Nhập mật khẩu"
+              ref="passwordRef"
               required
             />
 
@@ -196,7 +206,7 @@ const handleSubmit = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: url('@/assets/images/anh1.jpg') no-repeat center/cover;
+  background: url('@/assets/images/background.jpg') no-repeat center/cover;
 }
 
 .login-card {

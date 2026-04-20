@@ -22,6 +22,10 @@
             <th>#</th>
             <th>Email</th>
             <th>Tên</th>
+            <th>Số Điện Thoại</th>
+            <th>Địa Chỉ</th>
+            <th>Sinh Nhật</th>
+            <th>Quyền Hạn</th>
             <th>Trạng thái</th>
             <th class="text-end">Hành động</th>
           </tr>
@@ -31,10 +35,16 @@
           <tr v-for="(user, index) in users" :key="user.id">
             <td>{{ index + 1 }}</td>
             <td>{{ user.email }}</td>
-            <td>{{ user.name }}</td>
-
+            <td>{{ user.fullName }}</td>
+            <td>{{ user.phoneNumber }}</td>
+            <td>{{ user.address }}</td>
+            <td>{{ user.dateOfBirth }}</td>
+            <td>{{ user.roleName }}</td>
             <td>
-              <span class="badge bg-success">Active</span>
+      <span
+        :class="user.activeStatus === 'Đã kích hoạt' ? 'badge bg-success' : 'badge bg-secondary'">
+            {{ user.activeStatus === 'Đã kích hoạt' ? 'Active' : 'Inactive' }}
+      </span>
             </td>
 
             <td class="text-end">
@@ -63,13 +73,18 @@ import gatewayUrl from "@/api/authApi"
 type User = {
   id: number
   email: string
-  name: string
+  fullName: string
+  phoneNumber: string
+  address: string
+  dateOfBirth: string
+  roleName: string
+  activeStatus: string
 }
 
 const users = ref<User[]>([])
 
 onMounted(async () => {
-  const res = await gatewayUrl.get('/api/admin/users')
+  const res = await gatewayUrl.get('/api/admin/getAllUsers')
   users.value = res.data
 })
 </script>

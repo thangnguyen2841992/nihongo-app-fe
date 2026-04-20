@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import gatewayUrl from "@/api/authApi.ts";
 
@@ -16,6 +16,7 @@ const address = ref('')
 const error = ref('')
 const message = ref('')
 const loading = ref(false)
+const emailRef = ref<HTMLInputElement | null>(null)
 
 const loginGoogle = () => {
   if (googleLoading.value) return
@@ -58,6 +59,10 @@ const register = async () => {
     loading.value = false
   }
 }
+onMounted(async () => {
+  await nextTick()
+  emailRef.value?.focus()
+})
 </script>
 
 <template>
@@ -76,7 +81,7 @@ const register = async () => {
         <!-- Email -->
         <div class="mb-3 input-group">
           <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-          <input v-model="email" type="email" class="form-control" placeholder="Email" required>
+          <input v-model="email" type="email" class="form-control" placeholder="Email" required ref="emailRef">
         </div>
 
         <!-- Name -->

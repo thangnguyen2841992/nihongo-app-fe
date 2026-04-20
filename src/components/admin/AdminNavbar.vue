@@ -12,14 +12,15 @@
           {{ name }}
         </span>
 
-        <a href="http://localhost:8082/api/auth/logout"
+        <a @click="logout"
+           title="Đăng Xuất"
            class="btn btn-outline-light btn-sm">
           <i class="bi bi-box-arrow-right"></i>
         </a>
       </div>
 
       <div v-else>
-        <a href="http://localhost:8082/api/auth/login"
+        <a @click="router.push('/login')"
            class="btn btn-warning btn-sm">
           <i class="bi bi-box-arrow-in-right"></i> Login
         </a>
@@ -32,9 +33,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import gatewayUrl from "@/api/authApi"
+import {useRouter} from "vue-router";
 
 const isLoggedIn = ref(false)
 const name = ref('')
+const router = useRouter()
 
 onMounted(async () => {
   try {
@@ -45,4 +48,17 @@ onMounted(async () => {
     isLoggedIn.value = false
   }
 })
+
+const logout = async () => {
+
+  try {
+    await gatewayUrl.get('/api/auth/logout', {
+      withCredentials: true // 🔥 QUAN TRỌNG (cookie)
+    })
+
+    await router.replace('/login') // 🔥 dùng replace thay vì push
+  } catch (e) {
+    console.error('Logout error', e)
+  }
+}
 </script>
