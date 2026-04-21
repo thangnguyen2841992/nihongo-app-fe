@@ -43,7 +43,8 @@ const register = async () => {
       firstName: firstName.value,
       lastName: lastName.value,
       dateOfBirth: birthday.value,
-      address: address.value
+      address: address.value,
+      roleName: 'USER'
     })
 
     sessionStorage.setItem('email-register', res.data.email)

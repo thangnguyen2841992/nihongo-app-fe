@@ -14,7 +14,7 @@ const router = useRouter()
 const logout = async () => {
 
   try {
-    await gatewayUrl.get('/api/auth/logout', {
+    await gatewayUrl.post('/api/auth/logout', {
       withCredentials: true // 🔥 QUAN TRỌNG (cookie)
     })
 

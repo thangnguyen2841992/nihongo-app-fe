@@ -5,18 +5,6 @@ const gatewayUrl = axios.create({
   withCredentials: true
 })
 
-// 🔥 REQUEST: luôn gắn token nếu có
-gatewayUrl.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token')
-
-  // ❗ không gắn token cho refresh
-  if (token && !config.url?.includes('/api/auth/refresh')) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-
-  return config
-})
-
 let isRefreshing = false
 let pendingRequests: any[] = []
 
