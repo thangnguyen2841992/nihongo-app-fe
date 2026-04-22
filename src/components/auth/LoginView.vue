@@ -2,6 +2,7 @@
 import gatewayUrl from "@/api/authApi"
 import {useRouter} from "vue-router";
 import { ref, nextTick, onMounted } from 'vue'
+import {setAuth} from "@/services/useAuth.ts";
 
 // state
 const email = ref('')
@@ -67,6 +68,9 @@ const login = async () => {
       password: password.value
     })
 
+    // 🔥 QUAN TRỌNG: kích hoạt auth system
+    setAuth()
+
     // 2. Gọi checkLogin để lấy role
     const res = await gatewayUrl.get('/api/auth/checkLogin')
 
@@ -88,7 +92,6 @@ const login = async () => {
     error.value = 'Sai tài khoản hoặc mật khẩu'
   }
 }
-
 // submit bằng Enter
 const handleSubmit = () => {
   if (!showPasswordForm.value && !showGoogle.value) {

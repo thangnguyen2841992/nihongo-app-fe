@@ -1,3 +1,6 @@
+// 🔥 PHẢI nằm trên cùng file, trước mọi import
+;(window as any).global = window
+
 import './assets/main.css'
 
 import { createApp } from 'vue'

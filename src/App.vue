@@ -1,24 +1,12 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
-import {onMounted} from "vue";
-import gatewayUrl from "@/api/authApi.ts";
-import {connectWebSocket} from "@/services/ws.ts";
+import { onMounted } from 'vue'
+import { initAuth } from '@/services/useAuth'
 
-onMounted(async () => {
-  const res = await gatewayUrl.get('/api/auth/checkLogin')
-
-  if (res.data.isLoggedIn) {
-    connectWebSocket()
-  }
+onMounted(() => {
+  initAuth()
 })
 </script>
 
 <template>
   <RouterView />
 </template>
-
-<style>
-body {
-  margin: 0;
-}
-</style>
