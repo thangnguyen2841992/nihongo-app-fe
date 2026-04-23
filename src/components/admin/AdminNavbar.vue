@@ -37,6 +37,7 @@ import {useRouter} from "vue-router";
 
 const isLoggedIn = ref(false)
 const name = ref('')
+const email = ref('')
 const router = useRouter()
 
 onMounted(async () => {
@@ -44,6 +45,7 @@ onMounted(async () => {
     const res = await gatewayUrl.get('/api/admin/home')
     isLoggedIn.value = true
     name.value = res.data.name
+    email.value = res.data.email
   } catch {
     isLoggedIn.value = false
   }
@@ -53,7 +55,8 @@ const logout = async () => {
 
   try {
     await gatewayUrl.post('/api/auth/logout', {
-      withCredentials: true // 🔥 QUAN TRỌNG (cookie)
+      withCredentials: true,
+      email: email.value
     })
 
     await router.replace('/login') // 🔥 dùng replace thay vì push

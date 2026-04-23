@@ -139,7 +139,6 @@ export const initAuth = async () => {
       connectWebSocket()
       startPolling()
     } else {
-      // ❌ KHÔNG logout ở đây
       isAuthenticated.value = false
     }
   } catch {

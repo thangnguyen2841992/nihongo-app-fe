@@ -4,13 +4,11 @@ import Navbar from '@/components/Navbar.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import gatewayUrl from "@/api/authApi.ts";
 
-const isLoggedIn = ref<boolean>(
-  localStorage.getItem('isLoggedIn') === 'true'
-)
+const isLoggedIn = ref<boolean>(false)
 
-const name = ref<string>(
-  localStorage.getItem('name') || ''
-)
+const name = ref<string>('')
+
+const email = ref<string>('')
 
 // 👉 gọi API chỉ để sync lại (không ảnh hưởng UI ban đầu)
 onMounted(async () => {
@@ -21,14 +19,9 @@ onMounted(async () => {
 
     isLoggedIn.value = res.data.isLoggedIn
     name.value = res.data.name || ''
-
-    // sync lại localStorage
-    localStorage.setItem('isLoggedIn', String(res.data.isLoggedIn))
-    localStorage.setItem('name', res.data.name || '')
+    email.value = res.data.email
   } catch (e) {
     isLoggedIn.value = false
-    localStorage.removeItem('isLoggedIn')
-    localStorage.removeItem('name')
   }
 })
 
@@ -40,6 +33,7 @@ const toggleSidebar = () => isOpen.value = !isOpen.value
   <Navbar
     :isLoggedIn="isLoggedIn"
     :name="name"
+    :email="email"
     @toggle="toggleSidebar"
   />
 

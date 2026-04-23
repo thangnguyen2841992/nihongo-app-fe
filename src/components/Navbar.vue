@@ -2,9 +2,10 @@
 import {useRouter} from "vue-router";
 import gatewayUrl from "@/api/authApi.ts";
 
-defineProps<{
+const props = defineProps<{
   isLoggedIn: boolean
   name: string
+  email: string
 }>()
 
 const emit = defineEmits(['toggle'])
@@ -15,7 +16,8 @@ const logout = async () => {
 
   try {
     await gatewayUrl.post('/api/auth/logout', {
-      withCredentials: true // 🔥 QUAN TRỌNG (cookie)
+      withCredentials: true,
+      email: props.email
     })
 
     await router.replace('/login') // 🔥 dùng replace thay vì push
