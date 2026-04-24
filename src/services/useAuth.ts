@@ -1,28 +1,31 @@
 import { ref } from 'vue'
 import gatewayUrl from '@/api/authApi'
-import { Client } from '@stomp/stompjs'
+import { wsService } from '@/services/websocketService'
 
-// 🔥 tránh lỗi global
-// @ts-ignore
-import SockJS from 'sockjs-client/dist/sockjs'
-
+// ======================
+// 🔥 STATE
+// ======================
 const isAuthenticated = ref(false)
 
 let pollingTimer: any = null
 let isChecking = false
 let interceptorInitialized = false
 
-let stompClient: Client | null = null
-
 // ======================
 // 🔥 LOGOUT
 // ======================
-export const logout = () => {
-  localStorage.removeItem('access_token')
+export const logout = async () => {
+  try {
+    // 🔥 gọi BE để clear cookie (nếu có)
+    await gatewayUrl.post('/api/auth/logout')
+  } catch (e) {
+    // ignore lỗi
+  }
+
   isAuthenticated.value = false
 
   stopPolling()
-  disconnectWebSocket()
+  wsService.disconnect()
 
   // ❗ tránh loop login
   if (window.location.pathname !== '/login') {
@@ -79,52 +82,6 @@ const stopPolling = () => {
 }
 
 // ======================
-// 🔥 WEBSOCKET
-// ======================
-const connectWebSocket = () => {
-  if (stompClient?.active) return
-
-  stompClient = new Client({
-    webSocketFactory: () => new SockJS('http://localhost:8081/ws'),
-    reconnectDelay: 5000,
-
-    onConnect: () => {
-      console.log('✅ WS connected')
-
-      stompClient?.subscribe('/user/queue/logout', (msg) => {
-        try {
-          const data = JSON.parse(msg.body)
-
-          if (data.type === 'FORCE_LOGOUT') {
-            console.log('🔥 Force logout received')
-            logout()
-          }
-        } catch {
-          logout()
-        }
-      })
-    },
-
-    onStompError: (frame) => {
-      console.error('❌ Broker error:', frame.headers['message'])
-    },
-
-    onWebSocketError: (err) => {
-      console.error('❌ WS error', err)
-    }
-  })
-
-  stompClient.activate()
-}
-
-const disconnectWebSocket = () => {
-  if (stompClient?.active) {
-    stompClient.deactivate()
-    stompClient = null
-  }
-}
-
-// ======================
 // 🔥 INIT AUTH
 // ======================
 export const initAuth = async () => {
@@ -136,7 +93,12 @@ export const initAuth = async () => {
     if (res.data.isLoggedIn) {
       isAuthenticated.value = true
 
-      connectWebSocket()
+      // 🔥 connect WS (chỉ emit event, không tự logout)
+      wsService.connect(() => {
+        console.log('🔥 Force logout received from WS')
+        logout()
+      })
+
       startPolling()
     } else {
       isAuthenticated.value = false
@@ -152,10 +114,17 @@ export const initAuth = async () => {
 export const setAuth = () => {
   isAuthenticated.value = true
 
-  connectWebSocket()
+  wsService.connect(() => {
+    console.log('🔥 Force logout received from WS')
+    logout()
+  })
+
   startPolling()
 }
 
+// ======================
+// 🔥 EXPORT STATE
+// ======================
 export const useAuthState = () => ({
   isAuthenticated
 })
