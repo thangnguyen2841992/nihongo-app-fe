@@ -10,7 +10,6 @@ const name = ref<string>('')
 
 const email = ref<string>('')
 
-// 👉 gọi API chỉ để sync lại (không ảnh hưởng UI ban đầu)
 onMounted(async () => {
   try {
     const res = await gatewayUrl.get('/api/auth/checkLogin', {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import gatewayUrl from "@/api/authApi"
 import {useRouter} from "vue-router";
-import { ref, nextTick, onMounted } from 'vue'
+import {ref, nextTick, onMounted} from 'vue'
 import {setAuth} from "@/services/useAuth.ts";
 
 // state
@@ -21,7 +21,6 @@ const emailRef = ref<HTMLInputElement | null>(null)
 const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
-
 
 
 const loginGoogle = () => {
@@ -48,7 +47,6 @@ const checkEmail = async () => {
       showGoogle.value = true
     } else if (type === 'LOCAL') {
       showPasswordForm.value = true
-      // 👇 đợi DOM render rồi mới focus
       await nextTick()
       passwordRef.value?.focus()
     } else {
@@ -81,9 +79,10 @@ const login = async () => {
 
     const role = res.data.role
 
-    // 3. Điều hướng theo role
     if (role === 'ADMIN') {
       await router.push('/admin')
+    } else if (role === 'STAFF') {
+      await router.push('/staff')
     } else {
       await router.push('/')
     }
@@ -176,10 +175,14 @@ onMounted(async () => {
         <span v-if="googleLoading" class="spinner"></span>
 
         <svg v-else width="20" height="20" viewBox="0 0 48 48">
-          <path fill="#EA4335" d="M24 9.5c3.54 0 6.7 1.22 9.2 3.6l6.85-6.85C35.9 2.4 30.4 0 24 0 14.6 0 6.4 5.4 2.6 13.3l8 6.2C12.4 13.3 17.7 9.5 24 9.5z"/>
-          <path fill="#4285F4" d="M46.1 24.5c0-1.6-.15-3.1-.4-4.5H24v9h12.5c-.54 2.9-2.2 5.4-4.7 7.1l7.3 5.7c4.3-4 7-9.9 7-17.3z"/>
-          <path fill="#FBBC05" d="M10.6 28.5c-1-2.9-1-6.1 0-9l-8-6.2C.9 17.2 0 20.5 0 24s.9 6.8 2.6 10.7l8-6.2z"/>
-          <path fill="#34A853" d="M24 48c6.4 0 11.9-2.1 15.9-5.7l-7.3-5.7c-2 1.4-4.6 2.2-8.6 2.2-6.3 0-11.6-3.8-13.4-9.2l-8 6.2C6.4 42.6 14.6 48 24 48z"/>
+          <path fill="#EA4335"
+                d="M24 9.5c3.54 0 6.7 1.22 9.2 3.6l6.85-6.85C35.9 2.4 30.4 0 24 0 14.6 0 6.4 5.4 2.6 13.3l8 6.2C12.4 13.3 17.7 9.5 24 9.5z"/>
+          <path fill="#4285F4"
+                d="M46.1 24.5c0-1.6-.15-3.1-.4-4.5H24v9h12.5c-.54 2.9-2.2 5.4-4.7 7.1l7.3 5.7c4.3-4 7-9.9 7-17.3z"/>
+          <path fill="#FBBC05"
+                d="M10.6 28.5c-1-2.9-1-6.1 0-9l-8-6.2C.9 17.2 0 20.5 0 24s.9 6.8 2.6 10.7l8-6.2z"/>
+          <path fill="#34A853"
+                d="M24 48c6.4 0 11.9-2.1 15.9-5.7l-7.3-5.7c-2 1.4-4.6 2.2-8.6 2.2-6.3 0-11.6-3.8-13.4-9.2l-8 6.2C6.4 42.6 14.6 48 24 48z"/>
         </svg>
 
         <span>
@@ -309,6 +312,7 @@ onMounted(async () => {
   transform: translateY(-1px);
   box-shadow: 0 6px 14px rgba(34, 197, 94, 0.4);
 }
+
 .btn-google {
   display: flex;
   align-items: center;
@@ -331,7 +335,7 @@ onMounted(async () => {
 .btn-google:hover {
   background: #f8f9fa;
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
 }
 
 .btn-google:active {
@@ -349,7 +353,7 @@ onMounted(async () => {
 .spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(0,0,0,0.2);
+  border: 2px solid rgba(0, 0, 0, 0.2);
   border-top: 2px solid #444;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;

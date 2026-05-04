@@ -14,6 +14,8 @@ import ActiveFailed from '@/components/auth/ActiveFailed.vue'
 import RegisterView from "@/components/auth/RegisterView.vue";
 import AdminHome from "@/components/admin/Admin-home.vue";
 import AdminLayout from "@/components/admin/AdminLayout.vue";
+import StaffLayout from "@/components/staff/StaffLayout.vue";
+import StaffHome from "@/components/staff/StaffHome.vue";
 
 const routes = [
   // 🔥 layout chính
@@ -70,6 +72,17 @@ const routes = [
       {
         path: 'admin-home',
         component: () => import('@/components/admin/Admin-home.vue')
+      }
+    ]
+  },
+  // STAFF
+  {
+    path: '/staff',
+    component: StaffLayout,
+    children: [
+      {
+        path: '',
+        component: StaffHome
       }
     ]
   }
