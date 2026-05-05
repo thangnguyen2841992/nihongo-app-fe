@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
+import {onMounted, ref} from "vue"
 import axios from "axios"
+import gatewayUrl from "@/api/authApi.ts";
 
 const emit = defineEmits(["close", "created"])
+interface Type {
+  id: number
+  name: string
+}
 
-const types = ref([])
-const levels = ref([])
+interface Level {
+  id: number
+  name: string
+}
+const types = ref<Type[]>([])
+const levels = ref<Level[]>([])
 
 const loading = ref(false)
 
@@ -18,8 +27,8 @@ const form = ref({
 
 onMounted(async () => {
   const [t, l] = await Promise.all([
-    axios.get("http://localhost:8080/api/staff/types"),
-    axios.get("http://localhost:8080/api/staff/levels")
+    gatewayUrl.get("/api/staff/types"),
+    gatewayUrl.get("/api/staff/levels")
   ])
 
   types.value = t.data
