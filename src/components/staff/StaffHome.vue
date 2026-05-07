@@ -1,8 +1,8 @@
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
-import axios from "axios"
+import {onMounted, ref} from "vue"
 import CreateBookModal from "@/components/staff/CreateBookModal.vue";
+import gatewayUrl from "@/api/authApi.ts";
 
 interface Book {
   id: number
@@ -19,7 +19,7 @@ const books = ref<Book[]>([])
 const showModal = ref(false)
 
 const fetchBooks = async () => {
-  const res = await axios.get("http://localhost:8082/api/staff/books")
+  const res = await gatewayUrl.get("/api/staff/books")
   books.value = res.data
 }
 

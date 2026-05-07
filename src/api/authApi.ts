@@ -1,4 +1,5 @@
 import axios from 'axios'
+import router from "@/router";
 
 const gatewayUrl = axios.create({
   baseURL: 'http://localhost:8082',
@@ -21,27 +22,35 @@ const processQueue = (error: any = null, token: string | null = null) => {
 
 gatewayUrl.interceptors.response.use(
   res => res,
+
   async (error) => {
+
     const originalRequest = error.config
 
     if (!error.response) {
       return Promise.reject(error)
     }
 
-    // ❗ nếu refresh fail → logout
-    if (originalRequest.url.includes('/api/auth/refresh')) {
-      window.location.href = '/login'
+    const url = originalRequest.url || ''
+
+    // ✅ bỏ qua auth APIs
+    if (url.includes('/api/auth')) {
       return Promise.reject(error)
     }
 
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (
+      error.response.status === 401 &&
+      !originalRequest._retry
+    ) {
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
+
           pendingRequests.push({
             resolve: () => resolve(gatewayUrl(originalRequest)),
             reject
           })
+
         })
       }
 
@@ -49,7 +58,7 @@ gatewayUrl.interceptors.response.use(
       isRefreshing = true
 
       try {
-        // 🔥 chỉ cần gọi refresh → cookie tự gửi
+
         await gatewayUrl.post('/api/auth/refresh')
 
         processQueue(null)
@@ -57,12 +66,15 @@ gatewayUrl.interceptors.response.use(
         return gatewayUrl(originalRequest)
 
       } catch (err) {
+
         processQueue(err)
 
-        window.location.href = '/login'
+        await router.push('/login')
+
         return Promise.reject(err)
 
       } finally {
+
         isRefreshing = false
       }
     }
