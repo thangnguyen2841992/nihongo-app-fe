@@ -1,4 +1,15 @@
 <script setup lang="ts">
+import {logout} from "@/services/useAuth.ts";
+import router from "@/router";
+
+const handleLogout = async () => {
+  try {
+    await logout();
+    await router.replace('/login') // 🔥 dùng replace thay vì push
+  } catch (e) {
+    console.error('Logout error', e)
+  }
+}
 </script>
 
 <template>
@@ -22,7 +33,7 @@
 
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item">Profile</a></li>
-            <li><a class="dropdown-item text-danger">Logout</a></li>
+            <li @click="handleLogout"><a class="dropdown-item text-danger">Logout</a></li>
           </ul>
         </div>
 

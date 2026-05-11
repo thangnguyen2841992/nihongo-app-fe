@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import gatewayUrl from "@/api/authApi"
 import {useRouter} from "vue-router";
-import {ref, nextTick, onMounted} from 'vue'
+import {nextTick, onMounted, ref} from 'vue'
 import {setAuth} from "@/services/useAuth.ts";
 
 // state
@@ -24,17 +24,39 @@ const togglePassword = () => {
 
 
 const loginGoogle = () => {
+
   if (googleLoading.value) return
 
   googleLoading.value = true
 
-  window.location.href =
-    'http://localhost:8180/realms/nihongo/protocol/openid-connect/auth' +
+  // ✅ session riêng cho tab
+  let sessionId =
+    sessionStorage.getItem('sessionId')
+
+  if (!sessionId) {
+
+    sessionId = crypto.randomUUID()
+
+    sessionStorage.setItem(
+      'sessionId',
+      sessionId
+    )
+  }
+
+  window.location.href = 'http://localhost:8180/realms/nihongo/protocol/openid-connect/auth' +
+
     '?client_id=japanese_app' +
+
     '&response_type=code' +
+
     '&scope=openid%20email%20profile' +
+
     '&redirect_uri=http://localhost:8082/api/auth/callbackGoogle' +
-    '&kc_idp_hint=google'
+
+    '&kc_idp_hint=google' +
+
+    // ✅ QUAN TRỌNG
+    '&state=' + encodeURIComponent(sessionId)
 }
 
 // check email
@@ -59,17 +81,27 @@ const checkEmail = async () => {
 
 // login
 const login = async () => {
+
   error.value = ''
+
   try {
+
+    // ✅ tạo sessionId riêng cho tab
+    let sessionId = sessionStorage.getItem('sessionId')
+
+    if (!sessionId) {
+      sessionId = crypto.randomUUID()
+      sessionStorage.setItem('sessionId', sessionId)
+    }
+
+    // ✅ login
     await gatewayUrl.post('/api/auth/login', {
       email: email.value,
-      password: password.value
+      password: password.value,
+      sessionId: sessionId
     })
 
-    // 🔥 QUAN TRỌNG: kích hoạt auth system
-    setAuth()
-
-    // 2. Gọi checkLogin để lấy role
+    // ✅ lấy thông tin user
     const res = await gatewayUrl.get('/api/auth/checkLogin')
 
     if (!res.data.isLoggedIn) {
@@ -77,18 +109,35 @@ const login = async () => {
       return
     }
 
+    // ✅ bật auth system + websocket
+    setAuth()
+
     const role = res.data.role
 
+    // ✅ redirect theo role
     if (role === 'ADMIN') {
+
       await router.push('/admin')
+
     } else if (role === 'STAFF') {
+
       await router.push('/staff')
+
     } else {
+
       await router.push('/')
+
     }
 
-  } catch (e) {
-    error.value = 'Sai tài khoản hoặc mật khẩu'
+  } catch (e: any) {
+
+    console.error(e)
+
+    if (e.response?.status === 401) {
+      error.value = 'Sai tài khoản hoặc mật khẩu'
+    } else {
+      error.value = 'Có lỗi xảy ra'
+    }
   }
 }
 // submit bằng Enter

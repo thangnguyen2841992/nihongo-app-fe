@@ -12,7 +12,7 @@
           {{ name }}
         </span>
 
-        <a @click="logout"
+        <a @click="handleLogout"
            title="Đăng Xuất"
            class="btn btn-outline-light btn-sm">
           <i class="bi bi-box-arrow-right"></i>
@@ -34,6 +34,7 @@
 import { ref, onMounted } from 'vue'
 import gatewayUrl from "@/api/authApi"
 import {useRouter} from "vue-router";
+import {logout} from "@/services/useAuth.ts";
 
 const isLoggedIn = ref(false)
 const name = ref('')
@@ -51,14 +52,9 @@ onMounted(async () => {
   }
 })
 
-const logout = async () => {
-
+const handleLogout = async () => {
   try {
-    await gatewayUrl.post('/api/auth/logout', {
-      withCredentials: true,
-      email: email.value
-    })
-
+    await logout();
     await router.replace('/login') // 🔥 dùng replace thay vì push
   } catch (e) {
     console.error('Logout error', e)

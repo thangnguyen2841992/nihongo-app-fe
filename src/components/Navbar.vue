@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {useRouter} from "vue-router";
 import gatewayUrl from "@/api/authApi.ts";
+import {logout} from "@/services/useAuth.ts";
 
 const props = defineProps<{
   isLoggedIn: boolean
@@ -12,17 +13,13 @@ const emit = defineEmits(['toggle'])
 
 const router = useRouter()
 
-const logout = async () => {
+const handleLogout  = async () => {
 
   try {
-    await gatewayUrl.post('/api/auth/logout', {
-      withCredentials: true,
-      email: props.email
-    })
-
-    await router.replace('/login') // 🔥 dùng replace thay vì push
+    await logout();
+    await router.replace('/login');
   } catch (e) {
-    console.error('Logout error', e)
+    console.error('Logout error', e);
   }
 }
 </script>
@@ -45,7 +42,7 @@ const logout = async () => {
       <!-- đã đăng nhập -->
       <span v-else-if="isLoggedIn">
     Xin chào, <b>{{ name }}</b>
-    <button @click="logout" class="btn btn-outline-danger btn-sm ms-2">
+    <button @click="handleLogout" class="btn btn-outline-danger btn-sm ms-2">
       Logout
     </button>
   </span>

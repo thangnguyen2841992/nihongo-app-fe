@@ -5,34 +5,55 @@ import gatewayUrl from "@/api/authApi.ts";
 
 const emit = defineEmits(["close", "created"])
 interface Type {
-  id: number
-  name: string
+  typeId: number
+  typeName: string
 }
 
 interface Level {
-  id: number
-  name: string
+  levelId: number
+  levelName: string
 }
 const types = ref<Type[]>([])
 const levels = ref<Level[]>([])
 
 const loading = ref(false)
 
-const form = ref({
+const form = ref<{
+  bookName: string
+  typeId: number | null
+  levelId: number | null
+  urls: string
+}>({
+
   bookName: "",
+
   typeId: null,
+
   levelId: null,
+
   urls: ""
 })
 
 onMounted(async () => {
+
   const [t, l] = await Promise.all([
-    gatewayUrl.get("/api/staff/types"),
-    gatewayUrl.get("/api/staff/levels")
+    gatewayUrl.get('/api/staff/types'),
+    gatewayUrl.get('/api/staff/levels')
   ])
 
   types.value = t.data
   levels.value = l.data
+
+  // ✅ chọn record cuối cùng
+  if (types.value.length > 0) {
+    form.value.typeId =
+      types.value[types.value.length - 1]?.typeId ?? null
+  }
+
+  if (levels.value.length > 0) {
+    form.value.levelId =
+      levels.value[levels.value.length - 1]?.levelId ?? null
+  }
 })
 
 const submit = async () => {
@@ -81,9 +102,8 @@ const submit = async () => {
           <div class="mb-3">
             <label class="form-label">Type</label>
             <select v-model="form.typeId" class="form-select">
-              <option :value="null">Select type</option>
-              <option v-for="t in types" :key="t.id" :value="t.id">
-                {{ t.name }}
+              <option v-for="t in types" :key="t.typeId" :value="t.typeId">
+                {{ t.typeName }}
               </option>
             </select>
           </div>
@@ -91,9 +111,8 @@ const submit = async () => {
           <div class="mb-3">
             <label class="form-label">Level</label>
             <select v-model="form.levelId" class="form-select">
-              <option :value="null">Select level</option>
-              <option v-for="l in levels" :key="l.id" :value="l.id">
-                {{ l.name }}
+              <option v-for="l in levels" :key="l.levelId" :value="l.levelId">
+                {{ l.levelName }}
               </option>
             </select>
           </div>

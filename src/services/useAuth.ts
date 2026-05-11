@@ -1,6 +1,6 @@
-import { ref } from 'vue'
+import {ref} from 'vue'
 import gatewayUrl from '@/api/authApi'
-import { wsService } from '@/services/websocketService'
+import {wsService} from '@/services/websocketService'
 
 // ======================
 // 🔥 STATE
@@ -16,18 +16,23 @@ let interceptorInitialized = false
 // ======================
 export const logout = async () => {
   try {
-    // 🔥 gọi BE để clear cookie (nếu có)
-    await gatewayUrl.post('/api/auth/logout')
+    const sessionId =
+      sessionStorage.getItem('sessionId')
+    await gatewayUrl.post('/api/auth/logout',
+      {
+        sessionId: sessionId
+      }
+    )
   } catch (e) {
-    // ignore lỗi
+    console.log(e)
   }
 
   isAuthenticated.value = false
 
   stopPolling()
   wsService.disconnect()
+  sessionStorage.removeItem('sessionId')
 
-  // ❗ tránh loop login
   if (window.location.pathname !== '/login') {
     window.location.href = '/login'
   }
@@ -92,12 +97,30 @@ export const initAuth = async () => {
 
     if (res.data.isLoggedIn) {
       isAuthenticated.value = true
+      // ✅ lấy sessionId current tab
+      let sessionId =
+        sessionStorage.getItem('sessionId')
+
+      // ✅ nếu chưa có -> tạo mới
+      if (!sessionId) {
+
+        sessionId = crypto.randomUUID()
+
+        sessionStorage.setItem(
+          'sessionId',
+          sessionId
+        )
+      }
+
 
       // 🔥 connect WS (chỉ emit event, không tự logout)
-      wsService.connect(() => {
-        console.log('🔥 Force logout received from WS')
-        logout()
-      })
+      wsService.connect(
+        sessionId,
+        () => {
+          console.log('🔥 Force logout received from WS')
+          logout();
+        }
+      )
 
       startPolling()
     } else {
@@ -112,11 +135,17 @@ export const initAuth = async () => {
 // 🔥 SET AUTH (sau login)
 // ======================
 export const setAuth = () => {
+
   isAuthenticated.value = true
 
-  wsService.connect(() => {
+  const sessionId = sessionStorage.getItem('sessionId')
+
+  wsService.connect(sessionId!, () => {
+
     console.log('🔥 Force logout received from WS')
+
     logout()
+
   })
 
   startPolling()
