@@ -70,9 +70,13 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
-/* =========================
-   ZOOM
-========================= */
+const handleCloseModalImage = async () => {
+  emit("close")
+  if (document.fullscreenElement) {
+    await document.exitFullscreen()
+    isFullscreen.value = false
+  }
+}
 
 const scale = ref(1)
 
@@ -182,7 +186,7 @@ onBeforeUnmount(() => {
 
             <button
               class="close-btn"
-              @click="emit('close')"
+              @click="handleCloseModalImage"
             >
               ✕
             </button>
@@ -268,7 +272,7 @@ onBeforeUnmount(() => {
   position: fixed;
   inset: 0;
 
-  background: rgba(0,0,0,0.92);
+  background: rgba(0, 0, 0, 0.92);
 
   display: flex;
   justify-content: center;
@@ -306,7 +310,7 @@ onBeforeUnmount(() => {
 }
 
 .counter-badge {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
 
   color: white;
 
@@ -333,7 +337,7 @@ onBeforeUnmount(() => {
   border: none;
   border-radius: 50%;
 
-  background: rgba(255,255,255,0.14);
+  background: rgba(255, 255, 255, 0.14);
 
   color: white;
 
@@ -347,7 +351,7 @@ onBeforeUnmount(() => {
 
 .icon-btn:hover,
 .close-btn:hover {
-  background: rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.25);
   transform: scale(1.08);
 }
 
@@ -379,9 +383,8 @@ onBeforeUnmount(() => {
 
   border-radius: 14px;
 
-  transition:
-    transform 0.25s ease,
-    opacity 0.25s ease;
+  transition: transform 0.25s ease,
+  opacity 0.25s ease;
 
   user-select: none;
 }
@@ -402,7 +405,7 @@ onBeforeUnmount(() => {
   border: none;
   border-radius: 50%;
 
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
 
   color: white;
 
@@ -419,7 +422,7 @@ onBeforeUnmount(() => {
 }
 
 .side-btn:hover:not(:disabled) {
-  background: rgba(255,255,255,0.3);
+  background: rgba(255, 255, 255, 0.3);
   transform: translateY(-50%) scale(1.08);
 }
 
@@ -454,7 +457,7 @@ onBeforeUnmount(() => {
 }
 
 .thumbnail-list::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.25);
   border-radius: 999px;
 }
 
@@ -488,8 +491,7 @@ onBeforeUnmount(() => {
 
   transform: scale(1.06);
 
-  box-shadow:
-    0 0 16px rgba(13,110,253,0.6);
+  box-shadow: 0 0 16px rgba(13, 110, 253, 0.6);
 }
 
 /* =========================
@@ -499,7 +501,7 @@ onBeforeUnmount(() => {
 .helper-text {
   text-align: center;
 
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
 
   font-size: 14px;
 
