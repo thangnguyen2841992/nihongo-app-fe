@@ -2,10 +2,6 @@ import { ref } from 'vue'
 import gatewayUrl from '@/api/authApi'
 import { wsService } from '@/services/websocketService'
 
-// ======================
-// 🔥 STATE
-// ======================
-
 const isAuthenticated = ref(false)
 
 const userName = ref('')
@@ -15,10 +11,6 @@ const userRole = ref('')
 let pollingTimer: any = null
 let isChecking = false
 let interceptorInitialized = false
-
-// ======================
-// 🔥 LOGOUT
-// ======================
 
 export const logout = async () => {
 
@@ -59,10 +51,6 @@ export const logout = async () => {
   }
 }
 
-// ======================
-// 🔥 INTERCEPTOR
-// ======================
-
 const initInterceptor = () => {
 
   if (interceptorInitialized) return
@@ -86,10 +74,6 @@ const initInterceptor = () => {
     }
   )
 }
-
-// ======================
-// 🔥 POLLING
-// ======================
 
 const startPolling = () => {
 
@@ -143,10 +127,6 @@ const stopPolling = () => {
 
   }
 }
-
-// ======================
-// 🔥 INIT AUTH
-// ======================
 
 export const initAuth = async () => {
 
@@ -205,10 +185,6 @@ export const initAuth = async () => {
   }
 }
 
-// ======================
-// 🔥 SET AUTH
-// ======================
-
 export const setAuth = async () => {
 
   const res =
@@ -240,14 +216,8 @@ export const setAuth = async () => {
   startPolling()
 }
 
-// ======================
-// 🔥 EXPORT
-// ======================
-
 export const useAuthState = () => ({
-
   isAuthenticated,
-
   userName,
   userEmail,
   userRole
