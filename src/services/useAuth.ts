@@ -1,6 +1,6 @@
-import { ref } from 'vue'
+import {ref} from 'vue'
 import gatewayUrl from '@/api/authApi'
-import { wsService } from '@/services/websocketService'
+import {wsService} from '@/services/websocketService'
 
 const isAuthenticated = ref(false)
 
@@ -58,7 +58,6 @@ const initInterceptor = () => {
   interceptorInitialized = true
 
   gatewayUrl.interceptors.response.use(
-
     res => res,
 
     err => {
@@ -103,9 +102,7 @@ const startPolling = () => {
     } catch (err: any) {
 
       if (err.response?.status === 401) {
-
-        logout()
-
+        await logout()
       }
 
     } finally {

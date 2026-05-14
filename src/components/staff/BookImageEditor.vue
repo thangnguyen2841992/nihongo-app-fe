@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {ref, watch} from "vue"
+import { ref, watch } from "vue"
 import axios from "axios"
-import gatewayUrl from "@/api/authApi.ts";
+import gatewayUrl from "@/api/authApi.ts"
 
 interface ImageDTO {
   imageId: number
@@ -13,35 +13,52 @@ const props = defineProps<{
   images: ImageDTO[]
 }>()
 
-const originalImages =
-  ref<ImageDTO[]>([])
-
 const emit = defineEmits([
   "update:images"
 ])
 
-const existingImages = ref<ImageDTO[]>([])
+const originalImages =
+  ref<ImageDTO[]>([])
 
-const newFiles = ref<File[]>([])
+const existingImages =
+  ref<ImageDTO[]>([])
 
-const uploadedUrls = ref<string[]>([])
+const newFiles =
+  ref<File[]>([])
+
+const uploadedUrls =
+  ref<string[]>([])
 
 const loading = ref(false)
-
 const message = ref("")
-
 
 watch(
   () => props.images,
   (val) => {
+    if (!val) return
+    originalImages.value =
+      val.map(img => ({
+        imageId: img.imageId,
+        imgUrl: img.imgUrl
+      }))
 
-    existingImages.value = [...val]
-
-    originalImages.value = [...val]
-
+    existingImages.value =
+      val.map(img => ({
+        imageId: img.imageId,
+        imgUrl: img.imgUrl
+      }))
   },
-  { immediate: true }
+  {
+    immediate: true,
+    deep: true
+  }
 )
+
+const getPreviewUrl = (
+  file: File
+) => {
+  return window.URL.createObjectURL(file)
+}
 
 const removeExistingImage = (
   imageId: number
@@ -51,10 +68,6 @@ const removeExistingImage = (
     existingImages.value.filter(
       img => img.imageId !== imageId
     )
-  emit(
-    "update:images",
-    existingImages.value
-  )
 }
 
 const handleFiles = (
@@ -66,22 +79,31 @@ const handleFiles = (
 
   if (!target.files) return
 
-  newFiles.value.push(
-    ...Array.from(target.files)
-  )
+  const files =
+    Array.from(target.files)
+
+  newFiles.value.push(...files)
+
+  target.value = ""
 }
+
 
 const removeNewFile = (
   index: number
 ) => {
+
   newFiles.value.splice(index, 1)
 }
+
 
 const uploadFile = async (
   file: File
 ) => {
+
   const formData = new FormData()
+
   formData.append("file", file)
+
   formData.append(
     "upload_preset",
     "nihongo_unsigned"
@@ -95,17 +117,22 @@ const uploadFile = async (
   return res.data.secure_url
 }
 
+
 const uploadAllImages = async () => {
 
   const deletedImageIds =
     originalImages.value
-      .filter(
-        oldImg =>
-          !existingImages.value.some(
+      .filter(oldImg => {
+
+        const exists =
+          existingImages.value.some(
             current =>
-              current.imageId === oldImg.imageId
+              Number(current.imageId) ===
+              Number(oldImg.imageId)
           )
-      )
+
+        return !exists
+      })
       .map(img => img.imageId)
 
   const hasRemovedImages =
@@ -133,20 +160,12 @@ const uploadAllImages = async () => {
 
   try {
 
-    /* =========================
-       UPLOAD CLOUDINARY
-    ========================= */
-
     uploadedUrls.value =
       await Promise.all(
         newFiles.value.map(file =>
           uploadFile(file)
         )
       )
-
-    /* =========================
-       CALL API
-    ========================= */
 
     const res =
       await gatewayUrl.post(
@@ -162,25 +181,31 @@ const uploadAllImages = async () => {
         }
       )
 
-    /* =========================
-       UPDATE UI
-    ========================= */
-
     existingImages.value =
-      res.data
+      res.data.map((img: ImageDTO) => ({
+        imageId: img.imageId,
+        imgUrl: img.imgUrl
+      }))
 
     originalImages.value =
-      [...res.data]
+      res.data.map((img: ImageDTO) => ({
+        imageId: img.imageId,
+        imgUrl: img.imgUrl
+      }))
 
     newFiles.value = []
 
+    uploadedUrls.value = []
+
     emit(
       "update:images",
-      res.data
+      existingImages.value
     )
 
     message.value =
       "Cập nhật hình ảnh thành công"
+
+    alert(message.value)
 
   } catch (e) {
 
@@ -236,7 +261,7 @@ defineExpose({
 
     </div>
 
-    <!-- EXISTING IMAGES -->
+    <!-- CURRENT IMAGES -->
     <div
       v-if="existingImages.length"
       class="mb-4"
@@ -349,7 +374,9 @@ defineExpose({
           class="spinner-border spinner-border-sm me-2"
         ></span>
 
-        Lưu ảnh
+        {{ loading
+        ? "Đang lưu..."
+        : "Lưu ảnh" }}
 
       </button>
 
@@ -361,10 +388,6 @@ defineExpose({
 
 <style scoped>
 
-/* =========================
-   SECTION
-========================= */
-
 .section-title {
   font-weight: 700;
 
@@ -373,22 +396,14 @@ defineExpose({
   color: #374151;
 }
 
-/* =========================
-   GRID
-========================= */
-
 .image-grid {
   display: grid;
 
   grid-template-columns:
-    repeat(auto-fill, minmax(140px, 1fr));
+    repeat(auto-fill, minmax(120px, 1fr));
 
-  gap: 16px;
+  gap: 14px;
 }
-
-/* =========================
-   CARD
-========================= */
 
 .image-card {
   position: relative;
@@ -407,31 +422,25 @@ defineExpose({
 .image-card:hover {
   transform: translateY(-2px);
 
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.08);
 }
-
-/* =========================
-   IMAGE
-========================= */
 
 .preview-image {
   width: 100%;
-  height: 150px;
+  height: 120px;
 
   object-fit: cover;
 
   display: block;
 }
 
-/* =========================
-   OVERLAY
-========================= */
-
 .image-overlay {
   position: absolute;
   inset: 0;
 
-  background: rgba(0, 0, 0, 0.35);
+  background:
+    rgba(0,0,0,0.35);
 
   opacity: 0;
 
@@ -447,13 +456,9 @@ defineExpose({
   opacity: 1;
 }
 
-/* =========================
-   DELETE
-========================= */
-
 .delete-btn {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
 
   border: none;
   border-radius: 50%;
@@ -474,14 +479,11 @@ defineExpose({
   transform: scale(1.08);
 }
 
-/* =========================
-   FILE NAME
-========================= */
 
 .file-name {
-  padding: 10px;
+  padding: 8px;
 
-  font-size: 12px;
+  font-size: 11px;
 
   text-align: center;
 
@@ -492,24 +494,20 @@ defineExpose({
   text-overflow: ellipsis;
 }
 
-/* =========================
-   BADGE
-========================= */
-
 .new-badge {
   position: absolute;
 
-  top: 10px;
-  left: 10px;
+  top: 8px;
+  left: 8px;
 
   background: #198754;
 
   color: white;
 
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
 
-  padding: 4px 10px;
+  padding: 4px 8px;
 
   border-radius: 999px;
 }
