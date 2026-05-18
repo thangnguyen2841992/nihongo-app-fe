@@ -113,14 +113,20 @@ watch(
 const handleUpdate = async () => {
 
   loading.value = true
+
   try {
 
     await gatewayUrl.put(
-      `/api/staff/books/${props.book.bookId}`,
+      "/api/staff/books",
       {
-        bookName: form.value.bookName,
-        typeId: form.value.typeId,
-        levelId: form.value.levelId
+        bookId:
+        props.book.bookId,
+        bookName:
+        form.value.bookName,
+        typeId:
+        form.value.typeId,
+        levelId:
+        form.value.levelId
       }
     )
     emit("updated")

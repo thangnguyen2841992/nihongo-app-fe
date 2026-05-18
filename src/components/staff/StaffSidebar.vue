@@ -103,14 +103,12 @@ onMounted(async () => {
     types.value =
       typeRes.data || []
 
-    /*
-      mặc định mở level
-    */
+
     levels.value.forEach(level => {
 
       expandedLevels.value[
         level.levelId
-        ] = true
+        ] = false
     })
 
   } catch (e) {
@@ -207,7 +205,7 @@ const toggleType = async (
 
     const response =
       await gatewayUrl.get(
-        "/api/staff/books",
+        "/api/staff/getBooksByLevelAndType",
         {
           params: {
             levelId,
