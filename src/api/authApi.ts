@@ -1,5 +1,5 @@
 import axios from 'axios'
-import router from "@/router";
+import router from "@/router"
 
 const gatewayUrl = axios.create({
   baseURL: 'http://localhost:8082',
@@ -7,16 +7,25 @@ const gatewayUrl = axios.create({
 })
 
 let isRefreshing = false
+
 let pendingRequests: any[] = []
 
-const processQueue = (error: any = null, token: string | null = null) => {
+const processQueue = (
+  error: any = null
+) => {
+
   pendingRequests.forEach(p => {
+
     if (error) {
+
       p.reject(error)
+
     } else {
-      p.resolve(token)
+
+      p.resolve()
     }
   })
+
   pendingRequests = []
 }
 
@@ -25,49 +34,93 @@ gatewayUrl.interceptors.response.use(
 
   async (error) => {
 
-    const originalRequest = error.config
+    const originalRequest =
+      error.config
 
     if (!error.response) {
       return Promise.reject(error)
     }
 
-    const url = originalRequest.url || ''
+    const status =
+      error.response.status
 
-    // ✅ bỏ qua auth APIs
-    if (url.includes('/api/auth')) {
+    const url =
+      originalRequest.url || ''
+
+    /* =========================
+       REFRESH TOKEN FAIL
+    ========================= */
+
+    if (
+      url.includes('/api/auth/refresh') &&
+      status === 401
+    ) {
+
+      localStorage.clear()
+
+      await router.push('/login')
+
       return Promise.reject(error)
     }
 
+    /* =========================
+       IGNORE LOGIN API
+    ========================= */
+
     if (
-      error.response.status === 401 &&
+      url.includes('/api/auth/login')
+    ) {
+      return Promise.reject(error)
+    }
+
+    /* =========================
+       HANDLE ACCESS TOKEN EXPIRE
+    ========================= */
+
+    if (
+      status === 401 &&
       !originalRequest._retry
     ) {
 
       if (isRefreshing) {
-        return new Promise((resolve, reject) => {
 
-          pendingRequests.push({
-            resolve: () => resolve(gatewayUrl(originalRequest)),
-            reject
-          })
+        return new Promise(
+          (resolve, reject) => {
 
-        })
+            pendingRequests.push({
+              resolve: () =>
+                resolve(
+                  gatewayUrl(
+                    originalRequest
+                  )
+                ),
+              reject
+            })
+          }
+        )
       }
 
       originalRequest._retry = true
+
       isRefreshing = true
 
       try {
 
-        await gatewayUrl.post('/api/auth/refresh')
+        await gatewayUrl.post(
+          '/api/auth/refresh'
+        )
 
-        processQueue(null)
+        processQueue()
 
-        return gatewayUrl(originalRequest)
+        return gatewayUrl(
+          originalRequest
+        )
 
       } catch (err) {
 
         processQueue(err)
+
+        localStorage.clear()
 
         await router.push('/login')
 

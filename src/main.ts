@@ -2,7 +2,6 @@
 ;(window as any).global = window
 
 import './assets/main.css'
-
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import 'bootstrap/dist/css/bootstrap.min.css'

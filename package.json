@@ -17,6 +17,7 @@
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@fontsource/noto-sans-jp": "^5.2.9",
     "@stomp/stompjs": "^7.3.0",
     "axios": "^1.15.0",
     "bootstrap": "^5.3.8",

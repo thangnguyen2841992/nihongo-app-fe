@@ -1,7 +1,16 @@
 <script setup lang="ts">
-import {ref, watch, onMounted} from "vue"
+import {
+  ref,
+  watch,
+  onMounted
+} from "vue"
+
 import gatewayUrl from "@/api/authApi.ts"
 import BookImageEditor from "@/components/staff/BookImageEditor.vue"
+
+/* =========================
+   INTERFACES
+========================= */
 
 interface ImageDTO {
   imageId: number
@@ -28,6 +37,25 @@ interface Level {
   levelName: string
 }
 
+interface Lesson {
+  lessonId: number
+  bookId: number
+  name: string
+  description: string
+}
+
+interface Grammar {
+  grammarId: number
+  title: string
+  structure: string
+  lessonId: number
+  description: string
+}
+
+/* =========================
+   PROPS
+========================= */
+
 const props = defineProps<{
   book: Book
 }>()
@@ -38,17 +66,122 @@ const emit = defineEmits([
   "updated"
 ])
 
+/* =========================
+   STATE
+========================= */
 
 const isEditing = ref(false)
 const loading = ref(false)
+
 const types = ref<Type[]>([])
 const levels = ref<Level[]>([])
+
+const lessons = ref<Lesson[]>([])
+const loadingLessons = ref(false)
+
+const selectedLesson =
+  ref<Lesson | null>(null)
+
+const grammars = ref<Grammar[]>([])
+
+const loadingGrammars =
+  ref(false)
+
+const grammarLoading =
+  ref(false)
+
+const showCreateGrammar =
+  ref(false)
+
+const editingGrammarId =
+  ref<number | null>(null)
+
+const structureRef =
+  ref<HTMLTextAreaElement | null>(
+    null
+  )
+
+const grammarForm = ref({
+  title: "",
+  structure: "",
+  description: ""
+})
 
 const form = ref({
   bookName: "",
   typeId: null as number | null,
   levelId: null as number | null
 })
+
+/* =========================
+   FORMAT GRAMMAR
+========================= */
+
+const formatGrammar = (
+  text: string
+) => {
+
+  return text.replace(
+    /~~(.*?)~~/g,
+    "<del>$1</del>"
+  )
+}
+
+/* =========================
+   STRIKE TOOL
+========================= */
+
+const wrapWithStrike = () => {
+
+  const textarea =
+    structureRef.value
+
+  if (!textarea) return
+
+  const start =
+    textarea.selectionStart
+
+  const end =
+    textarea.selectionEnd
+
+  // phải bôi đen mới chạy
+  if (start === end) return
+
+  const text =
+    grammarForm.value.structure
+
+  const selectedText =
+    text.substring(start, end)
+
+  // thêm ký tự gạch ngang sau MỖI ký tự
+  const strikeText =
+    Array.from(selectedText)
+      .map(char => char + "̶")
+      .join("")
+
+  // thay đoạn được chọn
+  grammarForm.value.structure =
+    text.substring(0, start) +
+    strikeText +
+    text.substring(end)
+
+  textarea.focus()
+
+  // đưa con trỏ về cuối đoạn vừa sửa
+  requestAnimationFrame(() => {
+
+    const pos =
+      start + strikeText.length
+
+    textarea.setSelectionRange(
+      pos,
+      pos
+    )
+  })
+}
+/* =========================
+   INIT
+========================= */
 
 onMounted(async () => {
 
@@ -68,21 +201,104 @@ onMounted(async () => {
   }
 })
 
+/* =========================
+   FETCH LESSONS
+========================= */
+
+const fetchLessons = async () => {
+
+  if (!props.book?.bookId) return
+
+  loadingLessons.value = true
+
+  try {
+
+    const res = await gatewayUrl.get(
+      "/api/staff/getLessonsByBook",
+      {
+        params: {
+          bookId: props.book.bookId
+        }
+      }
+    )
+
+    lessons.value = res.data
+
+  } catch (e) {
+
+    console.error(e)
+
+  } finally {
+
+    loadingLessons.value = false
+  }
+}
+
+/* =========================
+   FETCH GRAMMARS
+========================= */
+
+const fetchGrammars = async (
+  lessonId: number
+) => {
+
+  loadingGrammars.value = true
+
+  try {
+
+    const res = await gatewayUrl.get(
+      "/api/staff/getAllGrammarByLesson",
+      {
+        params: {
+          lessonId
+        }
+      }
+    )
+
+    grammars.value = res.data
+
+  } catch (e) {
+
+    console.error(e)
+
+  } finally {
+
+    loadingGrammars.value = false
+  }
+}
+
+/* =========================
+   WATCH BOOK
+========================= */
+
 watch(
   () => props.book,
-  (newBook) => {
-    form.value.bookName = newBook.bookName
-    const foundType = types.value.find(
-      t => t.typeName === newBook.typeName
-    )
-    const foundLevel = levels.value.find(
-      l => l.levelName === newBook.levelName
-    )
+  async (newBook) => {
+
+    form.value.bookName =
+      newBook.bookName
+
+    const foundType =
+      types.value.find(
+        t =>
+          t.typeName ===
+          newBook.typeName
+      )
+
+    const foundLevel =
+      levels.value.find(
+        l =>
+          l.levelName ===
+          newBook.levelName
+      )
+
     form.value.typeId =
       foundType?.typeId ?? null
 
     form.value.levelId =
       foundLevel?.levelId ?? null
+
+    await fetchLessons()
   },
   {
     immediate: true,
@@ -90,17 +306,31 @@ watch(
   }
 )
 
+/* =========================
+   WATCH TYPES + LEVELS
+========================= */
+
 watch(
   [types, levels],
   () => {
-    const foundType = types.value.find(
-      t => t.typeName === props.book.typeName
-    )
-    const foundLevel = levels.value.find(
-      l => l.levelName === props.book.levelName
-    )
+
+    const foundType =
+      types.value.find(
+        t =>
+          t.typeName ===
+          props.book.typeName
+      )
+
+    const foundLevel =
+      levels.value.find(
+        l =>
+          l.levelName ===
+          props.book.levelName
+      )
+
     form.value.typeId =
       foundType?.typeId ?? null
+
     form.value.levelId =
       foundLevel?.levelId ?? null
   },
@@ -109,6 +339,9 @@ watch(
   }
 )
 
+/* =========================
+   UPDATE BOOK
+========================= */
 
 const handleUpdate = async () => {
 
@@ -121,39 +354,234 @@ const handleUpdate = async () => {
       {
         bookId:
         props.book.bookId,
+
         bookName:
         form.value.bookName,
+
         typeId:
         form.value.typeId,
+
         levelId:
         form.value.levelId
       }
     )
+
     emit("updated")
+
     isEditing.value = false
+
   } catch (e) {
+
     console.error(e)
+
   } finally {
+
     loading.value = false
+  }
+}
+
+/* =========================
+   OPEN LESSON DETAIL
+========================= */
+
+const openLessonDetail =
+  async (lesson: Lesson) => {
+
+    if (
+      selectedLesson.value?.lessonId ===
+      lesson.lessonId
+    ) {
+
+      selectedLesson.value = null
+      grammars.value = []
+
+      return
+    }
+
+    selectedLesson.value =
+      lesson
+
+    showCreateGrammar.value =
+      false
+
+    editingGrammarId.value =
+      null
+
+    await fetchGrammars(
+      lesson.lessonId
+    )
+  }
+
+/* =========================
+   CREATE GRAMMAR
+========================= */
+
+const createGrammar = async () => {
+
+  if (!selectedLesson.value) {
+    return
+  }
+
+  grammarLoading.value = true
+
+  try {
+
+    await gatewayUrl.post(
+      "/api/staff/grammars",
+      {
+        title:
+        grammarForm.value.title,
+
+        structure:
+        grammarForm.value.structure,
+
+        description:
+        grammarForm.value.description,
+
+        lessonId:
+        selectedLesson.value.lessonId
+      }
+    )
+
+    resetGrammarForm()
+
+    await fetchGrammars(
+      selectedLesson.value.lessonId
+    )
+
+  } catch (e) {
+
+    console.error(e)
+
+  } finally {
+
+    grammarLoading.value = false
+  }
+}
+
+/* =========================
+   UPDATE GRAMMAR
+========================= */
+
+const updateGrammar = async (
+  grammarId: number
+) => {
+
+  if (!selectedLesson.value) {
+    return
+  }
+
+  grammarLoading.value = true
+
+  try {
+
+    await gatewayUrl.put(
+      "/api/staff/grammars",
+      {
+        grammarId,
+
+        title:
+        grammarForm.value.title,
+
+        structure:
+        grammarForm.value.structure,
+
+        description:
+        grammarForm.value.description,
+
+        lessonId:
+        selectedLesson.value.lessonId
+      }
+    )
+
+    resetGrammarForm()
+
+    await fetchGrammars(
+      selectedLesson.value.lessonId
+    )
+
+  } catch (e) {
+
+    console.error(e)
+
+  } finally {
+
+    grammarLoading.value = false
+  }
+}
+
+/* =========================
+   EDIT GRAMMAR
+========================= */
+
+const startEditGrammar = (
+  grammar: Grammar
+) => {
+
+  editingGrammarId.value =
+    grammar.grammarId
+
+  showCreateGrammar.value = true
+
+  grammarForm.value = {
+    title: grammar.title,
+    structure: grammar.structure,
+    description:
+    grammar.description
+  }
+}
+
+/* =========================
+   RESET FORM
+========================= */
+
+const resetGrammarForm = () => {
+
+  editingGrammarId.value = null
+
+  showCreateGrammar.value = false
+
+  grammarForm.value = {
+    title: "",
+    structure: "",
+    description: ""
   }
 }
 </script>
 
 <template>
 
+  <!-- MODAL -->
   <div class="modal fade show d-block">
 
-    <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div
+      class="
+        modal-dialog
+        modal-xl
+        modal-dialog-centered
+      "
+    >
 
-      <div class="modal-content custom-modal shadow">
+      <div
+        class="
+          modal-content
+          custom-modal
+          shadow
+        "
+      >
 
         <!-- HEADER -->
         <div class="modal-header custom-header">
 
-          <!-- LEFT -->
           <div>
 
-            <h5 class="modal-title fw-bold mb-1">
+            <h5
+              class="
+                modal-title
+                fw-bold
+                mb-1
+              "
+            >
 
               <template v-if="isEditing">
                 ✏️ Chỉnh sửa sách
@@ -168,37 +596,30 @@ const handleUpdate = async () => {
             <div class="sub-title">
 
               <template v-if="isEditing">
-                Cập nhật thông tin và hình ảnh sách
+                Cập nhật thông tin sách
               </template>
 
               <template v-else>
-                Xem thông tin và hình ảnh sách
+                Xem thông tin sách
               </template>
 
             </div>
 
           </div>
 
-          <!-- RIGHT -->
           <div class="header-actions">
 
-            <!-- NORMAL -->
             <template v-if="!isEditing">
 
               <button
                 class="edit-btn"
                 @click="isEditing = true"
               >
-
-                <i class="bi bi-pencil-square me-2"></i>
-
                 Chỉnh sửa
-
               </button>
 
             </template>
 
-            <!-- EDIT -->
             <template v-else>
 
               <button
@@ -214,15 +635,14 @@ const handleUpdate = async () => {
                 :disabled="loading"
               >
 
-        <span
-          v-if="loading"
-          class="spinner-border spinner-border-sm me-2"
-        ></span>
-
-                <i
-                  v-else
-                  class="bi bi-check-circle-fill me-1"
-                ></i>
+                <span
+                  v-if="loading"
+                  class="
+                    spinner-border
+                    spinner-border-sm
+                    me-2
+                  "
+                ></span>
 
                 Lưu
 
@@ -230,7 +650,6 @@ const handleUpdate = async () => {
 
             </template>
 
-            <!-- CLOSE -->
             <button
               class="btn-close"
               @click="$emit('close')"
@@ -243,10 +662,7 @@ const handleUpdate = async () => {
         <!-- BODY -->
         <div class="modal-body">
 
-          <!-- =========================
-               NORMAL VIEW
-          ========================== -->
-
+          <!-- NORMAL -->
           <template v-if="!isEditing">
 
             <div class="row g-4">
@@ -261,21 +677,7 @@ const handleUpdate = async () => {
                     :src="book.imageUrls[0]!.imgUrl"
                     class="main-image"
                     alt="book"
-                    @click="$emit('preview-images', book.imageUrls)"
                   />
-
-                  <div
-                    v-else
-                    class="empty-image"
-                  >
-
-                    <i class="bi bi-image"></i>
-
-                    <span>
-                      Chưa có ảnh
-                    </span>
-
-                  </div>
 
                 </div>
 
@@ -298,94 +700,309 @@ const handleUpdate = async () => {
 
                   </div>
 
-                  <div class="row g-3">
-
-                    <div class="col-md-6">
-
-                      <div class="info-card">
-
-                        <div class="info-label">
-                          Thể loại
-                        </div>
-
-                        <span class="badge info-badge">
-                          {{ book.typeName }}
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                      <div class="info-card">
-
-                        <div class="info-label">
-                          Trình độ
-                        </div>
-
-                        <span class="badge secondary-badge">
-                          {{ book.levelName }}
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
+                  <!-- LESSON TREE -->
                   <div class="info-card">
 
-                    <div class="info-label">
-                      Số lượng ảnh
+                    <div
+                      class="
+                        d-flex
+                        justify-content-between
+                        align-items-center
+                        mb-3
+                      "
+                    >
+
+                      <div
+                        class="
+                          info-label
+                          mb-0
+                        "
+                      >
+                        Danh sách bài học
+                      </div>
+
+                      <span class="lesson-count">
+                        {{ lessons.length }} bài
+                      </span>
+
                     </div>
 
-                    <div class="info-value">
-                      {{ book.imageUrls.length }} ảnh
+                    <div
+                      v-if="loadingLessons"
+                      class="text-center py-3"
+                    >
+
+                      <div
+                        class="
+                          spinner-border
+                          spinner-border-sm
+                        "
+                      ></div>
+
                     </div>
 
-                  </div>
+                    <!-- TREE -->
+                    <div
+                      v-else
+                      class="lesson-tree"
+                    >
 
-                </div>
+                      <div
+                        v-for="lesson in lessons"
+                        :key="lesson.lessonId"
+                        class="lesson-node"
+                      >
 
-              </div>
+                        <!-- HEADER -->
+                        <div
+                          class="lesson-header"
+                          @click="
+                            openLessonDetail(
+                              lesson
+                            )
+                          "
+                        >
 
-            </div>
+                          <div class="lesson-left">
 
-            <!-- GALLERY -->
-            <div
-              v-if="book.imageUrls?.length"
-              class="gallery-section"
-            >
+                            <i
+                              class="
+                                bi
+                                bi-chevron-right
+                                lesson-arrow
+                              "
+                              :class="{
+                                expanded:
+                                selectedLesson?.lessonId ===
+                                lesson.lessonId
+                              }"
+                            ></i>
 
-              <div class="gallery-title">
+                            <div>
 
-                <i class="bi bi-images me-2"></i>
+                              <div class="lesson-title">
+                                {{ lesson.name }}
+                              </div>
 
-                Hình ảnh sách
+                              <div class="lesson-sub">
+                                {{
+                                  lesson.description ||
+                                  'Không có mô tả'
+                                }}
+                              </div>
 
-              </div>
+                            </div>
 
-              <div class="gallery-grid">
+                          </div>
 
-                <div
-                  v-for="(img, index) in book.imageUrls"
-                  :key="img.imageId"
-                  class="gallery-item"
-                >
+                          <span class="lesson-badge">
+                            Grammar
+                          </span>
 
-                  <img
-                    :src="img.imgUrl"
-                    class="gallery-image"
-                    @click="$emit('preview-images', book.imageUrls, index)"
-                  />
+                        </div>
 
-                  <div
-                    class="gallery-overlay"
-                    @click="$emit('preview-images', book.imageUrls, index)"
-                  >
+                        <!-- EXPAND -->
+                        <div
+                          v-if="
+                            selectedLesson?.lessonId ===
+                            lesson.lessonId
+                          "
+                          class="lesson-expand"
+                        >
 
-                    <i class="bi bi-zoom-in"></i>
+                          <div class="expand-top">
+
+                            <button
+                              class="add-grammar-btn"
+                              @click="
+                                showCreateGrammar =
+                                !showCreateGrammar
+                              "
+                            >
+                              + Thêm grammar
+                            </button>
+
+                          </div>
+
+                          <!-- CREATE -->
+                          <div
+                            v-if="showCreateGrammar"
+                            class="create-grammar-card"
+                          >
+
+                            <div class="grammar-form-title">
+
+                              <template
+                                v-if="editingGrammarId"
+                              >
+                                ✏️ Chỉnh sửa grammar
+                              </template>
+
+                              <template v-else>
+                                ➕ Tạo grammar mới
+                              </template>
+
+                            </div>
+
+                            <input
+                              v-model="grammarForm.title"
+                              class="
+                                form-control
+                                custom-input
+                                mb-3
+                              "
+                              placeholder="Tiêu đề"
+                            />
+
+                            <!-- TOOLBAR -->
+                            <div class="structure-toolbar">
+
+                              <button
+                                type="button"
+                                class="tool-btn"
+                                @click="wrapWithStrike"
+                              >
+                                S̶
+                              </button>
+
+                            </div>
+
+                            <!-- STRUCTURE -->
+                            <textarea
+                              ref="structureRef"
+                              v-model="
+                                grammarForm.structure
+                              "
+                              rows="3"
+                              class="
+                                form-control
+                                custom-input
+                                mb-3
+                                grammar-textarea
+                              "
+                              placeholder="Cấu trúc"
+                            ></textarea>
+
+                            <textarea
+                              v-model="
+                                grammarForm.description
+                              "
+                              rows="4"
+                              class="
+                                form-control
+                                custom-input
+                                mb-3
+                              "
+                              placeholder="Mô tả"
+                            ></textarea>
+
+                            <div class="grammar-form-actions">
+
+                              <button
+                                class="cancel-btn"
+                                @click="resetGrammarForm"
+                              >
+                                Hủy
+                              </button>
+
+                              <button
+                                class="save-btn"
+                                :disabled="grammarLoading"
+                                @click="
+                                  editingGrammarId
+                                    ? updateGrammar(
+                                        editingGrammarId
+                                      )
+                                    : createGrammar()
+                                "
+                              >
+
+                                <span
+                                  v-if="grammarLoading"
+                                  class="
+                                    spinner-border
+                                    spinner-border-sm
+                                    me-2
+                                  "
+                                ></span>
+
+                                <template
+                                  v-if="editingGrammarId"
+                                >
+                                  Cập nhật
+                                </template>
+
+                                <template v-else>
+                                  Lưu grammar
+                                </template>
+
+                              </button>
+
+                            </div>
+
+                          </div>
+
+                          <!-- EMPTY -->
+                          <div
+                            v-if="
+                              !loadingGrammars &&
+                              !grammars.length
+                            "
+                            class="empty-grammar"
+                          >
+                            Chưa có grammar
+                          </div>
+
+                          <!-- LIST -->
+                          <div
+                            v-for="grammar in grammars"
+                            :key="grammar.grammarId"
+                            class="grammar-item"
+                          >
+
+                            <div class="grammar-header">
+
+                              <div class="grammar-title">
+                                {{ grammar.title }}
+                              </div>
+
+                              <button
+                                class="edit-grammar-btn"
+                                @click="
+                                  startEditGrammar(
+                                    grammar
+                                  )
+                                "
+                              >
+                                ✏️
+                              </button>
+
+                            </div>
+
+                            <div
+                              class="grammar-structure"
+                              v-html="
+                                formatGrammar(
+                                  grammar.structure
+                                )
+                              "
+                            ></div>
+
+                            <div
+                              class="
+                                grammar-description
+                              "
+                            >
+                              {{ grammar.description }}
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    </div>
 
                   </div>
 
@@ -397,23 +1014,13 @@ const handleUpdate = async () => {
 
           </template>
 
-          <!-- =========================
-               EDIT MODE
-          ========================== -->
-
+          <!-- EDIT -->
           <template v-else>
 
             <div class="edit-layout">
 
-              <!-- LEFT -->
               <div class="edit-info-section">
 
-                <div class="edit-section-title">
-                  <i class="bi bi-info-circle me-2"></i>
-                  Thông tin sách
-                </div>
-
-                <!-- BOOK NAME -->
                 <div class="edit-card">
 
                   <label class="form-label">
@@ -422,71 +1029,24 @@ const handleUpdate = async () => {
 
                   <input
                     v-model="form.bookName"
-                    class="form-control custom-input"
-                    placeholder="Nhập tên sách"
+                    class="
+                      form-control
+                      custom-input
+                    "
                   />
-
-                </div>
-
-                <!-- TYPE -->
-                <div class="edit-card">
-
-                  <label class="form-label">
-                    Thể loại
-                  </label>
-
-                  <select
-                    v-model="form.typeId"
-                    class="form-select custom-input"
-                  >
-
-                    <option
-                      v-for="t in types"
-                      :key="t.typeId"
-                      :value="t.typeId"
-                    >
-                      {{ t.typeName }}
-                    </option>
-
-                  </select>
-
-                </div>
-
-                <!-- LEVEL -->
-                <div class="edit-card">
-
-                  <label class="form-label">
-                    Trình độ
-                  </label>
-
-                  <select
-                    v-model="form.levelId"
-                    class="form-select custom-input"
-                  >
-
-                    <option
-                      v-for="l in levels"
-                      :key="l.levelId"
-                      :value="l.levelId"
-                    >
-                      {{ l.levelName }}
-                    </option>
-
-                  </select>
 
                 </div>
 
               </div>
 
-              <!-- RIGHT -->
               <div class="edit-image-section">
 
                 <BookImageEditor
                   :book-id="book.bookId"
                   :images="book.imageUrls"
                   @update:images="
-    book.imageUrls = $event
-  "
+                    book.imageUrls = $event
+                  "
                 />
 
               </div>
@@ -504,15 +1064,17 @@ const handleUpdate = async () => {
   </div>
 
   <!-- BACKDROP -->
-  <div class="modal-backdrop fade show"></div>
+  <div
+    class="
+      modal-backdrop
+      fade
+      show
+    "
+  ></div>
 
 </template>
 
 <style scoped>
-
-/* =========================
-   MODAL
-========================= */
 
 .custom-modal {
   border: none;
@@ -520,13 +1082,10 @@ const handleUpdate = async () => {
   overflow: hidden;
 }
 
-/* =========================
-   HEADER
-========================= */
-
 .custom-header {
   padding: 22px 26px;
   border-bottom: 1px solid #f1f3f5;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -536,6 +1095,7 @@ const handleUpdate = async () => {
   display: flex;
   align-items: center;
   gap: 12px;
+
   margin-left: auto;
 }
 
@@ -549,42 +1109,25 @@ const handleUpdate = async () => {
 .cancel-btn {
   border: none;
   border-radius: 14px;
+
   padding: 10px 16px;
+
   font-weight: 600;
-  transition: 0.2s ease;
 }
 
 .edit-btn {
-  background: linear-gradient(
-    135deg,
-    #0d6efd,
-    #3d8bfd
-  );
-
+  background: #0d6efd;
   color: white;
 }
 
 .save-btn {
-  background: linear-gradient(
-    135deg,
-    #16a34a,
-    #22c55e
-  );
-
+  background: #16a34a;
   color: white;
 }
 
 .cancel-btn {
   background: #eef1f4;
-  color: #374151;
 }
-
-.edit-btn:hover,
-.save-btn:hover,
-.cancel-btn:hover {
-  transform: translateY(-2px);
-}
-
 
 .image-card {
   background: #f8fafc;
@@ -597,26 +1140,6 @@ const handleUpdate = async () => {
   height: 420px;
   object-fit: cover;
   border-radius: 16px;
-  cursor: pointer;
-  transition: 0.25s ease;
-}
-
-.main-image:hover {
-  transform: scale(1.02);
-}
-
-.empty-image {
-  height: 420px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  color: #9ca3af;
-}
-
-.empty-image i {
-  font-size: 42px;
 }
 
 .info-container {
@@ -636,181 +1159,283 @@ const handleUpdate = async () => {
   font-weight: 700;
   color: #6b7280;
   margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
 }
 
 .info-value {
   font-size: 17px;
   font-weight: 600;
-  color: #111827;
 }
 
-/* =========================
-   BADGES
-========================= */
-
-.badge {
-  padding: 9px 15px;
-  border-radius: 999px;
-  font-size: 14px;
-}
-
-.info-badge {
+.lesson-count {
   background: #dbeafe;
   color: #1d4ed8;
-}
 
-.secondary-badge {
-  background: #ede9fe;
-  color: #6d28d9;
-}
+  padding: 6px 12px;
 
-/* =========================
-   GALLERY
-========================= */
+  border-radius: 999px;
 
-.gallery-section {
-  margin-top: 40px;
-}
-
-.gallery-title {
-  font-size: 18px;
+  font-size: 12px;
   font-weight: 700;
-  margin-bottom: 18px;
 }
 
-.gallery-grid {
-  display: grid;
+/* TREE */
 
-  grid-template-columns:
-    repeat(auto-fill, minmax(150px, 1fr));
-
+.lesson-tree {
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
 
-.gallery-item {
-  position: relative;
-  border-radius: 16px;
+.lesson-node {
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
   overflow: hidden;
+
+  background: white;
 }
 
-.gallery-image {
-  width: 100%;
-  height: 150px;
-
-  object-fit: cover;
-
-  transition: 0.25s ease;
-}
-
-.gallery-overlay {
-  position: absolute;
-  inset: 0;
-
-  background: rgba(0, 0, 0, 0.45);
+.lesson-header {
+  padding: 18px 20px;
 
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
 
-  opacity: 0;
-
-  transition: 0.25s ease;
-
   cursor: pointer;
+
+  transition: 0.2s;
 }
 
-.gallery-overlay i {
-  color: white;
-  font-size: 28px;
+.lesson-header:hover {
+  background: #f8fafc;
 }
 
-.gallery-item:hover .gallery-overlay {
-  opacity: 1;
+.lesson-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.gallery-item:hover .gallery-image {
-  transform: scale(1.05);
+.lesson-arrow {
+  transition: 0.2s;
+  font-size: 14px;
 }
 
-/* =========================
-   EDIT MODE
-========================= */
-
-.edit-layout {
-  display: grid;
-
-  grid-template-columns:
-    380px 1fr;
-
-  gap: 24px;
+.lesson-arrow.expanded {
+  transform: rotate(90deg);
 }
 
-.edit-section-title {
+.lesson-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.lesson-sub {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.lesson-badge {
+  background: #dbeafe;
+  color: #1d4ed8;
+
+  padding: 6px 12px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lesson-expand {
+  border-top: 1px solid #edf1f5;
+
+  padding: 20px;
+
+  background: #f8fafc;
+}
+
+.expand-top {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-bottom: 18px;
+}
+
+.add-grammar-btn {
+  border: none;
+
+  background: #dbeafe;
+  color: #1d4ed8;
+
+  border-radius: 12px;
+
+  padding: 8px 14px;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* FORM */
+
+.create-grammar-card {
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 18px;
+
+  margin-bottom: 20px;
+}
+
+.structure-toolbar {
+  display: flex;
+  gap: 8px;
+
+  margin-bottom: 10px;
+}
+
+.tool-btn {
+  width: 40px;
+  height: 40px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: #eef2ff;
+  color: #4338ca;
+
   font-size: 18px;
   font-weight: 700;
 
-  margin-bottom: 18px;
-
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.tool-btn:hover {
+  background: #dbeafe;
+}
+
+.grammar-textarea {
+  min-height: 90px !important;
+}
+
+.custom-input {
+  min-height: 48px;
+  border-radius: 12px;
+}
+
+.grammar-form-title {
+  font-size: 16px;
+  font-weight: 700;
+
+  margin-bottom: 16px;
+}
+
+.grammar-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* GRAMMAR */
+
+.grammar-item {
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 18px;
+
+  border: 1px solid #edf1f5;
+
+  margin-bottom: 16px;
+}
+
+.grammar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 12px;
+}
+
+.grammar-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.edit-grammar-btn {
+  border: none;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 10px;
+
+  background: #dbeafe;
+}
+
+.grammar-structure {
+  background: #f8fafc;
+
+  border: 1px dashed #c7d2fe;
+
+  color: #4338ca;
+
+  border-radius: 14px;
+
+  padding: 14px;
+
+  font-weight: 700;
+
+  margin-bottom: 12px;
+
+  line-height: 1.8;
+}
+
+.grammar-structure del {
+  color: #9ca3af;
+}
+
+.grammar-description {
+  color: #4b5563;
+  line-height: 1.7;
+}
+
+.empty-grammar {
+  padding: 24px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+/* EDIT */
+
+.edit-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
 }
 
 .edit-info-section,
 .edit-image-section {
   background: #f8fafc;
-
   border-radius: 20px;
-
   padding: 20px;
 }
 
 .edit-card {
   background: white;
-
   border-radius: 16px;
-
   padding: 18px;
-
-  margin-bottom: 18px;
-
-  border: 1px solid #edf1f5;
 }
-
-.custom-input {
-  min-height: 48px;
-
-  border-radius: 12px;
-
-  border: 1px solid #dbe1e8;
-}
-
-.custom-input:focus {
-  box-shadow: none;
-  border-color: #0d6efd;
-}
-
-/* =========================
-   MOBILE
-========================= */
 
 @media (max-width: 992px) {
 
   .edit-layout {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-
-  .main-image,
-  .empty-image {
-    height: 280px;
-  }
-
-  .gallery-image {
-    height: 120px;
   }
 }
 
