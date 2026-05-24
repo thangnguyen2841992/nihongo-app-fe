@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { logout, useAuthState } from "@/services/useAuth.ts"
+import { logout, useAuthState } from "@/services/authState.ts"
 import router from "@/router"
 
 /* =========================

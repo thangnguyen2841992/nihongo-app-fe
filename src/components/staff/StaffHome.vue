@@ -4,11 +4,9 @@ import { useRouter } from "vue-router"
 
 import CreateBookModal from "@/components/staff/CreateBookModal.vue"
 import ImagePreviewModal from "@/components/common/ImagePreviewModal.vue"
-import BookDetailModal from "@/components/staff/BookDetailModal.vue"
 import CreateLessonModal from "@/components/staff/CreateLessonModal.vue"
 
-
-import gatewayUrl from "@/api/authApi.ts"
+import { gatewayUrl } from "@/api/authApi.ts"
 
 /* =========================
    ROUTER
@@ -55,26 +53,25 @@ const openImageModal = (
   images: ImageDTO[],
   index = 0
 ) => {
+
   selectedImages.value = images
+
   selectedIndex.value = index
+
   showImageModal.value = true
 }
 
 /* =========================
-   BOOK DETAIL MODAL
+   BOOK DETAIL PAGE
 ========================= */
-
-const showBookDetailModal =
-  ref(false)
-
-const selectedBook =
-  ref<Book | null>(null)
 
 const openBookDetail = (
   book: Book
 ) => {
-  selectedBook.value = book
-  showBookDetailModal.value = true
+
+  router.push(
+    `/staff/books/${book.bookId}`
+  )
 }
 
 /* =========================
@@ -82,6 +79,7 @@ const openBookDetail = (
 ========================= */
 
 const fetchBooks = async () => {
+
   try {
 
     const res =
@@ -95,7 +93,9 @@ const fetchBooks = async () => {
 
     console.error(e)
 
-    alert("Không thể tải danh sách sách")
+    alert(
+      "Không thể tải danh sách sách"
+    )
   }
 }
 
@@ -106,10 +106,12 @@ onMounted(fetchBooks)
 ========================= */
 
 const openModal = () => {
+
   showModal.value = true
 }
 
 const closeModal = () => {
+
   showModal.value = false
 }
 
@@ -188,11 +190,18 @@ const deleteBook = async (
 </script>
 
 <template>
+
   <div class="container mt-4">
 
     <!-- HEADER -->
+
     <div
-      class="d-flex justify-content-between align-items-center mb-3"
+      class="
+        d-flex
+        justify-content-between
+        align-items-center
+        mb-3
+      "
     >
 
       <h3 class="fw-bold">
@@ -203,19 +212,38 @@ const deleteBook = async (
         class="btn btn-primary"
         @click="openModal"
       >
-        <i class="bi bi-plus-circle me-1"></i>
+
+        <i
+          class="
+            bi bi-plus-circle
+            me-1
+          "
+        ></i>
+
         Thêm sách
+
       </button>
 
     </div>
 
     <!-- TABLE -->
-    <div class="card shadow-sm border-0">
+
+    <div
+      class="
+        card
+        shadow-sm
+        border-0
+      "
+    >
 
       <div class="card-body">
 
         <table
-          class="table table-hover align-middle"
+          class="
+            table
+            table-hover
+            align-middle
+          "
         >
 
           <thead class="table-light">
@@ -258,11 +286,13 @@ const deleteBook = async (
           >
 
             <!-- STT -->
+
             <td>
               {{ index + 1 }}
             </td>
 
             <!-- IMAGE -->
+
             <td>
 
               <div
@@ -287,8 +317,11 @@ const deleteBook = async (
                 />
 
                 <!-- OVERLAY -->
+
                 <div
-                  class="thumbnail-overlay"
+                  class="
+                    thumbnail-overlay
+                  "
                 >
                   👁 Xem ảnh
                 </div>
@@ -297,7 +330,10 @@ const deleteBook = async (
 
               <span
                 v-else
-                class="text-muted small"
+                class="
+                  text-muted
+                  small
+                "
               >
                 Chưa có ảnh
               </span>
@@ -305,6 +341,7 @@ const deleteBook = async (
             </td>
 
             <!-- NAME -->
+
             <td>
 
               <span
@@ -319,10 +356,17 @@ const deleteBook = async (
             </td>
 
             <!-- TYPE -->
+
             <td>
 
               <span
-                class="badge bg-info-subtle text-info-emphasis px-3 py-2"
+                class="
+                  badge
+                  bg-info-subtle
+                  text-info-emphasis
+                  px-3
+                  py-2
+                "
               >
                 {{ b.typeName }}
               </span>
@@ -330,10 +374,17 @@ const deleteBook = async (
             </td>
 
             <!-- LEVEL -->
+
             <td>
 
               <span
-                class="badge bg-secondary-subtle text-secondary-emphasis px-3 py-2"
+                class="
+                  badge
+                  bg-secondary-subtle
+                  text-secondary-emphasis
+                  px-3
+                  py-2
+                "
               >
                 {{ b.levelName }}
               </span>
@@ -341,30 +392,46 @@ const deleteBook = async (
             </td>
 
             <!-- ACTIONS -->
+
             <td>
 
               <div
-                class="action-buttons"
+                class="
+                  action-buttons
+                "
               >
 
                 <!-- ADD LESSON -->
+
                 <button
-                  class="action-btn add-btn"
-                  @click="
-                    addLesson(
-                      b
-                    )
+                  class="
+                    action-btn
+                    add-btn
                   "
-                  title="Thêm bài học"
+                  @click="
+                    addLesson(b)
+                  "
+                  title="
+                    Thêm bài học
+                  "
                 >
+
                   <i
-                    class="bi bi-journal-plus"
+                    class="
+                      bi
+                      bi-journal-plus
+                    "
                   ></i>
+
                 </button>
 
                 <!-- DELETE -->
+
                 <button
-                  class="action-btn delete-btn"
+                  class="
+                    action-btn
+                    delete-btn
+                  "
                   @click="
                     deleteBook(
                       b.bookId
@@ -372,9 +439,14 @@ const deleteBook = async (
                   "
                   title="Xóa sách"
                 >
+
                   <i
-                    class="bi bi-trash"
+                    class="
+                      bi
+                      bi-trash
+                    "
                   ></i>
+
                 </button>
 
               </div>
@@ -388,9 +460,14 @@ const deleteBook = async (
         </table>
 
         <!-- EMPTY -->
+
         <div
           v-if="books.length === 0"
-          class="text-center text-muted py-4"
+          class="
+            text-center
+            text-muted
+            py-4
+          "
         >
           Không có sách nào
         </div>
@@ -400,6 +477,7 @@ const deleteBook = async (
     </div>
 
     <!-- CREATE BOOK MODAL -->
+
     <CreateBookModal
       v-if="showModal"
       @close="closeModal"
@@ -407,54 +485,47 @@ const deleteBook = async (
     />
 
     <!-- IMAGE PREVIEW MODAL -->
+
     <ImagePreviewModal
       v-if="showImageModal"
       :images="selectedImages"
-      v-model:currentIndex="selectedIndex"
+      v-model:currentIndex="
+        selectedIndex
+      "
       @close="
         showImageModal = false
       "
     />
 
-    <!-- BOOK DETAIL -->
-    <BookDetailModal
-      v-if="
-        showBookDetailModal &&
-        selectedBook
-      "
-      :book="selectedBook"
-      @close="
-        showBookDetailModal = false
-      "
-      @preview-images="
-        openImageModal
-      "
-    />
+    <!-- CREATE LESSON MODAL -->
 
     <CreateLessonModal
       v-if="
-    showLessonModal &&
-    selectedBookWhenCreateLesson
-  "
+        showLessonModal &&
+        selectedBookWhenCreateLesson
+      "
       :book-id="
-    selectedBookWhenCreateLesson.bookId
-  "
+        selectedBookWhenCreateLesson.bookId
+      "
       :book-name="
-    selectedBookWhenCreateLesson.bookName
-  "
+        selectedBookWhenCreateLesson.bookName
+      "
       @close="closeLessonModal"
       @created="closeLessonModal"
     />
 
   </div>
+
 </template>
 
 <style scoped>
+
 /* =========================
    THUMBNAIL
 ========================= */
 
 .thumbnail-wrapper {
+
   position: relative;
 
   width: 70px;
@@ -468,6 +539,7 @@ const deleteBook = async (
 }
 
 .book-thumbnail {
+
   width: 100%;
   height: 100%;
 
@@ -485,20 +557,26 @@ const deleteBook = async (
 ========================= */
 
 .thumbnail-overlay {
+
   position: absolute;
+
   inset: 0;
 
-  background: rgba(0, 0, 0, 0.55);
+  background:
+    rgba(0, 0, 0, 0.55);
 
   color: white;
 
   display: flex;
+
   justify-content: center;
+
   align-items: center;
 
   text-align: center;
 
   font-size: 12px;
+
   font-weight: 600;
 
   opacity: 0;
@@ -510,11 +588,13 @@ const deleteBook = async (
 
 .thumbnail-wrapper:hover
 .thumbnail-overlay {
+
   opacity: 1;
 }
 
 .thumbnail-wrapper:hover
 .book-thumbnail {
+
   transform: scale(1.06);
 }
 
@@ -523,6 +603,7 @@ const deleteBook = async (
 ========================= */
 
 .book-name {
+
   font-weight: 600;
 
   cursor: pointer;
@@ -533,6 +614,7 @@ const deleteBook = async (
 }
 
 .book-name:hover {
+
   color: #0a58ca;
 
   text-decoration: underline;
@@ -543,20 +625,27 @@ const deleteBook = async (
 ========================= */
 
 .action-buttons {
+
   display: flex;
+
   align-items: center;
+
   gap: 10px;
 }
 
 .action-btn {
+
   width: 38px;
   height: 38px;
 
   border: none;
+
   border-radius: 12px;
 
   display: flex;
+
   justify-content: center;
+
   align-items: center;
 
   font-size: 16px;
@@ -569,12 +658,14 @@ const deleteBook = async (
 /* ADD BUTTON */
 
 .add-btn {
+
   background: #e8f7ee;
 
   color: #198754;
 }
 
 .add-btn:hover {
+
   background: #198754;
 
   color: white;
@@ -582,7 +673,8 @@ const deleteBook = async (
   transform: translateY(-2px);
 
   box-shadow:
-    0 6px 16px rgba(
+    0 6px 16px
+    rgba(
       25,
       135,
       84,
@@ -593,12 +685,14 @@ const deleteBook = async (
 /* DELETE BUTTON */
 
 .delete-btn {
+
   background: #fdecec;
 
   color: #dc3545;
 }
 
 .delete-btn:hover {
+
   background: #dc3545;
 
   color: white;
@@ -606,11 +700,13 @@ const deleteBook = async (
   transform: translateY(-2px);
 
   box-shadow:
-    0 6px 16px rgba(
+    0 6px 16px
+    rgba(
       220,
       53,
       69,
       0.25
     );
 }
+
 </style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import gatewayUrl from '@/api/authApi'
+import {gatewayUrl} from '@/api/authApi'
 
 const route = useRoute()
 

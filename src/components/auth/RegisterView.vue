@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import gatewayUrl from "@/api/authApi.ts";
+import {gatewayUrl} from "@/api/authApi.ts";
 
 const router = useRouter()
 const googleLoading = ref(false)

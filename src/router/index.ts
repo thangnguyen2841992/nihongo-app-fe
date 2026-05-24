@@ -83,6 +83,11 @@ const routes = [
       {
         path: '',
         component: StaffHome
+      },
+      {
+        path: 'books/:bookId',
+        component: () =>
+          import('@/components/staff/BookDetailView.vue')
       }
     ]
   }

@@ -1,14 +1,34 @@
 import axios from 'axios'
-import router from "@/router"
+import router from '@/router'
+
+/* =========================
+   AXIOS INSTANCES
+========================= */
 
 const gatewayUrl = axios.create({
   baseURL: 'http://localhost:8082',
   withCredentials: true
 })
 
+const publicClient = axios.create({
+  baseURL: 'http://localhost:8082',
+  withCredentials: true
+})
+
+/* =========================
+   REFRESH STATE
+========================= */
+
 let isRefreshing = false
 
-let pendingRequests: any[] = []
+let pendingRequests: Array<{
+  resolve: () => void
+  reject: (err: any) => void
+}> = []
+
+/* =========================
+   PROCESS QUEUE
+========================= */
 
 const processQueue = (
   error: any = null
@@ -29,39 +49,30 @@ const processQueue = (
   pendingRequests = []
 }
 
+/* =========================
+   RESPONSE INTERCEPTOR
+========================= */
+
 gatewayUrl.interceptors.response.use(
-  res => res,
+  response => response,
 
-  async (error) => {
+  async error => {
 
-    const originalRequest =
-      error.config
-
-    if (!error.response) {
-      return Promise.reject(error)
-    }
-
-    const status =
-      error.response.status
-
-    const url =
-      originalRequest.url || ''
+    const originalRequest = error.config
 
     /* =========================
-       REFRESH TOKEN FAIL
+       NETWORK ERROR
     ========================= */
 
-    if (
-      url.includes('/api/auth/refresh') &&
-      status === 401
-    ) {
-
-      localStorage.clear()
-
-      await router.push('/login')
+    if (!error.response) {
 
       return Promise.reject(error)
     }
+
+    const status = error.response.status
+
+    const url =
+      originalRequest?.url || ''
 
     /* =========================
        IGNORE LOGIN API
@@ -70,11 +81,34 @@ gatewayUrl.interceptors.response.use(
     if (
       url.includes('/api/auth/login')
     ) {
+
       return Promise.reject(error)
     }
 
     /* =========================
-       HANDLE ACCESS TOKEN EXPIRE
+       REFRESH TOKEN FAILED
+    ========================= */
+
+    if (
+      url.includes('/api/auth/refresh')
+    ) {
+
+      localStorage.clear()
+      sessionStorage.clear()
+
+      if (
+        router.currentRoute.value.path
+        !== '/login'
+      ) {
+
+        await router.replace('/login')
+      }
+
+      return Promise.reject(error)
+    }
+
+    /* =========================
+       HANDLE 401
     ========================= */
 
     if (
@@ -82,18 +116,26 @@ gatewayUrl.interceptors.response.use(
       !originalRequest._retry
     ) {
 
+      /* =========================
+         WAIT REFRESH
+      ========================= */
+
       if (isRefreshing) {
 
         return new Promise(
           (resolve, reject) => {
 
             pendingRequests.push({
-              resolve: () =>
+
+              resolve: () => {
+
                 resolve(
                   gatewayUrl(
                     originalRequest
                   )
-                ),
+                )
+              },
+
               reject
             })
           }
@@ -106,25 +148,42 @@ gatewayUrl.interceptors.response.use(
 
       try {
 
-        await gatewayUrl.post(
+        /* =========================
+           REFRESH TOKEN
+        ========================= */
+
+        await publicClient.post(
           '/api/auth/refresh'
         )
 
         processQueue()
 
+        /* =========================
+           RETRY ORIGINAL REQUEST
+        ========================= */
+
         return gatewayUrl(
           originalRequest
         )
 
-      } catch (err) {
+      } catch (refreshError) {
 
-        processQueue(err)
+        processQueue(refreshError)
 
         localStorage.clear()
+        sessionStorage.clear()
 
-        await router.push('/login')
+        if (
+          router.currentRoute.value.path
+          !== '/login'
+        ) {
 
-        return Promise.reject(err)
+          await router.replace('/login')
+        }
+
+        return Promise.reject(
+          refreshError
+        )
 
       } finally {
 
@@ -136,4 +195,7 @@ gatewayUrl.interceptors.response.use(
   }
 )
 
-export default gatewayUrl
+export {
+  gatewayUrl,
+  publicClient
+}

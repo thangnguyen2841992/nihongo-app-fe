@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
 import {computed, ref} from "vue"
-import gatewayUrl from "@/api/authApi.ts"
+import {gatewayUrl} from "@/api/authApi.ts"
 
 interface Props {
   bookId: number

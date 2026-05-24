@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue"
 import { useRouter, useRoute } from "vue-router"
-import gatewayUrl from "@/api/authApi.ts"
+import {gatewayUrl} from "@/api/authApi.ts"
 
 /* =========================
    ROUTER

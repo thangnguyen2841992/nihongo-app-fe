@@ -161,7 +161,7 @@
 
 <script setup lang="ts">
 import {ref, onMounted, nextTick } from 'vue'
-import gatewayUrl from "@/api/authApi"
+import {gatewayUrl} from "@/api/authApi"
 
 type User = {
   id: number

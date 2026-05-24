@@ -2,7 +2,7 @@
 import {onMounted, ref} from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import Sidebar from '@/components/Sidebar.vue'
-import gatewayUrl from "@/api/authApi.ts";
+import {gatewayUrl} from "@/api/authApi.ts";
 
 const isLoggedIn = ref<boolean>(false)
 

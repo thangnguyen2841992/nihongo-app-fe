@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue"
 import axios from "axios"
-import gatewayUrl from "@/api/authApi.ts"
+import {gatewayUrl} from "@/api/authApi.ts"
 
 const files = ref<File[]>([])
 const fileInputRef = ref<HTMLInputElement | null>(null)

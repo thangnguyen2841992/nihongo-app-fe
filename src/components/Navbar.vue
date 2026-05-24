@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {useRouter} from "vue-router";
-import gatewayUrl from "@/api/authApi.ts";
-import {logout} from "@/services/useAuth.ts";
+import {gatewayUrl} from "@/api/authApi.ts";
+import {logout} from "@/services/authState.ts";
 
 const props = defineProps<{
   isLoggedIn: boolean

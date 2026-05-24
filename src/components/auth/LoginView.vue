@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import gatewayUrl from "@/api/authApi"
+import {gatewayUrl} from "@/api/authApi"
 import {useRouter} from "vue-router";
 import {nextTick, onMounted, ref} from 'vue'
-import {setAuth} from "@/services/useAuth.ts";
+import {setAuth} from "@/services/authState.ts";
 
 // state
 const email = ref('')

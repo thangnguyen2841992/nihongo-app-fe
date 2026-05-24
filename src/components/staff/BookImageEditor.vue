@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue"
 import axios from "axios"
-import gatewayUrl from "@/api/authApi.ts"
+import {gatewayUrl} from "@/api/authApi.ts"
 
 interface ImageDTO {
   imageId: number

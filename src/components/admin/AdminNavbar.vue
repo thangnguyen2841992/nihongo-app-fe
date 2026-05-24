@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
-import { logout } from "@/services/useAuth.ts"
+import { logout } from "@/services/authState.ts"
 import router from "@/router"
-import gatewayUrl from "@/api/authApi.ts"
+import {gatewayUrl} from "@/api/authApi.ts"
 
 /* =========================
    USER INFO
