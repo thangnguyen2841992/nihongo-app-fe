@@ -287,7 +287,7 @@ const createGrammarFormulaHtml = (
     leftItems
       .map(
         item =>
-          `<div>${item}</div>`
+          `<div class="formula-item left">${item}</div>`
       )
       .join("")
 
@@ -295,58 +295,83 @@ const createGrammarFormulaHtml = (
     rightItems
       .map(
         item =>
-          `<div>${item}</div>`
+          `<div class="formula-item right">${item}</div>`
       )
       .join("")
 
   return `
 
-<div
-  class="grammar-formula"
-  contenteditable="false"
->
+<div class="grammar-formula-wrapper">
 
-  <div
-    class="formula-side"
-  >
+  <table class="grammar-formula-table">
 
-    <div
-      class="formula-content"
-      contenteditable="true"
-    >
-      ${leftHtml}
-    </div>
+    <tr>
 
-    <div class="formula-bracket">
-      }
-    </div>
+      <!-- LEFT -->
 
-  </div>
+      <td class="formula-left-cell">
 
-  <div class="formula-plus">
-    +
-  </div>
+        <table>
 
-  <div
-    class="formula-side"
-  >
+          <tr>
 
-    <div
-      class="formula-content"
-      contenteditable="true"
-    >
-      ${rightHtml}
-    </div>
+            <td>
 
-    <div class="formula-bracket">
-      ]
-    </div>
+              <div class="formula-column">
+                ${leftHtml}
+              </div>
 
-  </div>
+            </td>
+
+            <td class="formula-bracket-cell">
+              }
+            </td>
+
+          </tr>
+
+        </table>
+
+      </td>
+
+      <!-- PLUS -->
+
+      <td class="formula-plus-cell">
+        +
+      </td>
+
+      <!-- RIGHT -->
+
+      <td class="formula-right-cell">
+
+        <table>
+
+          <tr>
+
+            <td class="formula-open-cell">
+              [
+            </td>
+
+            <td>
+
+              <div class="formula-column">
+                ${rightHtml}
+              </div>
+
+            </td>
+
+          </tr>
+
+        </table>
+
+      </td>
+
+    </tr>
+
+  </table>
 
 </div>
 
-<div><br></div>
+<p><br></p>
 
 `
 }
@@ -356,8 +381,16 @@ const insertGrammarFormula =
 
     const html =
       createGrammarFormulaHtml(
-        ["Vます"],
-        ["たいです"]
+        [
+          "Vる",
+          "Vない"
+        ],
+        [
+          "ように言う",
+          "ように頼む",
+          "ように注意する",
+          "ように伝える"
+        ]
       )
 
     exec(
@@ -501,8 +534,6 @@ onMounted(async () => {
 
   <div class="container-fluid py-4">
 
-    <!-- HEADER -->
-
     <div
       class="
         d-flex
@@ -532,8 +563,6 @@ onMounted(async () => {
       </div>
 
     </div>
-
-    <!-- BODY -->
 
     <div class="row g-4">
 
@@ -894,8 +923,6 @@ onMounted(async () => {
 
     </div>
 
-    <!-- CREATE LESSON MODAL -->
-
     <CreateLessonModal
       v-if="showLessonModal"
       :book-id="bookId"
@@ -916,19 +943,10 @@ onMounted(async () => {
 
 <style scoped>
 
-/* =========================
-   PAGE
-========================= */
-
 .container-fluid {
   background:
     #f4f7fb;
-  //min-height: 100vh;
 }
-
-/* =========================
-   HEADER
-========================= */
 
 .back-btn {
   border: none;
@@ -936,50 +954,26 @@ onMounted(async () => {
   padding: 10px 18px;
   border-radius: 12px;
   font-weight: 600;
-  box-shadow:
-    0 2px 10px rgba(0,0,0,0.06);
-  transition: 0.2s;
-}
-
-.back-btn:hover {
-  transform: translateY(-2px);
 }
 
 .sub-title {
   color: #7c8595;
-  font-size: 14px;
 }
-
-/* =========================
-   PANEL
-========================= */
 
 .lesson-panel,
 .grammar-panel {
   background: white;
   border-radius: 24px;
   padding: 24px;
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.06);
 }
-
-/* =========================
-   LESSON
-========================= */
 
 .lesson-item {
   padding: 18px;
   border-radius: 18px;
   margin-bottom: 14px;
   cursor: pointer;
-  transition: 0.2s;
   border:
     1px solid #edf1f6;
-}
-
-.lesson-item:hover {
-  transform: translateY(-2px);
-  background: #f8fbff;
 }
 
 .lesson-item.active {
@@ -993,28 +987,12 @@ onMounted(async () => {
   color: white;
 }
 
-.lesson-name {
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.lesson-desc {
-  font-size: 13px;
-  opacity: 0.85;
-}
-
-/* =========================
-   BUTTONS
-========================= */
-
 .lesson-btn,
 .add-btn,
 .save-btn,
 .cancel-btn {
   border: none;
   border-radius: 12px;
-  transition: 0.2s;
-  font-weight: 600;
 }
 
 .lesson-btn,
@@ -1026,24 +1004,10 @@ onMounted(async () => {
       #4f8cff,
       #7b61ff
     );
+
   color: white;
   padding: 10px 18px;
 }
-
-.lesson-btn:hover,
-.add-btn:hover,
-.save-btn:hover {
-  transform: translateY(-2px);
-}
-
-.cancel-btn {
-  background: #eef2f7;
-  padding: 10px 18px;
-}
-
-/* =========================
-   TOP ACTION
-========================= */
 
 .top-actions {
   display: flex;
@@ -1057,10 +1021,6 @@ onMounted(async () => {
   font-weight: 700;
 }
 
-/* =========================
-   EDITOR
-========================= */
-
 .editor-card {
   background: #fafcff;
   border:
@@ -1072,7 +1032,6 @@ onMounted(async () => {
 
 .toolbar {
   display: flex;
-  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 14px;
 }
@@ -1087,25 +1046,6 @@ onMounted(async () => {
   background: white;
   border:
     1px solid #dfe6ef;
-  transition: 0.2s;
-  font-weight: 700;
-}
-
-.tool-btn:hover,
-.formula-btn:hover {
-  background: #f5f8ff;
-}
-
-.tool-btn.active {
-  background:
-    linear-gradient(
-      135deg,
-      #4f8cff,
-      #7b61ff
-    );
-
-  color: white;
-  border: none;
 }
 
 .rich-editor {
@@ -1116,19 +1056,12 @@ onMounted(async () => {
   border-radius: 18px;
   padding: 18px;
   outline: none;
-  line-height: 1.8;
-  font-size: 16px;
-}
-
-.rich-editor:focus {
-  border-color: #4f8cff;
 }
 
 .custom-input {
   border-radius: 14px;
   border:
     1px solid #dfe6ef;
-  padding: 12px 14px;
 }
 
 .editor-actions {
@@ -1137,10 +1070,6 @@ onMounted(async () => {
   gap: 12px;
   margin-top: 20px;
 }
-
-/* =========================
-   GRAMMAR CARD
-========================= */
 
 .grammar-scroll {
   display: flex;
@@ -1154,13 +1083,6 @@ onMounted(async () => {
     1px solid #edf1f5;
   border-radius: 22px;
   padding: 22px;
-  transition: 0.2s;
-}
-
-.grammar-card:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 8px 24px rgba(0,0,0,0.05);
 }
 
 .grammar-header {
@@ -1194,7 +1116,6 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
 }
 
 .edit-btn {
@@ -1202,120 +1123,168 @@ onMounted(async () => {
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: #f3f6fb;
-  transition: 0.2s;
-}
-
-.edit-btn:hover {
-  background: #e8efff;
 }
 
 .grammar-description {
   margin-top: 16px;
   color: #657082;
-  line-height: 1.7;
 }
-
-/* =========================
-   EMPTY
-========================= */
 
 .empty-state {
   text-align: center;
   padding: 90px 20px;
 }
 
-.empty-icon {
-  font-size: 64px;
-  margin-bottom: 18px;
-}
-
-.empty-title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.empty-desc {
-  color: #7c8595;
-}
-
 /* =========================
    FORMULA
 ========================= */
 
-.grammar-formula {
-  display: inline-flex;
-  align-items: center;
-  gap: 18px;
-  padding: 18px 22px;
-  border-radius: 18px;
-  background:
-    linear-gradient(
-      135deg,
-      #f8fbff,
-      #f3f7ff
-    );
+.grammar-formula-wrapper {
 
-  border:
-    1px solid #dfe9ff;
+  overflow-x: auto;
 
-  margin: 12px 0;
+  margin:
+    28px 0;
 }
 
-.formula-side {
-  display: flex;
-  align-items: stretch;
+.grammar-formula-table {
+
+  border-collapse: separate;
+
+  /* khoảng cách giữa 3 phần */
+  border-spacing:
+    72px 0;
+
+  background: #f5f5f5;
+
+  border-radius: 30px;
+
+  /* padding ngoài */
+  padding:
+    46px
+    72px;
+
+  display: inline-table;
+}
+/* CELLS */
+
+.formula-left-cell,
+.formula-right-cell,
+.formula-plus-cell {
+  vertical-align: top;
 }
 
-.formula-content {
+/* COLUMN */
+
+.formula-column {
+
   display: flex;
+
   flex-direction: column;
-  gap: 8px;
-  min-width: 120px;
-  padding: 0 10px;
-}
 
-.formula-content div {
-  background: white;
-  border-radius: 10px;
-  padding: 6px 12px;
-  border:
-    1px solid #e5ebf5;
+  gap: 34px;
 }
+/* ITEMS */
 
-.formula-bracket {
-  font-size: 72px;
+.formula-item {
+
+  font-size: 62px;
+
   line-height: 1;
-  color: #4f8cff;
-  display: flex;
-  align-items: center;
+
+  white-space: nowrap;
+
+  font-family:
+    "Noto Sans JP",
+    sans-serif;
+
+  font-weight: 400;
+}
+
+.formula-item.left {
+  color: #2147a8;
+}
+
+.formula-item.right {
+  color: #c30000;
+}
+
+/* BRACKET */
+
+.formula-bracket-cell {
+
+  font-size: 92px;
+
+  line-height: 0.8;
+
+  padding-left: 18px;
+
+  color: #53331d;
+
+  transform:
+    scaleY(3.5);
+
+  transform-origin: top;
+}
+
+/* OPEN */
+
+.formula-open-cell {
+
+  font-size: 92px;
+
+  line-height: 0.8;
+
+  padding-right: 18px;
+
+  color: #53331d;
+
+  transform:
+    scaleY(5);
+
+  transform-origin: top;
+}
+
+/* PLUS */
+
+.formula-plus-cell {
+
+  font-size: 60px;
+
   font-weight: 300;
+
+  vertical-align: middle;
+
+  padding:
+    0 28px;
 }
 
-.formula-plus {
-  font-size: 28px;
-  font-weight: 700;
-  color: #7b61ff;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
+/* MOBILE */
 
 @media (max-width: 768px) {
 
-  .top-actions {
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
+  .grammar-formula-table {
+
+    border-spacing:
+      22px 0;
+
+    padding:
+      20px
+      22px;
   }
 
-  .grammar-formula {
-    flex-direction: column;
-    align-items: flex-start;
+  .formula-item {
+    font-size: 72px;
+  }
+
+  .formula-plus-cell {
+    font-size: 34px;
+  }
+
+  .formula-bracket-cell,
+  .formula-open-cell {
+    font-size: 54px;
   }
 
 }
-
 </style>
