@@ -12,7 +12,7 @@ import {
 
 import CreateLessonModal from "@/components/staff/CreateLessonModal.vue"
 
-import { gatewayUrl } from "@/api/authApi.ts"
+import {gatewayUrl} from "@/api/authApi.ts"
 
 /* =========================
    ROUTER
@@ -42,6 +42,13 @@ interface Grammar {
 interface Book {
   bookId: number
   bookName: string
+}
+
+interface Example {
+  exampleId: number
+  nihongo: string
+  vietnamese: string
+  grammarId: number
 }
 
 /* =========================
@@ -77,6 +84,18 @@ const grammarForm = ref({
   structure: "",
   description: ""
 })
+
+const examples =
+  ref<Record<number, Example[]>>({})
+
+const expandedGrammar =
+  ref<Record<number, boolean>>({})
+
+const exampleForms =
+  ref<Record<number, {
+    nihongo: string
+    vietnamese: string
+  }>>({})
 
 /* =========================
    TOOLBAR ACTIVE
@@ -172,8 +191,25 @@ const fetchGrammars =
           }
         )
 
-      grammars.value =
-        res.data
+      grammars.value = res.data
+      grammars.value.forEach(
+        grammar => {
+
+          if (
+            !exampleForms.value[
+              grammar.grammarId
+              ]
+          ) {
+
+            exampleForms.value[
+              grammar.grammarId
+              ] = {
+              nihongo: "",
+              vietnamese: ""
+            }
+          }
+        }
+      )
 
     } catch (e) {
 
@@ -273,10 +309,103 @@ const syncEditor = () => {
 
   updateToolbarState()
 }
+/* =========================
+   FETCH EXAMPLE
+========================= */
+const toggleExamples =
+  async (grammarId: number) => {
+
+    expandedGrammar.value[grammarId] =
+      !expandedGrammar.value[grammarId]
+
+    if (
+      expandedGrammar.value[grammarId] &&
+      !examples.value[grammarId]
+    ) {
+
+      await fetchExamples(
+        grammarId
+      )
+    }
+  }
+const createExample =
+  async (grammarId: number) => {
+
+    const form =
+      exampleForms.value[grammarId]
+
+    if (
+      !form?.nihongo ||
+      !form?.vietnamese
+    ) {
+      return
+    }
+
+    try {
+
+      await gatewayUrl.post(
+        "/api/staff/examples",
+        {
+          nihongo:
+          form.nihongo,
+
+          vietnamese:
+          form.vietnamese,
+
+          grammarId
+        }
+      )
+
+      exampleForms.value[grammarId] = {
+        nihongo: "",
+        vietnamese: ""
+      }
+
+      await fetchExamples(
+        grammarId
+      )
+
+      expandedGrammar.value[grammarId] =
+        true
+
+    } catch (e) {
+
+      console.error(e)
+
+      alert(
+        "Tạo ví dụ thất bại"
+      )
+    }
+  }
 
 /* =========================
    FORMULA
 ========================= */
+
+const insertNestedFormula =
+  () => {
+
+    const html = `
+
+<div class="jp-formula">
+
+<pre>
+Aい + く               ｝
+Aな        ｝ + じゃ     ｝ + なさそうだ
+N
+</pre>
+
+</div>
+
+<p><br></p>
+
+`
+
+    exec(
+      "insertHTML",
+      html
+    )
+  }
 
 const createGrammarFormulaHtml = (
   leftItems: string[],
@@ -486,6 +615,104 @@ const startEdit =
       }
     })
   }
+/* =========================
+ UPDATE
+========================= */
+
+const updateGrammar =
+  async () => {
+
+    if (
+      !selectedLesson.value ||
+      !editingGrammarId.value
+    ) {
+      return
+    }
+
+    try {
+
+      await gatewayUrl.put(
+        "/api/staff/grammars",
+        {
+          grammarId:
+          editingGrammarId.value,
+
+          title:
+          grammarForm.value.title,
+
+          structure:
+          grammarForm.value.structure,
+
+          description:
+          grammarForm.value.description,
+
+          lessonId:
+          selectedLesson.value.lessonId
+        }
+      )
+
+      resetForm()
+
+      showEditor.value = false
+
+      await fetchGrammars(
+        selectedLesson.value.lessonId
+      )
+
+    } catch (e) {
+
+      console.error(e)
+
+      alert(
+        "Cập nhật grammar thất bại"
+      )
+    }
+  }
+/* =========================
+ DELETE
+========================= */
+
+const deleteGrammar =
+  async (grammarId: number) => {
+
+    const confirmDelete =
+      confirm(
+        "Bạn có chắc muốn xóa grammar này?"
+      )
+
+    if (!confirmDelete) {
+      return
+    }
+
+    try {
+
+      await gatewayUrl.delete(
+        "/api/staff/grammars",
+        {
+          data: {
+            grammarId
+          }
+        }
+      )
+
+      if (
+        selectedLesson.value
+      ) {
+
+        await fetchGrammars(
+          selectedLesson.value.lessonId
+        )
+      }
+
+    } catch (e) {
+
+      console.error(e)
+
+      alert(
+        "Xóa grammar thất bại"
+      )
+    }
+  }
 
 /* =========================
    RESET
@@ -507,6 +734,9 @@ const resetForm = () => {
 
   editingGrammarId.value =
     null
+
+  showEditor.value =
+    false
 }
 
 /* =========================
@@ -527,6 +757,18 @@ onMounted(async () => {
   await fetchBook()
 
   await fetchLessons()
+
+  /* AUTO OPEN FIRST LESSON */
+
+  if (
+    lessons.value.length > 0
+  ) {
+
+    await openLesson(
+      lessons.value[0]
+    )
+  }
+
 })
 </script>
 
@@ -762,6 +1004,15 @@ onMounted(async () => {
                   Formula
                 </button>
 
+                <button
+                  class="formula-btn"
+                  @click="
+                    insertNestedFormula()
+                  "
+                >
+                  Formula 2
+                </button>
+
               </div>
 
               <!-- EDITOR -->
@@ -817,13 +1068,19 @@ onMounted(async () => {
 
                 <button
                   class="
-                    save-btn
-                  "
+    save-btn
+  "
                   @click="
-                    createGrammar()
-                  "
+    editingGrammarId
+      ? updateGrammar()
+      : createGrammar()
+  "
                 >
-                  Lưu Grammar
+                  {{
+                    editingGrammarId
+                      ? "Cập nhật Grammar"
+                      : "Lưu Grammar"
+                  }}
                 </button>
 
               </div>
@@ -877,18 +1134,35 @@ onMounted(async () => {
 
                   </div>
 
-                  <button
-                    class="
-                      edit-btn
-                    "
-                    @click="
-                      startEdit(
-                        grammar
-                      )
-                    "
-                  >
-                    ✏️
-                  </button>
+                  <div class="grammar-actions">
+
+                    <button
+                      class="
+      edit-btn
+    "
+                      @click="
+      startEdit(
+        grammar
+      )
+    "
+                    >
+                      ✏️
+                    </button>
+
+                    <button
+                      class="
+      delete-btn
+    "
+                      @click="
+      deleteGrammar(
+        grammar.grammarId
+      )
+    "
+                    >
+                      🗑️
+                    </button>
+
+                  </div>
 
                 </div>
 
@@ -910,7 +1184,137 @@ onMounted(async () => {
                     grammar.description
                   }}
                 </div>
+                <!-- EXAMPLE ACTION -->
 
+                <div class="example-section">
+
+                  <button
+                    class="expand-btn"
+                    @click="
+      toggleExamples(
+        grammar.grammarId
+      )
+    "
+                  >
+                    {{
+                      expandedGrammar[
+                        grammar.grammarId
+                        ]
+                        ? '▼ Ẩn ví dụ'
+                        : '▶ Xem ví dụ'
+                    }}
+                  </button>
+
+                  <!-- EXPAND CONTENT -->
+
+                  <div
+                    v-if="
+      expandedGrammar[
+        grammar.grammarId
+      ]
+    "
+                    class="example-expand"
+                  >
+
+                    <!-- CREATE -->
+
+                    <div class="example-create">
+
+      <textarea
+        v-model="
+          exampleForms[
+            grammar.grammarId
+          ].nihongo
+        "
+        class="
+          form-control
+          custom-input
+        "
+        rows="2"
+        placeholder="
+          Ví dụ tiếng Nhật
+        "
+      ></textarea>
+
+                      <textarea
+                        v-model="
+          exampleForms[
+            grammar.grammarId
+          ].vietnamese
+        "
+                        class="
+          form-control
+          custom-input
+        "
+                        rows="2"
+                        placeholder="
+          Nghĩa tiếng Việt
+        "
+                      ></textarea>
+
+                      <button
+                        class="save-example-btn"
+                        @click="
+          createExample(
+            grammar.grammarId
+          )
+        "
+                      >
+                        + Lưu ví dụ
+                      </button>
+
+                    </div>
+
+                    <!-- LIST -->
+
+                    <div
+                      v-if="
+        examples[
+          grammar.grammarId
+        ]?.length
+      "
+                      class="example-list"
+                    >
+
+                      <div
+                        v-for="
+          example in
+          examples[
+            grammar.grammarId
+          ]
+        "
+                        :key="
+          example.exampleId
+        "
+                        class="example-card"
+                      >
+
+                        <div class="jp-text">
+                          {{
+                            example.nihongo
+                          }}
+                        </div>
+
+                        <div class="vn-text">
+                          {{
+                            example.vietnamese
+                          }}
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                    <div
+                      v-else
+                      class="empty-example"
+                    >
+                      Chưa có ví dụ
+                    </div>
+
+                  </div>
+
+                </div>
               </div>
 
             </div>
@@ -944,8 +1348,7 @@ onMounted(async () => {
 <style scoped>
 
 .container-fluid {
-  background:
-    #f4f7fb;
+  background: #f4f7fb;
 }
 
 .back-btn {
@@ -972,17 +1375,15 @@ onMounted(async () => {
   border-radius: 18px;
   margin-bottom: 14px;
   cursor: pointer;
-  border:
-    1px solid #edf1f6;
+  border: 1px solid #edf1f6;
 }
 
 .lesson-item.active {
-  background:
-    linear-gradient(
-      135deg,
-      #4f8cff,
-      #7b61ff
-    );
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
 
   color: white;
 }
@@ -998,12 +1399,11 @@ onMounted(async () => {
 .lesson-btn,
 .add-btn,
 .save-btn {
-  background:
-    linear-gradient(
-      135deg,
-      #4f8cff,
-      #7b61ff
-    );
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
 
   color: white;
   padding: 10px 18px;
@@ -1023,8 +1423,7 @@ onMounted(async () => {
 
 .editor-card {
   background: #fafcff;
-  border:
-    1px solid #e8edf5;
+  border: 1px solid #e8edf5;
   border-radius: 24px;
   padding: 20px;
   margin-bottom: 24px;
@@ -1044,15 +1443,13 @@ onMounted(async () => {
   padding: 0 18px;
   border-radius: 14px;
   background: white;
-  border:
-    1px solid #dfe6ef;
+  border: 1px solid #dfe6ef;
 }
 
 .rich-editor {
   min-height: 260px;
   background: white;
-  border:
-    1px solid #dbe3ee;
+  border: 1px solid #dbe3ee;
   border-radius: 18px;
   padding: 18px;
   outline: none;
@@ -1060,8 +1457,7 @@ onMounted(async () => {
 
 .custom-input {
   border-radius: 14px;
-  border:
-    1px solid #dfe6ef;
+  border: 1px solid #dfe6ef;
 }
 
 .editor-actions {
@@ -1079,8 +1475,7 @@ onMounted(async () => {
 
 .grammar-card {
   background: white;
-  border:
-    1px solid #edf1f5;
+  border: 1px solid #edf1f5;
   border-radius: 22px;
   padding: 22px;
 }
@@ -1104,12 +1499,11 @@ onMounted(async () => {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background:
-    linear-gradient(
-      135deg,
-      #4f8cff,
-      #7b61ff
-    );
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
 
   color: white;
 
@@ -1143,8 +1537,7 @@ onMounted(async () => {
 
   overflow-x: auto;
 
-  margin:
-    28px 0;
+  margin: 28px 0;
 }
 
 .grammar-formula-table {
@@ -1152,20 +1545,18 @@ onMounted(async () => {
   border-collapse: separate;
 
   /* khoảng cách giữa 3 phần */
-  border-spacing:
-    72px 0;
+  border-spacing: 72px 0;
 
   background: #f5f5f5;
 
   border-radius: 30px;
 
   /* padding ngoài */
-  padding:
-    46px
-    72px;
+  padding: 46px 72px;
 
   display: inline-table;
 }
+
 /* CELLS */
 
 .formula-left-cell,
@@ -1184,6 +1575,7 @@ onMounted(async () => {
 
   gap: 34px;
 }
+
 /* ITEMS */
 
 .formula-item {
@@ -1194,9 +1586,8 @@ onMounted(async () => {
 
   white-space: nowrap;
 
-  font-family:
-    "Noto Sans JP",
-    sans-serif;
+  font-family: "Noto Sans JP",
+  sans-serif;
 
   font-weight: 400;
 }
@@ -1221,8 +1612,7 @@ onMounted(async () => {
 
   color: #53331d;
 
-  transform:
-    scaleY(3.5);
+  transform: scaleY(3.5);
 
   transform-origin: top;
 }
@@ -1239,8 +1629,7 @@ onMounted(async () => {
 
   color: #53331d;
 
-  transform:
-    scaleY(5);
+  transform: scaleY(5);
 
   transform-origin: top;
 }
@@ -1255,8 +1644,7 @@ onMounted(async () => {
 
   vertical-align: middle;
 
-  padding:
-    0 28px;
+  padding: 0 28px;
 }
 
 /* MOBILE */
@@ -1265,12 +1653,9 @@ onMounted(async () => {
 
   .grammar-formula-table {
 
-    border-spacing:
-      22px 0;
+    border-spacing: 22px 0;
 
-    padding:
-      20px
-      22px;
+    padding: 20px 22px;
   }
 
   .formula-item {
@@ -1286,5 +1671,456 @@ onMounted(async () => {
     font-size: 54px;
   }
 
+}
+
+/* =========================
+   SIMPLE JP FORMULA
+========================= */
+
+.jp-formula {
+
+  display: inline-block;
+
+  background: #f3f3f3;
+
+  border-radius: 28px;
+
+  padding: 36px 52px;
+
+  margin: 24px 0;
+}
+
+.jp-formula pre {
+
+  margin: 0;
+
+  font-size: 62px;
+
+  line-height: 1.5;
+
+  white-space: pre;
+
+  font-family: "Noto Sans JP",
+  monospace;
+
+  color: #1d3896;
+}
+
+.grammar-actions {
+
+  display: flex;
+
+  gap: 10px;
+}
+
+.delete-btn {
+
+  border: none;
+
+  width: 42px;
+
+  height: 42px;
+
+  border-radius: 12px;
+
+  background: #ffe7e7;
+
+  color: #d10000;
+
+  transition: 0.2s;
+}
+
+.delete-btn:hover {
+
+  background: #ffd0d0;
+}
+
+/* =========================
+   TOOLBAR ACTIVE
+========================= */
+
+.tool-btn {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-weight: 700;
+
+  transition: all 0.2s ease;
+
+  cursor: pointer;
+}
+
+.tool-btn:hover {
+
+  background: #f3f7ff;
+
+  border-color: #4f8cff;
+}
+
+/* ACTIVE */
+
+.tool-btn.active {
+
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
+
+  color: white;
+
+  border-color: transparent;
+
+  box-shadow: 0 6px 18px rgba(
+    79,
+    140,
+    255,
+    0.35
+  );
+
+  transform: translateY(-1px);
+}
+
+tool-btn.active:hover {
+  opacity: 0.95;
+}
+/* =========================
+   EXAMPLES
+========================= */
+
+.example-section {
+
+  margin-top: 28px;
+}
+
+/* TOGGLE BUTTON */
+
+.expand-btn {
+
+  border: none;
+
+  background: linear-gradient(
+    135deg,
+    #f4f8ff,
+    #eef2ff
+  );
+
+  color: #3158d8;
+
+  padding: 12px 18px;
+
+  border-radius: 16px;
+
+  font-weight: 700;
+
+  font-size: 14px;
+
+  transition: all 0.25s ease;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  border: 1px solid #dce6ff;
+}
+
+.expand-btn:hover {
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 24px rgba(
+      79,
+      140,
+      255,
+      0.18
+    );
+
+  background: linear-gradient(
+    135deg,
+    #eef4ff,
+    #e6edff
+  );
+}
+
+/* EXPAND AREA */
+
+.example-expand {
+
+  margin-top: 20px;
+
+  background: linear-gradient(
+    180deg,
+    #fcfdff,
+    #f7f9ff
+  );
+
+  border-radius: 24px;
+
+  border: 1px solid #e6ecf7;
+
+  padding: 24px;
+}
+
+/* CREATE FORM */
+
+.example-create {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 16px;
+
+  margin-bottom: 28px;
+}
+
+.example-create textarea {
+
+  border-radius: 18px !important;
+
+  border: 1px solid #dbe4f0 !important;
+
+  padding: 16px !important;
+
+  min-height: 90px;
+
+  resize: vertical;
+
+  transition: all 0.2s ease;
+
+  font-size: 15px;
+
+  background: white;
+}
+
+.example-create textarea:focus {
+
+  border-color: #4f8cff !important;
+
+  box-shadow:
+    0 0 0 4px rgba(
+      79,
+      140,
+      255,
+      0.12
+    ) !important;
+}
+
+/* SAVE BUTTON */
+
+.save-example-btn {
+
+  align-self: flex-end;
+
+  border: none;
+
+  padding: 12px 22px;
+
+  border-radius: 16px;
+
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
+
+  color: white;
+
+  font-weight: 700;
+
+  transition: all 0.25s ease;
+
+  box-shadow:
+    0 10px 24px rgba(
+      79,
+      140,
+      255,
+      0.28
+    );
+}
+
+.save-example-btn:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 16px 32px rgba(
+      79,
+      140,
+      255,
+      0.38
+    );
+}
+
+/* LIST */
+
+.example-list {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+/* CARD */
+
+.example-card {
+
+  position: relative;
+
+  overflow: hidden;
+
+  background: white;
+
+  border-radius: 22px;
+
+  padding: 22px;
+
+  border: 1px solid #e9eef7;
+
+  transition: all 0.25s ease;
+}
+
+.example-card:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 14px 32px rgba(
+      0,
+      0,
+      0,
+      0.06
+    );
+}
+
+/* LEFT ACCENT */
+
+.example-card::before {
+
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+
+  top: 0;
+
+  width: 6px;
+
+  height: 100%;
+
+  background: linear-gradient(
+    180deg,
+    #4f8cff,
+    #7b61ff
+  );
+}
+
+/* JAPANESE */
+
+.jp-text {
+
+  font-size: 28px;
+
+  line-height: 1.8;
+
+  font-family:
+    "Noto Sans JP",
+    sans-serif;
+
+  font-weight: 700;
+
+  color: #1a2c73;
+
+  margin-bottom: 16px;
+
+  letter-spacing: 0.4px;
+}
+
+/* VIETNAMESE */
+
+.vn-text {
+
+  position: relative;
+
+  padding-left: 18px;
+
+  color: #647084;
+
+  line-height: 1.8;
+
+  font-size: 16px;
+}
+
+.vn-text::before {
+
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+
+  top: 10px;
+
+  width: 8px;
+
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #7b61ff;
+}
+
+/* EMPTY */
+
+.empty-example {
+
+  text-align: center;
+
+  padding: 40px 20px;
+
+  border-radius: 18px;
+
+  background: white;
+
+  border: 1px dashed #d7dfeb;
+
+  color: #8a95a8;
+
+  font-weight: 500;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+
+  .example-expand {
+
+    padding: 18px;
+  }
+
+  .jp-text {
+
+    font-size: 22px;
+  }
+
+  .vn-text {
+
+    font-size: 15px;
+  }
+
+  .save-example-btn {
+
+    width: 100%;
+  }
 }
 </style>
