@@ -97,6 +97,17 @@ const exampleForms =
     vietnamese: string
   }>>({})
 
+const showExampleForm =
+  ref<Record<number, boolean>>({})
+
+const exampleEditorRefs =
+  ref<Record<number, HTMLDivElement | null>>({})
+
+const exampleFormats =
+  ref<Record<number, {
+    bold: boolean
+    italic: boolean
+  }>>({})
 /* =========================
    TOOLBAR ACTIVE
 ========================= */
@@ -106,7 +117,8 @@ const activeFormats = ref({
   italic: false,
   strikeThrough: false
 })
-
+const exampleSelections =
+  ref<Record<number, Range | null>>({})
 /* =========================
    BOOK ID
 ========================= */
@@ -222,6 +234,129 @@ const fetchGrammars =
   }
 
 /* =========================
+ EXAMPLE EDITOR
+========================= */
+
+const execExampleCommand = (
+  grammarId: number,
+  command: string
+) => {
+
+  const editor =
+    exampleEditorRefs.value[
+      grammarId
+      ]
+
+  if (!editor) {
+    return
+  }
+
+  editor.focus()
+
+  restoreExampleSelection(
+    grammarId
+  )
+
+  document.execCommand(
+    command,
+    false
+  )
+
+  saveExampleSelection(
+    grammarId
+  )
+
+  exampleForms.value[
+    grammarId
+    ].nihongo =
+    editor.innerHTML
+
+  updateExampleToolbar(
+    grammarId
+  )
+}
+
+const syncExampleEditor =
+  (grammarId: number) => {
+
+    const editor =
+      exampleEditorRefs.value[
+        grammarId
+        ]
+
+    if (!editor) {
+      return
+    }
+
+    exampleForms.value[
+      grammarId
+      ].nihongo =
+      editor.innerHTML
+
+    updateExampleToolbar(
+      grammarId
+    )
+  }
+const updateExampleToolbar =
+  (grammarId: number) => {
+
+    exampleFormats.value[
+      grammarId
+      ] = {
+      bold:
+        document.queryCommandState(
+          "bold"
+        ),
+
+      italic:
+        document.queryCommandState(
+          "italic"
+        )
+    }
+  }
+
+const saveExampleSelection =
+  (grammarId: number) => {
+
+    const selection =
+      window.getSelection()
+
+    if (
+      selection &&
+      selection.rangeCount > 0
+    ) {
+
+      exampleSelections.value[
+        grammarId
+        ] =
+        selection.getRangeAt(0)
+    }
+  }
+
+const restoreExampleSelection =
+  (grammarId: number) => {
+
+    const range =
+      exampleSelections.value[
+        grammarId
+        ]
+
+    if (!range) {
+      return
+    }
+
+    const selection =
+      window.getSelection()
+
+    if (!selection) {
+      return
+    }
+
+    selection.removeAllRanges()
+
+    selection.addRange(range)
+  }
+/* =========================
    LESSON MODAL
 ========================= */
 
@@ -323,9 +458,6 @@ const toggleExamples =
       !examples.value[grammarId]
     ) {
 
-      await fetchExamples(
-        grammarId
-      )
     }
   }
 const createExample =
@@ -361,13 +493,11 @@ const createExample =
         vietnamese: ""
       }
 
-      await fetchExamples(
-        grammarId
-      )
 
       expandedGrammar.value[grammarId] =
         true
-
+      showExampleForm.value[grammarId] =
+        false
     } catch (e) {
 
       console.error(e)
@@ -1218,52 +1348,175 @@ onMounted(async () => {
 
                     <!-- CREATE -->
 
-                    <div class="example-create">
+                    <!-- CREATE -->
 
-      <textarea
-        v-model="
-          exampleForms[
-            grammar.grammarId
-          ].nihongo
-        "
-        class="
-          form-control
-          custom-input
-        "
-        rows="2"
-        placeholder="
-          Ví dụ tiếng Nhật
-        "
-      ></textarea>
+                    <!-- TOP BAR -->
 
-                      <textarea
-                        v-model="
-          exampleForms[
-            grammar.grammarId
-          ].vietnamese
-        "
-                        class="
-          form-control
-          custom-input
-        "
-                        rows="2"
-                        placeholder="
-          Nghĩa tiếng Việt
-        "
-                      ></textarea>
+                    <div class="example-topbar">
+
+                      <div class="example-count">
+
+                        {{
+                          examples[
+                            grammar.grammarId
+                            ]?.length || 0
+                        }}
+                        ví dụ
+
+                      </div>
 
                       <button
-                        class="save-example-btn"
+                        class="add-example-btn"
                         @click="
-          createExample(
-            grammar.grammarId
-          )
-        "
+      showExampleForm[
+        grammar.grammarId
+      ] =
+      !showExampleForm[
+        grammar.grammarId
+      ]
+    "
                       >
-                        + Lưu ví dụ
+                        {{
+                          showExampleForm[
+                            grammar.grammarId
+                            ]
+                            ? '✕ Đóng'
+                            : '+ Thêm ví dụ'
+                        }}
                       </button>
 
                     </div>
+
+                    <!-- CREATE FORM -->
+
+                    <transition name="fade-slide">
+
+                      <div
+                        v-if="showExampleForm[grammar.grammarId]"
+                        class="example-create">
+                        <!-- NIHONGO -->
+                        <div class="example-editor-card">
+                          <div class="example-label">
+                            🇯🇵 Ví dụ tiếng Nhật
+                          </div>
+
+                          <div class="example-toolbar">
+
+                            <button
+                              class="example-tool-btn"
+                              :class="{
+    active:
+      exampleFormats[
+        grammar.grammarId
+      ]?.bold
+  }"
+                              @mousedown.prevent
+                              @click="
+    execExampleCommand(
+      grammar.grammarId,
+      'bold'
+    )
+  "
+                            >
+                              B
+                            </button>
+
+                            <button
+                              class="example-tool-btn"
+                              :class="{
+    active:
+      exampleFormats[
+        grammar.grammarId
+      ]?.italic
+  }"
+                              @mousedown.prevent
+                              @click="
+    execExampleCommand(
+      grammar.grammarId,
+      'italic'
+    )
+  "
+                            >
+                              I
+                            </button>
+
+                          </div>
+
+                          <div
+                            :ref="
+    el =>
+      exampleEditorRefs[
+        grammar.grammarId
+      ] =
+      el as HTMLDivElement
+  "
+                            class="example-rich-editor"
+                            contenteditable="true"
+                            @input="
+    syncExampleEditor(
+      grammar.grammarId
+    )
+  "
+                            @mouseup="
+    updateExampleToolbar(
+      grammar.grammarId
+    )
+  "
+                            @keyup="
+    updateExampleToolbar(
+      grammar.grammarId
+    )
+  "
+                            @blur="
+    saveExampleSelection(
+      grammar.grammarId
+    )
+  "
+                          ></div>
+
+                        </div>
+
+                        <!-- VIETNAMESE -->
+
+                        <div class="example-editor-card">
+
+                          <div class="example-label">
+                            🇻🇳 Nghĩa tiếng Việt
+                          </div>
+
+                          <textarea
+                            v-model="
+        exampleForms[
+          grammar.grammarId
+        ].vietnamese
+      "
+                            class="example-textarea"
+                            rows="3"
+                            placeholder="
+        Nhập nghĩa tiếng Việt...
+      "
+                          ></textarea>
+
+                        </div>
+
+                        <div class="example-create-actions">
+
+                          <button
+                            class="save-example-btn"
+                            @click="
+        createExample(
+          grammar.grammarId
+        )
+      "
+                          >
+                            + Thêm ví dụ
+                          </button>
+
+                        </div>
+
+                      </div>
+
+                    </transition>
 
                     <!-- LIST -->
 
@@ -1788,6 +2041,7 @@ onMounted(async () => {
 tool-btn.active:hover {
   opacity: 0.95;
 }
+
 /* =========================
    EXAMPLES
 ========================= */
@@ -1834,13 +2088,12 @@ tool-btn.active:hover {
 
   transform: translateY(-1px);
 
-  box-shadow:
-    0 8px 24px rgba(
-      79,
-      140,
-      255,
-      0.18
-    );
+  box-shadow: 0 8px 24px rgba(
+    79,
+    140,
+    255,
+    0.18
+  );
 
   background: linear-gradient(
     135deg,
@@ -1904,13 +2157,12 @@ tool-btn.active:hover {
 
   border-color: #4f8cff !important;
 
-  box-shadow:
-    0 0 0 4px rgba(
-      79,
-      140,
-      255,
-      0.12
-    ) !important;
+  box-shadow: 0 0 0 4px rgba(
+    79,
+    140,
+    255,
+    0.12
+  ) !important;
 }
 
 /* SAVE BUTTON */
@@ -1937,26 +2189,24 @@ tool-btn.active:hover {
 
   transition: all 0.25s ease;
 
-  box-shadow:
-    0 10px 24px rgba(
-      79,
-      140,
-      255,
-      0.28
-    );
+  box-shadow: 0 10px 24px rgba(
+    79,
+    140,
+    255,
+    0.28
+  );
 }
 
 .save-example-btn:hover {
 
   transform: translateY(-2px);
 
-  box-shadow:
-    0 16px 32px rgba(
-      79,
-      140,
-      255,
-      0.38
-    );
+  box-shadow: 0 16px 32px rgba(
+    79,
+    140,
+    255,
+    0.38
+  );
 }
 
 /* LIST */
@@ -1993,13 +2243,12 @@ tool-btn.active:hover {
 
   transform: translateY(-2px);
 
-  box-shadow:
-    0 14px 32px rgba(
-      0,
-      0,
-      0,
-      0.06
-    );
+  box-shadow: 0 14px 32px rgba(
+    0,
+    0,
+    0,
+    0.06
+  );
 }
 
 /* LEFT ACCENT */
@@ -2033,9 +2282,8 @@ tool-btn.active:hover {
 
   line-height: 1.8;
 
-  font-family:
-    "Noto Sans JP",
-    sans-serif;
+  font-family: "Noto Sans JP",
+  sans-serif;
 
   font-weight: 700;
 
@@ -2122,5 +2370,356 @@ tool-btn.active:hover {
 
     width: 100%;
   }
+}
+
+/* =========================
+   EXAMPLE TOPBAR
+========================= */
+
+.example-topbar {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 22px;
+}
+
+.example-count {
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  color: #647084;
+
+  background: #eef3ff;
+
+  padding: 10px 16px;
+
+  border-radius: 999px;
+}
+
+/* ADD BUTTON */
+
+.add-example-btn {
+
+  border: none;
+
+  padding: 12px 18px;
+
+  border-radius: 14px;
+
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
+
+  color: white;
+
+  font-weight: 700;
+
+  transition: all 0.25s ease;
+
+  box-shadow: 0 10px 24px rgba(
+    79,
+    140,
+    255,
+    0.22
+  );
+}
+
+.add-example-btn:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 16px 32px rgba(
+    79,
+    140,
+    255,
+    0.35
+  );
+}
+
+/* FORM */
+
+.example-create {
+
+  margin-bottom: 26px;
+
+  padding: 22px;
+
+  border-radius: 22px;
+
+  background: white;
+
+  border: 1px solid #e8edf7;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+.example-create-actions {
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 12px;
+}
+
+/* CANCEL */
+
+.cancel-example-btn {
+
+  border: none;
+
+  padding: 12px 18px;
+
+  border-radius: 14px;
+
+  background: #eef2f7;
+
+  color: #4d5a6d;
+
+  font-weight: 700;
+
+  transition: 0.2s;
+}
+
+.cancel-example-btn:hover {
+
+  background: #e1e8f0;
+}
+
+/* ANIMATION */
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+
+  transition: all 0.25s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+
+  opacity: 0;
+
+  transform: translateY(-8px);
+}
+
+/* =========================
+   EXAMPLE EDITOR
+========================= */
+
+.example-editor-card {
+
+  background: white;
+
+  border-radius: 22px;
+
+  border: 1px solid #e4eaf4;
+
+  overflow: hidden;
+
+  box-shadow: 0 10px 28px rgba(
+    0,
+    0,
+    0,
+    0.04
+  );
+}
+
+.example-label {
+
+  padding: 16px 20px;
+
+  font-size: 15px;
+
+  font-weight: 700;
+
+  color: #243b7a;
+
+  border-bottom: 1px solid #edf2f8;
+
+  background: linear-gradient(
+    180deg,
+    #fbfcff,
+    #f6f8ff
+  );
+}
+
+/* TOOLBAR */
+
+.example-toolbar {
+
+  display: flex;
+
+  gap: 10px;
+
+  padding: 14px 18px;
+
+  border-bottom: 1px solid #edf2f8;
+
+  background: white;
+}
+
+.example-tool-btn {
+
+  width: 42px;
+
+  height: 42px;
+
+  border-radius: 14px;
+
+  border: 1px solid #dce5f2;
+
+  background: white;
+
+  font-weight: 700;
+
+  transition: all 0.2s ease;
+}
+
+.example-tool-btn:hover {
+
+  background: #f3f7ff;
+
+  border-color: #4f8cff;
+
+  transform: translateY(-1px);
+}
+
+/* TEXTAREA */
+
+.example-textarea {
+
+  width: 100%;
+
+  border: none;
+
+  outline: none;
+
+  resize: vertical;
+
+  padding: 20px;
+
+  min-height: 120px;
+
+  font-size: 16px;
+
+  line-height: 1.8;
+
+  background: #fff;
+}
+
+.example-textarea:focus {
+
+  background: #fcfdff;
+}
+
+/* ACTION */
+
+.example-create-actions {
+
+  display: flex;
+
+  justify-content: flex-end;
+}
+
+/* SAVE BUTTON */
+
+.save-example-btn {
+
+  border: none;
+
+  padding: 14px 24px;
+
+  border-radius: 18px;
+
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
+
+  color: white;
+
+  font-weight: 700;
+
+  transition: all 0.25s ease;
+
+  box-shadow: 0 14px 30px rgba(
+    79,
+    140,
+    255,
+    0.25
+  );
+}
+
+.save-example-btn:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 18px 38px rgba(
+    79,
+    140,
+    255,
+    0.35
+  );
+}
+
+.example-rich-editor {
+
+  min-height: 140px;
+
+  padding: 20px;
+
+  outline: none;
+
+  line-height: 1.8;
+
+  font-size: 16px;
+
+  background: white;
+}
+
+.example-rich-editor:focus {
+
+  background: #fcfdff;
+}
+
+.example-rich-editor b {
+  font-weight: 700;
+}
+
+.example-rich-editor i {
+  font-style: italic;
+}
+
+.example-tool-btn.active {
+
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
+
+  color: white;
+
+  border-color: transparent;
+
+  box-shadow: 0 8px 18px rgba(
+    79,
+    140,
+    255,
+    0.28
+  );
 }
 </style>
