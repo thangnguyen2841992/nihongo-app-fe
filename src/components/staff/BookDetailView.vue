@@ -14,6 +14,7 @@ import CreateLessonModal from "@/components/staff/CreateLessonModal.vue"
 
 import {gatewayUrl} from "@/api/authApi.ts"
 import ExampleModal from "@/components/staff/ExampleModal.vue"
+import GrammarModal from "@/components/staff/GrammarModal.vue";
 
 /* =========================
    ROUTER
@@ -75,23 +76,11 @@ const grammars =
 const selectedLesson =
   ref<Lesson | null>(null)
 
-const showEditor =
-  ref(false)
-
 const showLessonModal =
   ref(false)
 
-const editingGrammarId =
-  ref<number | null>(null)
-
 const editorRef =
   ref<HTMLDivElement | null>(null)
-
-const grammarForm = ref({
-  title: "",
-  structure: "",
-  description: ""
-})
 
 const examples =
   ref<Record<number, Example[]>>({})
@@ -99,9 +88,11 @@ const examples =
 const expandedGrammar =
   ref<Record<number, boolean>>({})
 
-const showExampleForm =
-  ref<Record<number, boolean>>({})
+const showGrammarModal =
+  ref(false)
 
+const editingGrammar =
+  ref<Grammar | null>(null)
 
 /* =========================
    TOOLBAR ACTIVE
@@ -112,6 +103,74 @@ const activeFormats = ref({
   italic: false,
   strikeThrough: false
 })
+
+
+const openCreateGrammarModal =
+  () => {
+
+    editingGrammar.value =
+      null
+
+    showGrammarModal.value =
+      true
+  }
+
+const openEditGrammarModal =
+  (grammar: Grammar) => {
+
+    editingGrammar.value =
+      grammar
+
+    showGrammarModal.value =
+      true
+  }
+
+const onGrammarSaved =
+  async () => {
+
+    showGrammarModal.value =
+      false
+
+    if (selectedLesson.value) {
+
+      await fetchGrammars(
+        selectedLesson.value.lessonId
+      )
+    }
+  }
+
+const deleteGrammar =
+  async (grammarId: number) => {
+    const confirmDelete =
+      confirm(
+        "Bạn có chắc muốn xóa grammar này?"
+      )
+    if (!confirmDelete) {
+      return
+    }
+    try {
+      await gatewayUrl.delete(
+        "/api/staff/grammars",
+        {
+          data: {
+            grammarId
+          }
+        }
+      )
+      if (
+        selectedLesson.value
+      ) {
+        await fetchGrammars(
+          selectedLesson.value.lessonId
+        )
+      }
+    } catch (e) {
+      console.error(e)
+      alert(
+        "Xóa grammar thất bại"
+      )
+    }
+  }
 
 const openCreateExampleModal = (
   grammarId: number
@@ -288,59 +347,7 @@ const openLesson =
     )
   }
 
-/* =========================
-   TOOLBAR STATE
-========================= */
 
-const updateToolbarState =
-  () => {
-
-    activeFormats.value.bold =
-      document.queryCommandState(
-        "bold"
-      )
-
-    activeFormats.value.italic =
-      document.queryCommandState(
-        "italic"
-      )
-
-    activeFormats.value.strikeThrough =
-      document.queryCommandState(
-        "strikeThrough"
-      )
-  }
-
-/* =========================
-   EDITOR
-========================= */
-
-const exec = (
-  command: string,
-  value?: string
-) => {
-
-  document.execCommand(
-    command,
-    false,
-    value
-  )
-
-  syncEditor()
-
-  updateToolbarState()
-}
-
-const syncEditor = () => {
-
-  if (!editorRef.value)
-    return
-
-  grammarForm.value.structure =
-    editorRef.value.innerHTML
-
-  updateToolbarState()
-}
 /* =========================
    FETCH EXAMPLE
 ========================= */
@@ -386,368 +393,6 @@ const toggleExamples =
     }
   }
 
-
-/* =========================
-   FORMULA
-========================= */
-
-const insertNestedFormula =
-  () => {
-
-    const html = `
-
-<div class="jp-formula">
-
-<pre>
-Aい + く               ｝
-Aな        ｝ + じゃ     ｝ + なさそうだ
-N
-</pre>
-
-</div>
-
-<p><br></p>
-
-`
-
-    exec(
-      "insertHTML",
-      html
-    )
-  }
-
-const createGrammarFormulaHtml = (
-  leftItems: string[],
-  rightItems: string[]
-) => {
-
-  const leftHtml =
-    leftItems
-      .map(
-        item =>
-          `<div class="formula-item left">${item}</div>`
-      )
-      .join("")
-
-  const rightHtml =
-    rightItems
-      .map(
-        item =>
-          `<div class="formula-item right">${item}</div>`
-      )
-      .join("")
-
-  return `
-
-<div class="grammar-formula-wrapper">
-
-  <table class="grammar-formula-table">
-
-    <tr>
-
-      <!-- LEFT -->
-
-      <td class="formula-left-cell">
-
-        <table>
-
-          <tr>
-
-            <td>
-
-              <div class="formula-column">
-                ${leftHtml}
-              </div>
-
-            </td>
-
-            <td class="formula-bracket-cell">
-              }
-            </td>
-
-          </tr>
-
-        </table>
-
-      </td>
-
-      <!-- PLUS -->
-
-      <td class="formula-plus-cell">
-        +
-      </td>
-
-      <!-- RIGHT -->
-
-      <td class="formula-right-cell">
-
-        <table>
-
-          <tr>
-
-            <td class="formula-open-cell">
-              [
-            </td>
-
-            <td>
-
-              <div class="formula-column">
-                ${rightHtml}
-              </div>
-
-            </td>
-
-          </tr>
-
-        </table>
-
-      </td>
-
-    </tr>
-
-  </table>
-
-</div>
-
-<p><br></p>
-
-`
-}
-
-const insertGrammarFormula =
-  () => {
-
-    const html =
-      createGrammarFormulaHtml(
-        [
-          "Vる",
-          "Vない"
-        ],
-        [
-          "ように言う",
-          "ように頼む",
-          "ように注意する",
-          "ように伝える"
-        ]
-      )
-
-    exec(
-      "insertHTML",
-      html
-    )
-  }
-
-/* =========================
-   CREATE
-========================= */
-
-const createGrammar =
-  async () => {
-
-    if (
-      !selectedLesson.value
-    ) {
-      return
-    }
-
-    try {
-
-      await gatewayUrl.post(
-        "/api/staff/grammars",
-        {
-          title:
-          grammarForm.value
-            .title,
-
-          structure:
-          grammarForm.value
-            .structure,
-
-          description:
-          grammarForm.value
-            .description,
-
-          lessonId:
-          selectedLesson.value
-            .lessonId
-        }
-      )
-
-      resetForm()
-
-      await fetchGrammars(
-        selectedLesson.value
-          .lessonId
-      )
-
-    } catch (e) {
-
-      console.error(e)
-
-      alert(
-        "Tạo grammar thất bại"
-      )
-    }
-  }
-
-/* =========================
-   EDIT
-========================= */
-
-const startEdit =
-  (grammar: Grammar) => {
-
-    editingGrammarId.value =
-      grammar.grammarId
-
-    showEditor.value = true
-
-    grammarForm.value = {
-      title:
-      grammar.title,
-
-      structure:
-      grammar.structure,
-
-      description:
-      grammar.description
-    }
-
-    nextTick(() => {
-
-      if (
-        editorRef.value
-      ) {
-
-        editorRef.value.innerHTML =
-          grammar.structure
-      }
-    })
-  }
-/* =========================
- UPDATE
-========================= */
-
-const updateGrammar =
-  async () => {
-
-    if (
-      !selectedLesson.value ||
-      !editingGrammarId.value
-    ) {
-      return
-    }
-
-    try {
-
-      await gatewayUrl.put(
-        "/api/staff/grammars",
-        {
-          grammarId:
-          editingGrammarId.value,
-
-          title:
-          grammarForm.value.title,
-
-          structure:
-          grammarForm.value.structure,
-
-          description:
-          grammarForm.value.description,
-
-          lessonId:
-          selectedLesson.value.lessonId
-        }
-      )
-
-      resetForm()
-
-      showEditor.value = false
-
-      await fetchGrammars(
-        selectedLesson.value.lessonId
-      )
-
-    } catch (e) {
-
-      console.error(e)
-
-      alert(
-        "Cập nhật grammar thất bại"
-      )
-    }
-  }
-/* =========================
- DELETE
-========================= */
-
-const deleteGrammar =
-  async (grammarId: number) => {
-
-    const confirmDelete =
-      confirm(
-        "Bạn có chắc muốn xóa grammar này?"
-      )
-
-    if (!confirmDelete) {
-      return
-    }
-
-    try {
-
-      await gatewayUrl.delete(
-        "/api/staff/grammars",
-        {
-          data: {
-            grammarId
-          }
-        }
-      )
-
-      if (
-        selectedLesson.value
-      ) {
-
-        await fetchGrammars(
-          selectedLesson.value.lessonId
-        )
-      }
-
-    } catch (e) {
-
-      console.error(e)
-
-      alert(
-        "Xóa grammar thất bại"
-      )
-    }
-  }
-
-/* =========================
-   RESET
-========================= */
-
-const resetForm = () => {
-
-  grammarForm.value = {
-    title: "",
-    structure: "",
-    description: ""
-  }
-
-  if (editorRef.value) {
-
-    editorRef.value.innerHTML =
-      ""
-  }
-
-  editingGrammarId.value =
-    null
-
-  showEditor.value =
-    false
-}
-
 /* =========================
    BACK
 ========================= */
@@ -774,7 +419,7 @@ onMounted(async () => {
   ) {
 
     await openLesson(
-      lessons.value[0]
+      lessons.value[0]!
     )
   }
 
@@ -785,32 +430,41 @@ onMounted(async () => {
 
   <div class="container-fluid py-4">
 
-    <div
-      class="
-        d-flex
-        justify-content-between
-        align-items-center
-        mb-4
-      "
-    >
+    <div class="mb-4">
 
-      <div>
+      <div
+        class="
+    page-header
+    d-flex
+    justify-content-between
+    align-items-start
+  "
+      >
+
+        <div>
+
+          <h2 class="book-title mb-1">
+            📚 {{ book?.bookName }}
+          </h2>
+
+          <div class="sub-title">
+            Quản lý grammar & bài học
+          </div>
+
+        </div>
 
         <button
           class="back-btn"
           @click="goBack"
         >
-          <span class="back-icon">←</span>
-          <span>Quay lại</span>
+  <span class="back-icon">
+    ←
+  </span>
+
+          <span>
+    Quay lại
+  </span>
         </button>
-
-        <h2 class="fw-bold mb-1">
-          📚 {{ book?.bookName }}
-        </h2>
-
-        <div class="sub-title">
-          Quản lý grammar & bài học
-        </div>
 
       </div>
 
@@ -842,7 +496,6 @@ onMounted(async () => {
     <div class="row g-4">
 
       <!-- LEFT -->
-
 
 
       <!-- RIGHT -->
@@ -881,182 +534,9 @@ onMounted(async () => {
 
               <button
                 class="add-btn"
-                @click="
-                  showEditor =
-                  !showEditor
-                "
-              >
+                @click="openCreateGrammarModal()">
                 + Grammar
               </button>
-
-            </div>
-
-            <!-- EDITOR -->
-
-            <div
-              v-if="showEditor"
-              class="editor-card"
-            >
-
-              <input
-                v-model="
-                  grammarForm.title
-                "
-                class="
-                  form-control
-                  custom-input
-                  mb-3
-                "
-                placeholder="
-                  Tiêu đề grammar
-                "
-              />
-
-              <!-- TOOLBAR -->
-
-              <div class="toolbar">
-
-                <button
-                  class="tool-btn"
-                  :class="{
-                    active:
-                    activeFormats.bold
-                  }"
-                  @click="
-                    exec('bold')
-                  "
-                >
-                  B
-                </button>
-
-                <button
-                  class="tool-btn"
-                  :class="{
-                    active:
-                    activeFormats.italic
-                  }"
-                  @click="
-                    exec('italic')
-                  "
-                >
-                  I
-                </button>
-
-                <button
-                  class="tool-btn"
-                  :class="{
-                    active:
-                    activeFormats.strikeThrough
-                  }"
-                  @click="
-                    exec(
-                      'strikeThrough'
-                    )
-                  "
-                >
-                  S̶
-                </button>
-
-                <button
-                  class="tool-btn"
-                  @click="
-                    exec(
-                      'insertUnorderedList'
-                    )
-                  "
-                >
-                  •
-                </button>
-
-                <button
-                  class="formula-btn"
-                  @click="
-                    insertGrammarFormula()
-                  "
-                >
-                  Formula
-                </button>
-
-                <button
-                  class="formula-btn"
-                  @click="
-                    insertNestedFormula()
-                  "
-                >
-                  Formula 2
-                </button>
-
-              </div>
-
-              <!-- EDITOR -->
-
-              <div
-                ref="editorRef"
-                class="
-                  rich-editor
-                "
-                contenteditable="true"
-                @input="
-                  syncEditor
-                "
-                @mouseup="
-                  updateToolbarState
-                "
-                @keyup="
-                  updateToolbarState
-                "
-              ></div>
-
-              <textarea
-                v-model="
-                  grammarForm.description
-                "
-                rows="3"
-                class="
-                  form-control
-                  custom-input
-                  mt-3
-                "
-                placeholder="
-                  Mô tả grammar
-                "
-              ></textarea>
-
-              <div
-                class="
-                  editor-actions
-                "
-              >
-
-                <button
-                  class="
-                    cancel-btn
-                  "
-                  @click="
-                    resetForm()
-                  "
-                >
-                  Hủy
-                </button>
-
-                <button
-                  class="
-    save-btn
-  "
-                  @click="
-    editingGrammarId
-      ? updateGrammar()
-      : createGrammar()
-  "
-                >
-                  {{
-                    editingGrammarId
-                      ? "Cập nhật Grammar"
-                      : "Lưu Grammar"
-                  }}
-                </button>
-
-              </div>
 
             </div>
 
@@ -1110,15 +590,8 @@ onMounted(async () => {
                   <div class="grammar-actions">
 
                     <button
-                      class="
-      edit-btn
-    "
-                      @click="
-      startEdit(
-        grammar
-      )
-    "
-                    >
+                      class="edit-btn"
+                      @click="openEditGrammarModal(grammar)">
                       ✏️
                     </button>
 
@@ -1189,11 +662,6 @@ onMounted(async () => {
                     class="example-expand"
                   >
 
-                    <!-- CREATE -->
-
-                    <!-- CREATE -->
-
-                    <!-- TOP BAR -->
 
                     <div class="example-topbar">
 
@@ -1227,22 +695,10 @@ onMounted(async () => {
                     >
 
                       <div
-                        v-for="
-      example,
-       exampleIndex
-       in
-      examples[
-        grammar.grammarId
-      ]
-    "
-                        :key="
-      example.exampleId
-    "
-                        class="example-card"
-                      >
-
+                        v-for="(example, exampleIndex) in examples[grammar.grammarId]"
+                        :key="example.exampleId"
+                        class="example-card">
                         <div class="example-row">
-
                           <div class="example-number">
                             {{ exampleIndex + 1 }}
                           </div>
@@ -1322,6 +778,20 @@ onMounted(async () => {
       @saved="onExampleSaved"
     />
 
+    <GrammarModal
+      v-if="showGrammarModal"
+      :lesson-id="
+    selectedLesson?.lessonId || 0
+  "
+      :grammar="editingGrammar"
+      @close="
+    showGrammarModal = false
+  "
+      @saved="
+    onGrammarSaved
+  "
+    />
+
   </div>
 
 </template>
@@ -1340,49 +810,44 @@ onMounted(async () => {
 
   gap: 10px;
 
+  padding: 12px 18px;
+
   border: none;
+
+  border-radius: 16px;
 
   background: white;
 
   color: #334155;
 
-  padding: 12px 18px;
-
-  border-radius: 14px;
+  font-weight: 600;
 
   font-size: 14px;
 
-  font-weight: 600;
+  border: 1px solid #e7edf6;
 
-  box-shadow:
-    0 2px 8px rgba(
-      0,
-      0,
-      0,
-      0.05
-    );
+  box-shadow: 0 4px 12px rgba(
+    0,
+    0,
+    0,
+    0.05
+  );
 
-  border: 1px solid #e5eaf3;
-
-  transition: all 0.25s ease;
-
-  margin-bottom: 20px;
+  transition: all .25s ease;
 }
+
 .back-btn:hover {
 
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 
-  background: #f8faff;
+  border-color: #c9d7f5;
 
-  border-color: #cfd9ea;
-
-  box-shadow:
-    0 8px 24px rgba(
-      0,
-      0,
-      0,
-      0.08
-    );
+  box-shadow: 0 10px 24px rgba(
+    79,
+    140,
+    255,
+    0.12
+  );
 }
 
 .back-btn:active {
@@ -1398,19 +863,25 @@ onMounted(async () => {
 
   justify-content: center;
 
-  width: 24px;
+  width: 28px;
 
-  height: 24px;
+  height: 28px;
 
   border-radius: 50%;
 
-  background: #eef4ff;
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
 
-  color: #4f8cff;
+  color: white;
 
-  font-size: 13px;
+  font-size: 14px;
 
   font-weight: 700;
+
+  flex-shrink: 0;
 }
 
 .sub-title {
@@ -1422,9 +893,6 @@ onMounted(async () => {
   border-radius: 24px;
   padding: 24px;
 }
-
-
-
 
 
 .lesson-btn,
@@ -1468,31 +936,7 @@ onMounted(async () => {
   margin-bottom: 24px;
 }
 
-.toolbar {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 14px;
-}
 
-.tool-btn,
-.formula-btn {
-  border: none;
-  height: 44px;
-  min-width: 44px;
-  padding: 0 18px;
-  border-radius: 14px;
-  background: white;
-  border: 1px solid #dfe6ef;
-}
-
-.rich-editor {
-  min-height: 260px;
-  background: white;
-  border: 1px solid #dbe3ee;
-  border-radius: 18px;
-  padding: 18px;
-  outline: none;
-}
 
 .custom-input {
   border-radius: 14px;
@@ -1568,182 +1012,7 @@ onMounted(async () => {
   padding: 90px 20px;
 }
 
-/* =========================
-   FORMULA
-========================= */
 
-.grammar-formula-wrapper {
-
-  overflow-x: auto;
-
-  margin: 28px 0;
-}
-
-.grammar-formula-table {
-
-  border-collapse: separate;
-
-  /* khoảng cách giữa 3 phần */
-  border-spacing: 72px 0;
-
-  background: #f5f5f5;
-
-  border-radius: 30px;
-
-  /* padding ngoài */
-  padding: 46px 72px;
-
-  display: inline-table;
-}
-
-/* CELLS */
-
-.formula-left-cell,
-.formula-right-cell,
-.formula-plus-cell {
-  vertical-align: top;
-}
-
-/* COLUMN */
-
-.formula-column {
-
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 34px;
-}
-
-/* ITEMS */
-
-.formula-item {
-
-  font-size: 62px;
-
-  line-height: 1;
-
-  white-space: nowrap;
-
-  font-family: "Noto Sans JP",
-  sans-serif;
-
-  font-weight: 400;
-}
-
-.formula-item.left {
-  color: #2147a8;
-}
-
-.formula-item.right {
-  color: #c30000;
-}
-
-/* BRACKET */
-
-.formula-bracket-cell {
-
-  font-size: 92px;
-
-  line-height: 0.8;
-
-  padding-left: 18px;
-
-  color: #53331d;
-
-  transform: scaleY(3.5);
-
-  transform-origin: top;
-}
-
-/* OPEN */
-
-.formula-open-cell {
-
-  font-size: 92px;
-
-  line-height: 0.8;
-
-  padding-right: 18px;
-
-  color: #53331d;
-
-  transform: scaleY(5);
-
-  transform-origin: top;
-}
-
-/* PLUS */
-
-.formula-plus-cell {
-
-  font-size: 60px;
-
-  font-weight: 300;
-
-  vertical-align: middle;
-
-  padding: 0 28px;
-}
-
-/* MOBILE */
-
-@media (max-width: 768px) {
-
-  .grammar-formula-table {
-
-    border-spacing: 22px 0;
-
-    padding: 20px 22px;
-  }
-
-  .formula-item {
-    font-size: 72px;
-  }
-
-  .formula-plus-cell {
-    font-size: 34px;
-  }
-
-  .formula-bracket-cell,
-  .formula-open-cell {
-    font-size: 54px;
-  }
-
-}
-
-/* =========================
-   SIMPLE JP FORMULA
-========================= */
-
-.jp-formula {
-
-  display: inline-block;
-
-  background: #f3f3f3;
-
-  border-radius: 28px;
-
-  padding: 36px 52px;
-
-  margin: 24px 0;
-}
-
-.jp-formula pre {
-
-  margin: 0;
-
-  font-size: 62px;
-
-  line-height: 1.5;
-
-  white-space: pre;
-
-  font-family: "Noto Sans JP",
-  monospace;
-
-  color: #1d3896;
-}
 
 .grammar-actions {
 
@@ -1938,14 +1207,14 @@ tool-btn.active:hover {
 
   transform: translateY(-2px);
 
-  box-shadow:
-    0 14px 32px rgba(
-      0,
-      0,
-      0,
-      0.06
-    );
+  box-shadow: 0 14px 32px rgba(
+    0,
+    0,
+    0,
+    0.06
+  );
 }
+
 .example-row {
 
   display: flex;
@@ -1954,18 +1223,18 @@ tool-btn.active:hover {
 
   gap: 16px;
 }
-.jp-text :deep(b) {
 
-  font-weight: 700;
+.jp-text :deep(*) {
 
-  color: #102c8c;
+  font-size: inherit !important;
+
+  line-height: inherit !important;
 }
 
 .jp-text :deep(i) {
 
   font-style: italic;
 }
-
 
 
 .vn-text :deep(b) {
@@ -2005,20 +1274,14 @@ tool-btn.active:hover {
 
 .jp-text {
 
-  font-size: 28px;
-
-  line-height: 1.8;
-
   font-family: "Noto Sans JP",
   sans-serif;
 
-  font-weight: 700;
+  font-size: 24px;
+
+  line-height: 1.8;
 
   color: #1a2c73;
-
-  //margin-bottom: 16px;
-
-  letter-spacing: 0.4px;
 }
 
 /* VIETNAMESE */
@@ -2281,6 +1544,7 @@ tool-btn.active:hover {
     #f6f8ff
   );
 }
+
 .example-header {
 
   display: flex;
@@ -2332,6 +1596,7 @@ tool-btn.active:hover {
 
   transform: translateY(-1px);
 }
+
 .example-title {
 
   display: flex;
@@ -2375,6 +1640,7 @@ tool-btn.active:hover {
 
   margin-top: 2px;
 }
+
 .example-content {
 
   flex: 1;
@@ -2436,13 +1702,12 @@ tool-btn.active:hover {
 
   transform: translateY(-1px);
 
-  box-shadow:
-    0 8px 20px rgba(
-      0,
-      0,
-      0,
-      0.06
-    );
+  box-shadow: 0 8px 20px rgba(
+    0,
+    0,
+    0,
+    0.06
+  );
 }
 
 .lesson-tab.active {
@@ -2457,13 +1722,12 @@ tool-btn.active:hover {
 
   border-color: transparent;
 
-  box-shadow:
-    0 10px 24px rgba(
-      79,
-      140,
-      255,
-      0.25
-    );
+  box-shadow: 0 10px 24px rgba(
+    79,
+    140,
+    255,
+    0.25
+  );
 }
 
 .lesson-tab-name {
@@ -2497,5 +1761,21 @@ tool-btn.active:hover {
 .lesson-add-tab:hover {
 
   background: #e5eeff;
+}
+
+.page-header {
+
+  width: 100%;
+
+  margin-bottom: 24px;
+}
+
+.book-title {
+
+  margin: 0;
+
+  font-size: 32px;
+
+  font-weight: 700;
 }
 </style>
