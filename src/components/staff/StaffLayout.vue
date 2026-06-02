@@ -29,6 +29,7 @@ import StaffNavbar from "@/components/staff/StaffNavbar.vue";
 }
 
 .main {
+  margin-left: 300px;
   flex: 1;
   min-height: 100vh;
   background: #f1f5f9;
@@ -36,5 +37,6 @@ import StaffNavbar from "@/components/staff/StaffNavbar.vue";
 
 .content {
   padding: 20px;
+  margin-top: 72px;
 }
 </style>

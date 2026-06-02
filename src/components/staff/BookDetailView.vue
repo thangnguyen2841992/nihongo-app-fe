@@ -13,6 +13,7 @@ import {
 import CreateLessonModal from "@/components/staff/CreateLessonModal.vue"
 
 import {gatewayUrl} from "@/api/authApi.ts"
+import ExampleModal from "@/components/staff/ExampleModal.vue"
 
 /* =========================
    ROUTER
@@ -54,6 +55,13 @@ interface Example {
 /* =========================
    STATE
 ========================= */
+const showExampleModal = ref(false)
+
+const selectedGrammarId =
+  ref<number | null>(null)
+
+const editingExample =
+  ref<Example | null>(null)
 
 const book =
   ref<Book | null>(null)
@@ -91,23 +99,10 @@ const examples =
 const expandedGrammar =
   ref<Record<number, boolean>>({})
 
-const exampleForms =
-  ref<Record<number, {
-    nihongo: string
-    vietnamese: string
-  }>>({})
-
 const showExampleForm =
   ref<Record<number, boolean>>({})
 
-const exampleEditorRefs =
-  ref<Record<number, HTMLDivElement | null>>({})
 
-const exampleFormats =
-  ref<Record<number, {
-    bold: boolean
-    italic: boolean
-  }>>({})
 /* =========================
    TOOLBAR ACTIVE
 ========================= */
@@ -117,8 +112,50 @@ const activeFormats = ref({
   italic: false,
   strikeThrough: false
 })
-const exampleSelections =
-  ref<Record<number, Range | null>>({})
+
+const openCreateExampleModal = (
+  grammarId: number
+) => {
+
+  selectedGrammarId.value =
+    grammarId
+
+  editingExample.value =
+    null
+
+  showExampleModal.value =
+    true
+}
+
+const openEditExampleModal = (
+  example: Example
+) => {
+
+  selectedGrammarId.value =
+    example.grammarId
+
+  editingExample.value =
+    example
+
+  showExampleModal.value =
+    true
+}
+
+const onExampleSaved =
+  async () => {
+
+    showExampleModal.value =
+      false
+
+    if (
+      selectedGrammarId.value
+    ) {
+
+      await fetchExamples(
+        selectedGrammarId.value
+      )
+    }
+  }
 /* =========================
    BOOK ID
 ========================= */
@@ -204,24 +241,6 @@ const fetchGrammars =
         )
 
       grammars.value = res.data
-      grammars.value.forEach(
-        grammar => {
-
-          if (
-            !exampleForms.value[
-              grammar.grammarId
-              ]
-          ) {
-
-            exampleForms.value[
-              grammar.grammarId
-              ] = {
-              nihongo: "",
-              vietnamese: ""
-            }
-          }
-        }
-      )
 
     } catch (e) {
 
@@ -233,129 +252,7 @@ const fetchGrammars =
     }
   }
 
-/* =========================
- EXAMPLE EDITOR
-========================= */
 
-const execExampleCommand = (
-  grammarId: number,
-  command: string
-) => {
-
-  const editor =
-    exampleEditorRefs.value[
-      grammarId
-      ]
-
-  if (!editor) {
-    return
-  }
-
-  editor.focus()
-
-  restoreExampleSelection(
-    grammarId
-  )
-
-  document.execCommand(
-    command,
-    false
-  )
-
-  saveExampleSelection(
-    grammarId
-  )
-
-  exampleForms.value[
-    grammarId
-    ].nihongo =
-    editor.innerHTML
-
-  updateExampleToolbar(
-    grammarId
-  )
-}
-
-const syncExampleEditor =
-  (grammarId: number) => {
-
-    const editor =
-      exampleEditorRefs.value[
-        grammarId
-        ]
-
-    if (!editor) {
-      return
-    }
-
-    exampleForms.value[
-      grammarId
-      ].nihongo =
-      editor.innerHTML
-
-    updateExampleToolbar(
-      grammarId
-    )
-  }
-const updateExampleToolbar =
-  (grammarId: number) => {
-
-    exampleFormats.value[
-      grammarId
-      ] = {
-      bold:
-        document.queryCommandState(
-          "bold"
-        ),
-
-      italic:
-        document.queryCommandState(
-          "italic"
-        )
-    }
-  }
-
-const saveExampleSelection =
-  (grammarId: number) => {
-
-    const selection =
-      window.getSelection()
-
-    if (
-      selection &&
-      selection.rangeCount > 0
-    ) {
-
-      exampleSelections.value[
-        grammarId
-        ] =
-        selection.getRangeAt(0)
-    }
-  }
-
-const restoreExampleSelection =
-  (grammarId: number) => {
-
-    const range =
-      exampleSelections.value[
-        grammarId
-        ]
-
-    if (!range) {
-      return
-    }
-
-    const selection =
-      window.getSelection()
-
-    if (!selection) {
-      return
-    }
-
-    selection.removeAllRanges()
-
-    selection.addRange(range)
-  }
 /* =========================
    LESSON MODAL
 ========================= */
@@ -447,6 +344,31 @@ const syncEditor = () => {
 /* =========================
    FETCH EXAMPLE
 ========================= */
+const fetchExamples = async (
+  grammarId: number
+) => {
+
+  try {
+
+    const res =
+      await gatewayUrl.get(
+        "/api/staff/getAllExampleByGrammar",
+        {
+          params: {
+            grammarId
+          }
+        }
+      )
+
+    examples.value[grammarId] =
+      res.data
+
+  } catch (e) {
+
+    console.error(e)
+  }
+}
+
 const toggleExamples =
   async (grammarId: number) => {
 
@@ -458,55 +380,12 @@ const toggleExamples =
       !examples.value[grammarId]
     ) {
 
-    }
-  }
-const createExample =
-  async (grammarId: number) => {
-
-    const form =
-      exampleForms.value[grammarId]
-
-    if (
-      !form?.nihongo ||
-      !form?.vietnamese
-    ) {
-      return
-    }
-
-    try {
-
-      await gatewayUrl.post(
-        "/api/staff/examples",
-        {
-          nihongo:
-          form.nihongo,
-
-          vietnamese:
-          form.vietnamese,
-
-          grammarId
-        }
-      )
-
-      exampleForms.value[grammarId] = {
-        nihongo: "",
-        vietnamese: ""
-      }
-
-
-      expandedGrammar.value[grammarId] =
-        true
-      showExampleForm.value[grammarId] =
-        false
-    } catch (e) {
-
-      console.error(e)
-
-      alert(
-        "Tạo ví dụ thất bại"
+      await fetchExamples(
+        grammarId
       )
     }
   }
+
 
 /* =========================
    FORMULA
@@ -918,10 +797,11 @@ onMounted(async () => {
       <div>
 
         <button
-          class="back-btn mb-3"
+          class="back-btn"
           @click="goBack"
         >
-          ← Quay lại
+          <span class="back-icon">←</span>
+          <span>Quay lại</span>
         </button>
 
         <h2 class="fw-bold mb-1">
@@ -935,76 +815,39 @@ onMounted(async () => {
       </div>
 
     </div>
+    <div class="lesson-tabs">
 
+      <button
+        v-for="(lesson,index) in lessons"
+        :key="lesson.lessonId"
+        class="lesson-tab"
+        :class="{
+    active:
+      selectedLesson?.lessonId ===
+      lesson.lessonId
+  }"
+        @click="openLesson(lesson)"
+      >
+        Bài {{ index + 1 }}
+      </button>
+
+      <button
+        class="lesson-add-tab"
+        @click="openLessonModal()"
+      >
+        + Lesson
+      </button>
+
+    </div>
     <div class="row g-4">
 
       <!-- LEFT -->
 
-      <div class="col-lg-4">
 
-        <div class="lesson-panel">
-
-          <div
-            class="
-              d-flex
-              justify-content-between
-              align-items-center
-              mb-3
-            "
-          >
-
-            <div class="fw-bold">
-              Danh sách bài học
-            </div>
-
-            <button
-              class="lesson-btn"
-              @click="
-                openLessonModal()
-              "
-            >
-              + Lesson
-            </button>
-
-          </div>
-
-          <div
-            v-for="lesson in lessons"
-            :key="
-              lesson.lessonId
-            "
-            class="lesson-item"
-            :class="{
-              active:
-                selectedLesson?.lessonId ===
-                lesson.lessonId
-            }"
-            @click="
-              openLesson(
-                lesson
-              )
-            "
-          >
-
-            <div class="lesson-name">
-              {{ lesson.name }}
-            </div>
-
-            <div class="lesson-desc">
-              {{
-                lesson.description
-              }}
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
 
       <!-- RIGHT -->
 
-      <div class="col-lg-8">
+      <div class="col-lg-12">
 
         <div class="grammar-panel">
 
@@ -1367,196 +1210,74 @@ onMounted(async () => {
 
                       <button
                         class="add-example-btn"
-                        @click="
-      showExampleForm[
-        grammar.grammarId
-      ] =
-      !showExampleForm[
-        grammar.grammarId
-      ]
-    "
-                      >
-                        {{
-                          showExampleForm[
-                            grammar.grammarId
-                            ]
-                            ? '✕ Đóng'
-                            : '+ Thêm ví dụ'
-                        }}
+                        @click="openCreateExampleModal(grammar.grammarId)">
+                        + Thêm ví dụ
                       </button>
 
                     </div>
 
-                    <!-- CREATE FORM -->
-
-                    <transition name="fade-slide">
-
-                      <div
-                        v-if="showExampleForm[grammar.grammarId]"
-                        class="example-create">
-                        <!-- NIHONGO -->
-                        <div class="example-editor-card">
-                          <div class="example-label">
-                            🇯🇵 Ví dụ tiếng Nhật
-                          </div>
-
-                          <div class="example-toolbar">
-
-                            <button
-                              class="example-tool-btn"
-                              :class="{
-    active:
-      exampleFormats[
-        grammar.grammarId
-      ]?.bold
-  }"
-                              @mousedown.prevent
-                              @click="
-    execExampleCommand(
-      grammar.grammarId,
-      'bold'
-    )
-  "
-                            >
-                              B
-                            </button>
-
-                            <button
-                              class="example-tool-btn"
-                              :class="{
-    active:
-      exampleFormats[
-        grammar.grammarId
-      ]?.italic
-  }"
-                              @mousedown.prevent
-                              @click="
-    execExampleCommand(
-      grammar.grammarId,
-      'italic'
-    )
-  "
-                            >
-                              I
-                            </button>
-
-                          </div>
-
-                          <div
-                            :ref="
-    el =>
-      exampleEditorRefs[
-        grammar.grammarId
-      ] =
-      el as HTMLDivElement
-  "
-                            class="example-rich-editor"
-                            contenteditable="true"
-                            @input="
-    syncExampleEditor(
-      grammar.grammarId
-    )
-  "
-                            @mouseup="
-    updateExampleToolbar(
-      grammar.grammarId
-    )
-  "
-                            @keyup="
-    updateExampleToolbar(
-      grammar.grammarId
-    )
-  "
-                            @blur="
-    saveExampleSelection(
-      grammar.grammarId
-    )
-  "
-                          ></div>
-
-                        </div>
-
-                        <!-- VIETNAMESE -->
-
-                        <div class="example-editor-card">
-
-                          <div class="example-label">
-                            🇻🇳 Nghĩa tiếng Việt
-                          </div>
-
-                          <textarea
-                            v-model="
-        exampleForms[
-          grammar.grammarId
-        ].vietnamese
-      "
-                            class="example-textarea"
-                            rows="3"
-                            placeholder="
-        Nhập nghĩa tiếng Việt...
-      "
-                          ></textarea>
-
-                        </div>
-
-                        <div class="example-create-actions">
-
-                          <button
-                            class="save-example-btn"
-                            @click="
-        createExample(
-          grammar.grammarId
-        )
-      "
-                          >
-                            + Thêm ví dụ
-                          </button>
-
-                        </div>
-
-                      </div>
-
-                    </transition>
-
                     <!-- LIST -->
 
-                    <div
+                    <template
                       v-if="
-        examples[
-          grammar.grammarId
-        ]?.length
-      "
-                      class="example-list"
+    examples[
+      grammar.grammarId
+    ]?.length
+  "
                     >
 
                       <div
                         v-for="
-          example in
-          examples[
-            grammar.grammarId
-          ]
-        "
+      example,
+       exampleIndex
+       in
+      examples[
+        grammar.grammarId
+      ]
+    "
                         :key="
-          example.exampleId
-        "
+      example.exampleId
+    "
                         class="example-card"
                       >
 
-                        <div class="jp-text">
-                          {{
-                            example.nihongo
-                          }}
+                        <div class="example-row">
+
+                          <div class="example-number">
+                            {{ exampleIndex + 1 }}
+                          </div>
+
+                          <div class="example-content">
+
+                            <div
+                              class="jp-text"
+                              v-html="example.nihongo"
+                            ></div>
+
+                            <div
+                              class="vn-text"
+                              v-html="example.vietnamese"
+                            ></div>
+
+                          </div>
+
+                          <button
+                            class="edit-example-btn"
+                            @click="
+      openEditExampleModal(
+        example
+      )
+    "
+                          >
+                            ✏️
+                          </button>
+
                         </div>
 
-                        <div class="vn-text">
-                          {{
-                            example.vietnamese
-                          }}
-                        </div>
 
                       </div>
 
-                    </div>
+                    </template>
 
                     <div
                       v-else
@@ -1593,6 +1314,13 @@ onMounted(async () => {
         closeLessonModal
       "
     />
+    <ExampleModal
+      v-if="showExampleModal"
+      :grammar-id="selectedGrammarId!"
+      :example="editingExample"
+      @close="showExampleModal = false"
+      @saved="onExampleSaved"
+    />
 
   </div>
 
@@ -1605,41 +1333,99 @@ onMounted(async () => {
 }
 
 .back-btn {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 10px;
+
   border: none;
+
   background: white;
-  padding: 10px 18px;
-  border-radius: 12px;
+
+  color: #334155;
+
+  padding: 12px 18px;
+
+  border-radius: 14px;
+
+  font-size: 14px;
+
   font-weight: 600;
+
+  box-shadow:
+    0 2px 8px rgba(
+      0,
+      0,
+      0,
+      0.05
+    );
+
+  border: 1px solid #e5eaf3;
+
+  transition: all 0.25s ease;
+
+  margin-bottom: 20px;
+}
+.back-btn:hover {
+
+  transform: translateY(-1px);
+
+  background: #f8faff;
+
+  border-color: #cfd9ea;
+
+  box-shadow:
+    0 8px 24px rgba(
+      0,
+      0,
+      0,
+      0.08
+    );
+}
+
+.back-btn:active {
+
+  transform: translateY(0);
+}
+
+.back-icon {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width: 24px;
+
+  height: 24px;
+
+  border-radius: 50%;
+
+  background: #eef4ff;
+
+  color: #4f8cff;
+
+  font-size: 13px;
+
+  font-weight: 700;
 }
 
 .sub-title {
   color: #7c8595;
 }
 
-.lesson-panel,
 .grammar-panel {
   background: white;
   border-radius: 24px;
   padding: 24px;
 }
 
-.lesson-item {
-  padding: 18px;
-  border-radius: 18px;
-  margin-bottom: 14px;
-  cursor: pointer;
-  border: 1px solid #edf1f6;
-}
 
-.lesson-item.active {
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
 
-  color: white;
-}
+
 
 .lesson-btn,
 .add-btn,
@@ -2121,93 +1907,6 @@ tool-btn.active:hover {
   padding: 24px;
 }
 
-/* CREATE FORM */
-
-.example-create {
-
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 16px;
-
-  margin-bottom: 28px;
-}
-
-.example-create textarea {
-
-  border-radius: 18px !important;
-
-  border: 1px solid #dbe4f0 !important;
-
-  padding: 16px !important;
-
-  min-height: 90px;
-
-  resize: vertical;
-
-  transition: all 0.2s ease;
-
-  font-size: 15px;
-
-  background: white;
-}
-
-.example-create textarea:focus {
-
-  border-color: #4f8cff !important;
-
-  box-shadow: 0 0 0 4px rgba(
-    79,
-    140,
-    255,
-    0.12
-  ) !important;
-}
-
-/* SAVE BUTTON */
-
-.save-example-btn {
-
-  align-self: flex-end;
-
-  border: none;
-
-  padding: 12px 22px;
-
-  border-radius: 16px;
-
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
-
-  color: white;
-
-  font-weight: 700;
-
-  transition: all 0.25s ease;
-
-  box-shadow: 0 10px 24px rgba(
-    79,
-    140,
-    255,
-    0.28
-  );
-}
-
-.save-example-btn:hover {
-
-  transform: translateY(-2px);
-
-  box-shadow: 0 16px 32px rgba(
-    79,
-    140,
-    255,
-    0.38
-  );
-}
 
 /* LIST */
 
@@ -2224,31 +1923,59 @@ tool-btn.active:hover {
 
 .example-card {
 
-  position: relative;
-
-  overflow: hidden;
-
   background: white;
-
-  border-radius: 22px;
-
-  padding: 22px;
 
   border: 1px solid #e9eef7;
 
-  transition: all 0.25s ease;
+  border-radius: 18px;
+
+  padding: 18px 20px;
+
+  transition: all 0.2s ease;
 }
 
 .example-card:hover {
 
   transform: translateY(-2px);
 
-  box-shadow: 0 14px 32px rgba(
-    0,
-    0,
-    0,
-    0.06
-  );
+  box-shadow:
+    0 14px 32px rgba(
+      0,
+      0,
+      0,
+      0.06
+    );
+}
+.example-row {
+
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 16px;
+}
+.jp-text :deep(b) {
+
+  font-weight: 700;
+
+  color: #102c8c;
+}
+
+.jp-text :deep(i) {
+
+  font-style: italic;
+}
+
+
+
+.vn-text :deep(b) {
+
+  font-weight: 700;
+}
+
+.vn-text :deep(i) {
+
+  font-style: italic;
 }
 
 /* LEFT ACCENT */
@@ -2259,11 +1986,11 @@ tool-btn.active:hover {
 
   position: absolute;
 
-  left: 0;
-
   top: 0;
 
-  width: 6px;
+  left: 0;
+
+  width: 4px;
 
   height: 100%;
 
@@ -2289,7 +2016,7 @@ tool-btn.active:hover {
 
   color: #1a2c73;
 
-  margin-bottom: 16px;
+  //margin-bottom: 16px;
 
   letter-spacing: 0.4px;
 }
@@ -2554,94 +2281,79 @@ tool-btn.active:hover {
     #f6f8ff
   );
 }
-
-/* TOOLBAR */
-
-.example-toolbar {
+.example-header {
 
   display: flex;
 
-  gap: 10px;
+  justify-content: space-between;
 
-  padding: 14px 18px;
+  align-items: center;
 
-  border-bottom: 1px solid #edf2f8;
-
-  background: white;
+  margin-bottom: 18px;
 }
 
-.example-tool-btn {
+.example-badge {
 
-  width: 42px;
+  background: #eef3ff;
 
-  height: 42px;
+  color: #3158d8;
 
-  border-radius: 14px;
-
-  border: 1px solid #dce5f2;
-
-  background: white;
+  font-size: 13px;
 
   font-weight: 700;
+
+  padding: 8px 14px;
+
+  border-radius: 999px;
+}
+
+.edit-example-btn {
+
+  border: none;
+
+  background: #f8faff;
+
+  color: #4f8cff;
+
+  padding: 8px 14px;
+
+  border-radius: 12px;
+
+  font-size: 14px;
+
+  font-weight: 600;
 
   transition: all 0.2s ease;
 }
 
-.example-tool-btn:hover {
+.edit-example-btn:hover {
 
-  background: #f3f7ff;
-
-  border-color: #4f8cff;
+  background: #eef4ff;
 
   transform: translateY(-1px);
 }
-
-/* TEXTAREA */
-
-.example-textarea {
-
-  width: 100%;
-
-  border: none;
-
-  outline: none;
-
-  resize: vertical;
-
-  padding: 20px;
-
-  min-height: 120px;
-
-  font-size: 16px;
-
-  line-height: 1.8;
-
-  background: #fff;
-}
-
-.example-textarea:focus {
-
-  background: #fcfdff;
-}
-
-/* ACTION */
-
-.example-create-actions {
+.example-title {
 
   display: flex;
 
-  justify-content: flex-end;
+  align-items: center;
+
+  gap: 12px;
+
+  font-weight: 700;
+
+  color: #3158d8;
 }
 
-/* SAVE BUTTON */
+.example-number {
 
-.save-example-btn {
+  flex-shrink: 0;
 
-  border: none;
+  width: 34px;
 
-  padding: 14px 24px;
+  height: 34px;
 
-  border-radius: 18px;
+  border-radius: 50%;
 
   background: linear-gradient(
     135deg,
@@ -2651,59 +2363,89 @@ tool-btn.active:hover {
 
   color: white;
 
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 14px;
+
   font-weight: 700;
+
+  margin-top: 2px;
+}
+.example-content {
+
+  flex: 1;
+
+  min-width: 0;
+}
+
+.lesson-tabs {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  overflow-x: auto;
+
+  padding-bottom: 8px;
+
+  margin-bottom: 24px;
+}
+
+.lesson-tabs::-webkit-scrollbar {
+
+  height: 6px;
+}
+
+.lesson-tabs::-webkit-scrollbar-thumb {
+
+  background: #d7dfeb;
+
+  border-radius: 999px;
+}
+
+.lesson-tab {
+
+  border: none;
+
+  background: white;
+
+  border: 1px solid #e7edf6;
+
+  border-radius: 16px;
+
+  padding: 12px 20px;
+
+  white-space: nowrap;
+
+  font-weight: 600;
+
+  color: #556070;
 
   transition: all 0.25s ease;
 
-  box-shadow: 0 14px 30px rgba(
-    79,
-    140,
-    255,
-    0.25
-  );
+  flex-shrink: 0;
 }
 
-.save-example-btn:hover {
+.lesson-tab:hover {
 
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 
-  box-shadow: 0 18px 38px rgba(
-    79,
-    140,
-    255,
-    0.35
-  );
+  box-shadow:
+    0 8px 20px rgba(
+      0,
+      0,
+      0,
+      0.06
+    );
 }
 
-.example-rich-editor {
-
-  min-height: 140px;
-
-  padding: 20px;
-
-  outline: none;
-
-  line-height: 1.8;
-
-  font-size: 16px;
-
-  background: white;
-}
-
-.example-rich-editor:focus {
-
-  background: #fcfdff;
-}
-
-.example-rich-editor b {
-  font-weight: 700;
-}
-
-.example-rich-editor i {
-  font-style: italic;
-}
-
-.example-tool-btn.active {
+.lesson-tab.active {
 
   background: linear-gradient(
     135deg,
@@ -2715,11 +2457,45 @@ tool-btn.active:hover {
 
   border-color: transparent;
 
-  box-shadow: 0 8px 18px rgba(
-    79,
-    140,
-    255,
-    0.28
-  );
+  box-shadow:
+    0 10px 24px rgba(
+      79,
+      140,
+      255,
+      0.25
+    );
+}
+
+.lesson-tab-name {
+
+  font-size: 14px;
+}
+
+.lesson-add-tab {
+
+  border: none;
+
+  border-radius: 16px;
+
+  padding: 12px 20px;
+
+  white-space: nowrap;
+
+  flex-shrink: 0;
+
+  background: #eef4ff;
+
+  color: #3158d8;
+
+  font-weight: 700;
+
+  border: 1px dashed #9db7ff;
+
+  transition: all .25s ease;
+}
+
+.lesson-add-tab:hover {
+
+  background: #e5eeff;
 }
 </style>

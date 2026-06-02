@@ -165,7 +165,17 @@ const handleLogout = async () => {
 ========================= */
 
 .navbar {
+  position: fixed;
+
+  top: 0;
+  left: 300px;
+
+  right: 0;
   height: 72px;
+
+  z-index: 999;
+
+  background: white;
 }
 
 /* =========================

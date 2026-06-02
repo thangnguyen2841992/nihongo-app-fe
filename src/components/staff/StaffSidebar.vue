@@ -695,11 +695,14 @@ const isBooksLoading = (
 ========================= */
 
 .sidebar {
+  position: fixed;
 
+  top: 0;
+  left: 0;
   width: 300px;
 
   height: 100vh;
-
+  z-index: 1000;
   overflow-y: auto;
 
   background:
