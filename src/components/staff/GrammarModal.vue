@@ -4,14 +4,15 @@ import {
   watch,
   nextTick
 } from "vue"
+import axios from "axios"
 
-import { gatewayUrl } from "@/api/authApi"
+import {gatewayUrl} from "@/api/authApi"
 
 interface Grammar {
   grammarId: number
   title: string
-  structure: string
   description: string
+  imageUrl?: string
 }
 
 const props = defineProps<{
@@ -24,193 +25,133 @@ const emit = defineEmits<{
   saved: []
 }>()
 
-const editorRef =
-  ref<HTMLDivElement | null>(null)
+const fileInputRef =
+  ref<HTMLInputElement | null>(null)
+
+const imageFile =
+  ref<File | null>(null)
+
+const imagePreview =
+  ref("")
 
 const grammarForm = ref({
   title: "",
-  structure: "",
-  description: ""
-})
-
-const activeFormats = ref({
-  bold: false,
-  italic: false,
-  strikeThrough: false
+  description: "",
+  imageUrl: ""
 })
 
 watch(
   () => props.grammar,
-  async grammar => {
+  grammar => {
 
     if (grammar) {
 
       grammarForm.value = {
         title: grammar.title,
-        structure: grammar.structure,
-        description: grammar.description
+        description:
+        grammar.description,
+        imageUrl:
+          grammar.imageUrl || ""
       }
 
-      await nextTick()
-
-      if (editorRef.value) {
-
-        editorRef.value.innerHTML =
-          grammar.structure
-      }
+      imagePreview.value =
+        grammar.imageUrl || ""
 
     } else {
 
       grammarForm.value = {
         title: "",
-        structure: "",
-        description: ""
+        description: "",
+        imageUrl: ""
       }
 
-      await nextTick()
+      imagePreview.value = ""
 
-      if (editorRef.value) {
-        editorRef.value.innerHTML = ""
-      }
+      imageFile.value = null
     }
   },
   {
     immediate: true
   }
 )
+const openFilePicker = () => {
+  fileInputRef.value?.click()
+}
 
-const updateToolbarState =
-  () => {
-
-    activeFormats.value.bold =
-      document.queryCommandState("bold")
-
-    activeFormats.value.italic =
-      document.queryCommandState("italic")
-
-    activeFormats.value.strikeThrough =
-      document.queryCommandState("strikeThrough")
-  }
-
-const syncEditor =
-  () => {
-
-    if (!editorRef.value) {
-      return
-    }
-
-    grammarForm.value.structure =
-      editorRef.value.innerHTML
-
-    updateToolbarState()
-  }
-
-const exec = (
-  command: string,
-  value?: string
+const handleFile = (
+  e: Event
 ) => {
 
-  document.execCommand(
-    command,
-    false,
-    value
+  const target =
+    e.target as HTMLInputElement
+
+  if (!target.files?.length) {
+    return
+  }
+
+  imageFile.value =
+    target.files[0]
+
+  imagePreview.value =
+    URL.createObjectURL(
+      imageFile.value
+    )
+}
+const uploadImage = async (
+  file: File
+) => {
+
+  const formData =
+    new FormData()
+
+  formData.append(
+    "file",
+    file
   )
 
-  syncEditor()
-}
+  formData.append(
+    "upload_preset",
+    "nihongo_unsigned"
+  )
 
-const createGrammarFormulaHtml = (
-  leftItems: string[],
-  rightItems: string[]
-) => {
-
-  const leftHtml =
-    leftItems
-      .map(
-        item =>
-          `<div class="formula-item left">${item}</div>`
-      )
-      .join("")
-
-  const rightHtml =
-    rightItems
-      .map(
-        item =>
-          `<div class="formula-item right">${item}</div>`
-      )
-      .join("")
-
-  return `
-<div class="grammar-formula-wrapper">
-  <table class="grammar-formula-table">
-    <tr>
-
-      <td class="formula-left-cell">
-        <table>
-          <tr>
-            <td>
-              <div class="formula-column">
-                ${leftHtml}
-              </div>
-            </td>
-
-            <td class="formula-bracket-cell">
-              }
-            </td>
-          </tr>
-        </table>
-      </td>
-
-      <td class="formula-plus-cell">
-        +
-      </td>
-
-      <td class="formula-right-cell">
-        <table>
-          <tr>
-            <td class="formula-open-cell">
-              [
-            </td>
-
-            <td>
-              <div class="formula-column">
-                ${rightHtml}
-              </div>
-            </td>
-          </tr>
-        </table>
-      </td>
-
-    </tr>
-  </table>
-</div>
-
-<p><br></p>
-`
-}
-
-const insertGrammarFormula =
-  () => {
-
-    exec(
-      "insertHTML",
-      createGrammarFormulaHtml(
-        [
-          "Vる",
-          "Vない"
-        ],
-        [
-          "ように言う",
-          "ように頼む"
-        ]
-      )
+  const res =
+    await axios.post(
+      "https://api.cloudinary.com/v1_1/dxzcptxy0/image/upload",
+      formData
     )
-  }
+
+  return res.data.secure_url
+}
 
 const saveGrammar =
   async () => {
 
     try {
+
+      let imageUrl =
+        grammarForm.value.imageUrl
+
+      if (imageFile.value) {
+
+        imageUrl =
+          await uploadImage(
+            imageFile.value
+          )
+      }
+
+      const payload = {
+
+        title:
+        grammarForm.value.title,
+
+        description:
+        grammarForm.value.description,
+
+        imageUrl,
+
+        lessonId:
+        props.lessonId
+      }
 
       if (props.grammar) {
 
@@ -218,12 +159,10 @@ const saveGrammar =
           "/api/staff/grammars",
           {
             grammarId:
-            props.grammar.grammarId,
+            props.grammar
+              .grammarId,
 
-            lessonId:
-            props.lessonId,
-
-            ...grammarForm.value
+            ...payload
           }
         )
 
@@ -231,12 +170,7 @@ const saveGrammar =
 
         await gatewayUrl.post(
           "/api/staff/grammars",
-          {
-            lessonId:
-            props.lessonId,
-
-            ...grammarForm.value
-          }
+          payload
         )
       }
 
@@ -246,7 +180,9 @@ const saveGrammar =
 
       console.error(e)
 
-      alert("Lưu grammar thất bại")
+      alert(
+        "Lưu grammar thất bại"
+      )
     }
   }
 </script>
@@ -282,60 +218,66 @@ const saveGrammar =
         placeholder="Tiêu đề grammar"
       >
 
-      <div class="toolbar">
+      <div class="image-upload-section">
 
-        <button
-          class="tool-btn"
-          :class="{
-            active:
-              activeFormats.bold
-          }"
-          @click="exec('bold')"
-        >
-          B
-        </button>
+        <label class="upload-label">
+          Cấu trúc ngữ pháp
+        </label>
 
-        <button
-          class="tool-btn"
-          :class="{
-            active:
-              activeFormats.italic
-          }"
-          @click="exec('italic')"
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept="image/*"
+          hidden
+          @change="handleFile"
         >
-          I
-        </button>
 
-        <button
-          class="tool-btn"
-          :class="{
-            active:
-              activeFormats.strikeThrough
-          }"
-          @click="exec('strikeThrough')"
+        <div
+          class="upload-card"
+          @click="openFilePicker"
         >
-          S
-        </button>
 
-        <button
-          class="formula-btn"
-          @click="
-            insertGrammarFormula()
-          "
-        >
-          Formula
-        </button>
+          <template v-if="!imagePreview">
+
+            <div class="upload-placeholder">
+
+              <div class="upload-icon">
+                🖼️
+              </div>
+
+              <div class="upload-title">
+                Chọn ảnh cấu trúc
+              </div>
+
+              <div class="upload-subtitle">
+                JPG, PNG, WEBP
+              </div>
+
+            </div>
+
+          </template>
+
+          <template v-else>
+
+            <img
+              :src="imagePreview"
+              class="preview-image"
+              alt=""
+            >
+
+            <button
+              type="button"
+              class="change-image-btn"
+              @click.stop="openFilePicker"
+            >
+              ✏️
+            </button>
+
+          </template>
+
+        </div>
 
       </div>
-
-      <div
-        ref="editorRef"
-        class="rich-editor"
-        contenteditable="true"
-        @input="syncEditor"
-        @keyup="updateToolbarState"
-        @mouseup="updateToolbarState"
-      />
 
       <textarea
         v-model="
@@ -369,192 +311,11 @@ const saveGrammar =
   </div>
 
 </template>
-<style scoped>
+<style>
 .toolbar {
   display: flex;
   gap: 10px;
   margin-bottom: 14px;
-}
-
-.tool-btn,
-.formula-btn {
-  border: none;
-  height: 44px;
-  min-width: 44px;
-  padding: 0 18px;
-  border-radius: 14px;
-  background: white;
-  border: 1px solid #dfe6ef;
-}
-
-.rich-editor {
-  min-height: 260px;
-  background: white;
-  border: 1px solid #dbe3ee;
-  border-radius: 18px;
-  padding: 18px;
-  outline: none;
-}
-
-/* =========================
-   FORMULA
-========================= */
-
-.grammar-formula-wrapper {
-
-  overflow-x: auto;
-
-  margin: 28px 0;
-}
-
-.grammar-formula-table {
-
-  border-collapse: separate;
-
-  /* khoảng cách giữa 3 phần */
-  border-spacing: 72px 0;
-
-  background: #f5f5f5;
-
-  border-radius: 30px;
-
-  /* padding ngoài */
-  padding: 46px 72px;
-
-  display: inline-table;
-}
-
-/* CELLS */
-
-.formula-left-cell,
-.formula-right-cell,
-.formula-plus-cell {
-  vertical-align: top;
-}
-
-/* COLUMN */
-
-.formula-column {
-
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 34px;
-}
-
-/* ITEMS */
-
-.formula-item {
-
-  font-size: 62px;
-
-  line-height: 1;
-
-  white-space: nowrap;
-
-  font-family: "Noto Sans JP",
-  sans-serif;
-
-  font-weight: 400;
-}
-
-.formula-item.left {
-  color: #2147a8;
-}
-
-.formula-item.right {
-  color: #c30000;
-}
-
-/* BRACKET */
-
-.formula-bracket-cell {
-
-  font-size: 92px;
-
-  line-height: 0.8;
-
-  padding-left: 18px;
-
-  color: #53331d;
-
-  transform: scaleY(3.5);
-
-  transform-origin: top;
-}
-
-/* OPEN */
-
-.formula-open-cell {
-
-  font-size: 92px;
-
-  line-height: 0.8;
-
-  padding-right: 18px;
-
-  color: #53331d;
-
-  transform: scaleY(5);
-
-  transform-origin: top;
-}
-
-/* PLUS */
-
-.formula-plus-cell {
-
-  font-size: 60px;
-
-  font-weight: 300;
-
-  vertical-align: middle;
-
-  padding: 0 28px;
-}
-
-/* MOBILE */
-
-@media (max-width: 768px) {
-
-  .grammar-formula-table {
-
-    border-spacing: 22px 0;
-
-    padding: 20px 22px;
-  }
-
-  .formula-item {
-    font-size: 72px;
-  }
-
-  .formula-plus-cell {
-    font-size: 34px;
-  }
-
-  .formula-bracket-cell,
-  .formula-open-cell {
-    font-size: 54px;
-  }
-
-}
-
-/* =========================
-   SIMPLE JP FORMULA
-========================= */
-
-.jp-formula {
-
-  display: inline-block;
-
-  background: #f3f3f3;
-
-  border-radius: 28px;
-
-  padding: 36px 52px;
-
-  margin: 24px 0;
 }
 
 .jp-formula pre {
@@ -572,4 +333,431 @@ const saveGrammar =
 
   color: #1d3896;
 }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+
+  backdrop-filter: blur(6px);
+}
+
+.grammar-modal {
+  width: min(1100px, 92vw);
+  max-height: 92vh;
+
+  overflow-y: auto;
+
+  background: white;
+
+  border-radius: 28px;
+
+  padding: 28px;
+
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12),
+  0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 24px;
+}
+
+.modal-header h4 {
+  margin: 0;
+
+  font-size: 24px;
+
+  font-weight: 700;
+
+  color: #1e293b;
+}
+
+.close-btn {
+  width: 42px;
+  height: 42px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #f1f5f9;
+
+  color: #475569;
+
+  font-size: 18px;
+
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #e2e8f0;
+}
+
+.form-control {
+  border-radius: 16px;
+
+  border: 1px solid #dbe3ee;
+
+  padding: 12px 16px;
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 4px rgba(
+    79,
+    140,
+    255,
+    0.1
+  );
+
+  border-color: #4f8cff;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 12px;
+
+  margin-top: 24px;
+}
+
+.cancel-btn {
+  border: none;
+
+  padding: 12px 22px;
+
+  border-radius: 14px;
+
+  background: #eef2f7;
+
+  color: #475569;
+
+  font-weight: 700;
+}
+
+.cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+.save-btn {
+  border: none;
+
+  padding: 12px 22px;
+
+  border-radius: 14px;
+
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
+
+  color: white;
+
+  font-weight: 700;
+
+  box-shadow: 0 10px 24px rgba(
+    79,
+    140,
+    255,
+    0.25
+  );
+}
+
+.save-btn:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .grammar-modal {
+    width: 96vw;
+
+    padding: 18px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .save-btn,
+  .cancel-btn {
+    width: 100%;
+  }
+}
+
+.image-upload-section {
+  margin-bottom: 24px;
+}
+
+.upload-label {
+
+  display: block;
+
+  margin-bottom: 12px;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  color: #334155;
+}
+
+.upload-card:hover {
+
+  border-color: #4f8cff;
+
+  background: #f8fbff;
+}
+
+.upload-placeholder {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  height: 260px;
+
+  text-align: center;
+}
+
+.upload-icon {
+
+  font-size: 56px;
+
+  margin-bottom: 12px;
+}
+
+.upload-title {
+
+  font-size: 18px;
+
+  font-weight: 700;
+
+  color: #1e293b;
+}
+
+.upload-subtitle {
+
+  margin-top: 6px;
+
+  color: #94a3b8;
+
+  font-size: 14px;
+}
+
+.upload-card {
+
+  //width: fit-content;
+  width: 100%;
+  max-width: 100%;
+
+  min-width: 260px;
+
+  min-height: 120px;
+
+  padding: 20px;
+}
+
+.preview-image {
+
+  max-height: 160px;
+
+  width: auto;
+
+  max-width: 100%;
+
+  object-fit: contain;
+}
+
+.image-upload-section {
+  margin-bottom: 24px;
+}
+
+.upload-label {
+
+  display: block;
+
+  margin-bottom: 12px;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  color: #334155;
+}
+
+.upload-card {
+
+  position: relative;
+
+  width: 100%;
+
+  min-height: 220px;
+
+  border: 2px dashed #dbe3ee;
+
+  border-radius: 18px;
+
+  background: #fafcff;
+
+  cursor: pointer;
+
+  transition: all .2s ease;
+
+  overflow: hidden;
+}
+
+.upload-card:hover {
+
+  border-color: #4f8cff;
+
+  background: #f8fbff;
+}
+
+.upload-placeholder {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 220px;
+
+  width: 100%;
+}
+
+.upload-icon {
+
+  font-size: 48px;
+
+  margin-bottom: 10px;
+}
+
+.upload-title {
+
+  font-size: 17px;
+
+  font-weight: 700;
+
+  color: #1e293b;
+}
+
+.upload-subtitle {
+
+  margin-top: 6px;
+
+  color: #94a3b8;
+
+  font-size: 13px;
+}
+
+.preview-image {
+
+  display: block;
+
+  width: 100%;
+
+  max-height: 300px;
+
+  object-fit: contain;
+
+  padding: 20px;
+}
+
+.change-image-btn {
+
+  position: absolute;
+
+  top: 10px;
+
+  right: 10px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  padding: 8px 12px;
+
+  background: rgba(
+    255,
+    255,
+    255,
+    0.96
+  );
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: #334155;
+
+  box-shadow:
+    0 4px 12px rgba(
+      0,
+      0,
+      0,
+      0.12
+    );
+
+  transition: all .2s ease;
+
+  z-index: 10;
+}
+
+.change-image-btn {
+
+  position: absolute;
+
+  top: 12px;
+
+  right: 12px;
+
+  width: 42px;
+
+  height: 42px;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background: #2563eb;
+
+  color: white;
+
+  font-size: 18px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  box-shadow:
+    0 8px 20px rgba(
+      37,
+      99,
+      235,
+      0.35
+    );
+
+  z-index: 20;
+}
+
 </style>
