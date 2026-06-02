@@ -85,17 +85,17 @@ const handleFile = (
   const target =
     e.target as HTMLInputElement
 
-  if (!target.files?.length) {
+  const file =
+    target.files?.[0]
+
+  if (!file) {
     return
   }
 
-  imageFile.value =
-    target.files[0]
+  imageFile.value = file
 
   imagePreview.value =
-    URL.createObjectURL(
-      imageFile.value
-    )
+    URL.createObjectURL(file)
 }
 const uploadImage = async (
   file: File
