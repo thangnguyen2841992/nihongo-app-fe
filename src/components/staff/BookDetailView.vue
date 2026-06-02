@@ -1,14 +1,7 @@
 <script setup lang="ts">
-import {
-  ref,
-  onMounted,
-  nextTick
-} from "vue"
+import {onMounted, ref} from "vue"
 
-import {
-  useRoute,
-  useRouter
-} from "vue-router"
+import {useRoute, useRouter} from "vue-router"
 
 import CreateLessonModal from "@/components/staff/CreateLessonModal.vue"
 
@@ -37,7 +30,7 @@ interface Lesson {
 interface Grammar {
   grammarId: number
   title: string
-  structure: string
+  imageUrl?: string
   description: string
 }
 
@@ -104,6 +97,20 @@ const activeFormats = ref({
   strikeThrough: false
 })
 
+
+const openImage = (
+  imageUrl?: string
+) => {
+
+  if (!imageUrl) {
+    return
+  }
+
+  window.open(
+    imageUrl,
+    "_blank"
+  )
+}
 
 const openCreateGrammarModal =
   () => {
@@ -495,9 +502,6 @@ onMounted(async () => {
     </div>
     <div class="row g-4">
 
-      <!-- LEFT -->
-
-
       <!-- RIGHT -->
 
       <div class="col-lg-12">
@@ -613,14 +617,15 @@ onMounted(async () => {
                 </div>
 
                 <div
-                  class="
-                    grammar-structure
-                  "
-                  v-html="
-                    grammar.structure
-                  "
-                ></div>
-
+                  v-if="grammar.imageUrl"
+                  class="grammar-structure"
+                >
+                  <img
+                    :src="grammar.imageUrl"
+                    :alt="grammar.title"
+                    class="grammar-structure-image"
+                    @click="openImage(grammar.imageUrl)">
+                </div>
                 <div
                   class="
                     grammar-description
@@ -812,8 +817,6 @@ onMounted(async () => {
 
   padding: 12px 18px;
 
-  border: none;
-
   border-radius: 16px;
 
   background: white;
@@ -895,17 +898,12 @@ onMounted(async () => {
 }
 
 
-.lesson-btn,
-.add-btn,
-.save-btn,
-.cancel-btn {
+.add-btn {
   border: none;
   border-radius: 12px;
 }
 
-.lesson-btn,
-.add-btn,
-.save-btn {
+.add-btn {
   background: linear-gradient(
     135deg,
     #4f8cff,
@@ -927,73 +925,12 @@ onMounted(async () => {
   font-size: 22px;
   font-weight: 700;
 }
-
-.editor-card {
-  background: #fafcff;
-  border: 1px solid #e8edf5;
-  border-radius: 24px;
-  padding: 20px;
-  margin-bottom: 24px;
-}
-
-
-
-.custom-input {
-  border-radius: 14px;
-  border: 1px solid #dfe6ef;
-}
-
-.editor-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 20px;
-}
-
 .grammar-scroll {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.grammar-card {
-  background: white;
-  border: 1px solid #edf1f5;
-  border-radius: 22px;
-  padding: 22px;
-}
-
-.grammar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.grammar-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.grammar-number {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
-
-  color: white;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .edit-btn {
   border: none;
@@ -1002,99 +939,16 @@ onMounted(async () => {
   border-radius: 12px;
 }
 
-.grammar-description {
-  margin-top: 16px;
-  color: #657082;
-}
-
 .empty-state {
   text-align: center;
   padding: 90px 20px;
 }
-
-
 
 .grammar-actions {
 
   display: flex;
 
   gap: 10px;
-}
-
-.delete-btn {
-
-  border: none;
-
-  width: 42px;
-
-  height: 42px;
-
-  border-radius: 12px;
-
-  background: #ffe7e7;
-
-  color: #d10000;
-
-  transition: 0.2s;
-}
-
-.delete-btn:hover {
-
-  background: #ffd0d0;
-}
-
-/* =========================
-   TOOLBAR ACTIVE
-========================= */
-
-.tool-btn {
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  font-weight: 700;
-
-  transition: all 0.2s ease;
-
-  cursor: pointer;
-}
-
-.tool-btn:hover {
-
-  background: #f3f7ff;
-
-  border-color: #4f8cff;
-}
-
-/* ACTIVE */
-
-.tool-btn.active {
-
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
-
-  color: white;
-
-  border-color: transparent;
-
-  box-shadow: 0 6px 18px rgba(
-    79,
-    140,
-    255,
-    0.35
-  );
-
-  transform: translateY(-1px);
-}
-
-tool-btn.active:hover {
-  opacity: 0.95;
 }
 
 /* =========================
@@ -1109,8 +963,6 @@ tool-btn.active:hover {
 /* TOGGLE BUTTON */
 
 .expand-btn {
-
-  border: none;
 
   background: linear-gradient(
     135deg,
@@ -1174,18 +1026,6 @@ tool-btn.active:hover {
   border: 1px solid #e6ecf7;
 
   padding: 24px;
-}
-
-
-/* LIST */
-
-.example-list {
-
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 18px;
 }
 
 /* CARD */
@@ -1356,10 +1196,6 @@ tool-btn.active:hover {
     font-size: 15px;
   }
 
-  .save-example-btn {
-
-    width: 100%;
-  }
 }
 
 /* =========================
@@ -1434,143 +1270,9 @@ tool-btn.active:hover {
   );
 }
 
-/* FORM */
-
-.example-create {
-
-  margin-bottom: 26px;
-
-  padding: 22px;
-
-  border-radius: 22px;
-
-  background: white;
-
-  border: 1px solid #e8edf7;
-
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 16px;
-}
-
-.example-create-actions {
-
-  display: flex;
-
-  justify-content: flex-end;
-
-  gap: 12px;
-}
-
-/* CANCEL */
-
-.cancel-example-btn {
-
-  border: none;
-
-  padding: 12px 18px;
-
-  border-radius: 14px;
-
-  background: #eef2f7;
-
-  color: #4d5a6d;
-
-  font-weight: 700;
-
-  transition: 0.2s;
-}
-
-.cancel-example-btn:hover {
-
-  background: #e1e8f0;
-}
-
-/* ANIMATION */
-
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-
-  transition: all 0.25s ease;
-}
-
-.fade-slide-enter-from,
-.fade-slide-leave-to {
-
-  opacity: 0;
-
-  transform: translateY(-8px);
-}
-
 /* =========================
    EXAMPLE EDITOR
 ========================= */
-
-.example-editor-card {
-
-  background: white;
-
-  border-radius: 22px;
-
-  border: 1px solid #e4eaf4;
-
-  overflow: hidden;
-
-  box-shadow: 0 10px 28px rgba(
-    0,
-    0,
-    0,
-    0.04
-  );
-}
-
-.example-label {
-
-  padding: 16px 20px;
-
-  font-size: 15px;
-
-  font-weight: 700;
-
-  color: #243b7a;
-
-  border-bottom: 1px solid #edf2f8;
-
-  background: linear-gradient(
-    180deg,
-    #fbfcff,
-    #f6f8ff
-  );
-}
-
-.example-header {
-
-  display: flex;
-
-  justify-content: space-between;
-
-  align-items: center;
-
-  margin-bottom: 18px;
-}
-
-.example-badge {
-
-  background: #eef3ff;
-
-  color: #3158d8;
-
-  font-size: 13px;
-
-  font-weight: 700;
-
-  padding: 8px 14px;
-
-  border-radius: 999px;
-}
-
 .edit-example-btn {
 
   border: none;
@@ -1597,18 +1299,6 @@ tool-btn.active:hover {
   transform: translateY(-1px);
 }
 
-.example-title {
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 12px;
-
-  font-weight: 700;
-
-  color: #3158d8;
-}
 
 .example-number {
 
@@ -1677,11 +1367,7 @@ tool-btn.active:hover {
 
 .lesson-tab {
 
-  border: none;
-
   background: white;
-
-  border: 1px solid #e7edf6;
 
   border-radius: 16px;
 
@@ -1730,14 +1416,8 @@ tool-btn.active:hover {
   );
 }
 
-.lesson-tab-name {
-
-  font-size: 14px;
-}
 
 .lesson-add-tab {
-
-  border: none;
 
   border-radius: 16px;
 
@@ -1763,12 +1443,6 @@ tool-btn.active:hover {
   background: #e5eeff;
 }
 
-.page-header {
-
-  width: 100%;
-
-  margin-bottom: 24px;
-}
 
 .book-title {
 
@@ -1777,5 +1451,34 @@ tool-btn.active:hover {
   font-size: 32px;
 
   font-weight: 700;
+}
+
+.grammar-structure {
+
+  margin: 20px 0;
+
+  padding: 20px;
+
+  border-radius: 20px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+
+  text-align: center;
+}
+
+.grammar-structure-image {
+
+  display: block;
+
+  width: 100%;
+
+  max-height: 450px;
+
+  object-fit: contain;
+
+  margin: 0 auto;
+  cursor: zoom-in;
 }
 </style>
