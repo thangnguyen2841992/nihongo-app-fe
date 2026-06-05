@@ -24,7 +24,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  saved: []
+  saved: [
+    grammarId : number,
+    isEdit: boolean
+  ]
 }>()
 
 const fileInputRef =
@@ -178,7 +181,7 @@ const saveGrammar =
         )
       }
 
-      emit("saved")
+      emit("saved", props.grammar?.grammarId, props.grammar?)
 
     } catch (e) {
 

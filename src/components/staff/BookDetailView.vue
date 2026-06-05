@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue"
+import {nextTick, onMounted, ref} from "vue"
 
 import {useRoute, useRouter} from "vue-router"
 
@@ -9,17 +9,9 @@ import {gatewayUrl} from "@/api/authApi.ts"
 import ExampleModal from "@/components/staff/ExampleModal.vue"
 import GrammarModal from "@/components/staff/GrammarModal.vue";
 
-/* =========================
-   ROUTER
-========================= */
-
 const route = useRoute()
 
 const router = useRouter()
-
-/* =========================
-   TYPES
-========================= */
 
 interface Lesson {
   lessonId: number
@@ -48,10 +40,9 @@ interface Example {
   grammarId: number
 }
 
-/* =========================
-   STATE
-========================= */
 const showExampleModal = ref(false)
+
+const selectedLessonNumber = ref<number | null>(0)
 
 const selectedGrammarId =
   ref<number | null>(null)
@@ -77,7 +68,6 @@ const showLessonModal =
 const editingLesson =
   ref<Lesson | null>(null)
 
-
 const examples =
   ref<Record<number, Example[]>>({})
 
@@ -89,17 +79,6 @@ const showGrammarModal =
 
 const editingGrammar =
   ref<Grammar | null>(null)
-
-/* =========================
-   TOOLBAR ACTIVE
-========================= */
-
-const activeFormats = ref({
-  bold: false,
-  italic: false,
-  strikeThrough: false
-})
-
 
 const openImage = (
   imageUrl?: string
@@ -146,6 +125,12 @@ const onGrammarSaved =
       await fetchGrammars(
         selectedLesson.value.lessonId
       )
+      await nextTick()
+
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth"
+      })
     }
   }
 
@@ -225,48 +210,29 @@ const onExampleSaved =
       )
     }
   }
-/* =========================
-   BOOK ID
-========================= */
 
 const bookId =
   Number(route.params.bookId)
 
-/* =========================
-   FETCH BOOK
-========================= */
-
 const fetchBook =
   async () => {
-
     try {
-
       const res =
         await gatewayUrl.get(
           `/api/staff/books/${bookId}`
         )
-
       book.value = res.data
-
     } catch (e) {
-
       console.error(e)
-
       alert(
         "Không thể tải thông tin sách"
       )
     }
   }
 
-/* =========================
-   FETCH LESSONS
-========================= */
-
 const fetchLessons =
   async () => {
-
     try {
-
       const res =
         await gatewayUrl.get(
           "/api/staff/getLessonsByBook",
@@ -276,29 +242,19 @@ const fetchLessons =
             }
           }
         )
-
       lessons.value =
         res.data
-
     } catch (e) {
-
       console.error(e)
-
       alert(
         "Không thể tải bài học"
       )
     }
   }
 
-/* =========================
-   FETCH GRAMMARS
-========================= */
-
 const fetchGrammars =
   async (lessonId: number) => {
-
     try {
-
       const res =
         await gatewayUrl.get(
           "/api/staff/getAllGrammarByLesson",
@@ -308,78 +264,59 @@ const fetchGrammars =
             }
           }
         )
-
       grammars.value = res.data
-
     } catch (e) {
-
       console.error(e)
-
       alert(
         "Không thể tải grammar"
       )
     }
   }
 
-
-/* =========================
-   LESSON MODAL
-========================= */
-
 const openLessonModal =
   () => {
     editingLesson.value =
       null
-
     showLessonModal.value =
       true
   }
 
 const openEditLessonModal =
   (lesson: Lesson) => {
-
     editingLesson.value =
       lesson
-
     showLessonModal.value =
       true
   }
 
 const closeLessonModal =
   async () => {
-
     showLessonModal.value =
       false
     editingLesson.value =
       null
     await fetchLessons()
+    selectedLesson.value =
+      lessons.value.find(
+        l =>
+          l.lessonId ===
+          selectedLesson.value?.lessonId
+      ) || null
   }
-
-/* =========================
-   OPEN LESSON
-========================= */
 
 const openLesson =
   async (lesson: Lesson) => {
-
     selectedLesson.value =
       lesson
-
     await fetchGrammars(
       lesson.lessonId
     )
   }
 
-
-/* =========================
-   FETCH EXAMPLE
-========================= */
 const fetchExamples = async (
   grammarId: number
 ) => {
-
   try {
-
     const res =
       await gatewayUrl.get(
         "/api/staff/getAllExampleByGrammar",
@@ -389,12 +326,9 @@ const fetchExamples = async (
           }
         }
       )
-
     examples.value[grammarId] =
       res.data
-
   } catch (e) {
-
     console.error(e)
   }
 }
@@ -416,12 +350,7 @@ const toggleExamples =
     }
   }
 
-/* =========================
-   BACK
-========================= */
-
 const goBack = () => {
-
   router.push("/staff")
 }
 
@@ -435,14 +364,9 @@ const getStructureImage = (
   )
 }
 
-/* =========================
-   MOUNT
-========================= */
-
 onMounted(async () => {
 
   await fetchBook()
-
   await fetchLessons()
 
   /* AUTO OPEN FIRST LESSON */
@@ -1802,6 +1726,7 @@ onMounted(async () => {
   max-height: 500px;
 
   overflow-y: auto;
+
 }
 
 /* Scroll đẹp */
