@@ -2,8 +2,10 @@
 import {
   ref,
   watch,
-  nextTick
+  onMounted,
+  onBeforeUnmount
 } from "vue"
+
 import axios from "axios"
 
 import {gatewayUrl} from "@/api/authApi"
@@ -39,6 +41,8 @@ const grammarForm = ref({
   description: "",
   imageUrl: ""
 })
+const isHoveringUpload =
+  ref(false)
 
 watch(
   () => props.grammar,
@@ -185,6 +189,70 @@ const saveGrammar =
       )
     }
   }
+
+const handlePaste = (
+  e: ClipboardEvent
+) => {
+
+  if (
+    !isHoveringUpload.value
+  ) {
+    return
+  }
+
+  const items =
+    e.clipboardData?.items
+
+  if (!items) {
+    return
+  }
+
+  for (const item of items) {
+
+    if (
+      item.type.startsWith(
+        "image/"
+      )
+    ) {
+
+      const file =
+        item.getAsFile()
+
+      if (!file) {
+        continue
+      }
+
+      imageFile.value = file
+
+      imagePreview.value =
+        URL.createObjectURL(
+          file
+        )
+
+      e.preventDefault()
+
+      return
+    }
+  }
+}
+
+onMounted(() => {
+
+  window.addEventListener(
+    "paste",
+    handlePaste
+  )
+
+})
+
+onBeforeUnmount(() => {
+
+  window.removeEventListener(
+    "paste",
+    handlePaste
+  )
+
+})
 </script>
 
 <template>
@@ -234,6 +302,12 @@ const saveGrammar =
 
         <div
           class="upload-card"
+          @mouseenter="
+    isHoveringUpload = true
+  "
+          @mouseleave="
+    isHoveringUpload = false
+  "
           @click="openFilePicker"
         >
 
@@ -335,6 +409,7 @@ const saveGrammar =
 }
 
 .modal-backdrop {
+  padding: 16px;
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
@@ -349,19 +424,16 @@ const saveGrammar =
 }
 
 .grammar-modal {
-  width: min(1100px, 92vw);
-  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
 
-  overflow-y: auto;
+  width: min(900px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
 
   background: white;
+  border-radius: 24px;
 
-  border-radius: 28px;
-
-  padding: 28px;
-
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12),
-  0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 24px;
 }
 
 .modal-header {
@@ -559,19 +631,6 @@ const saveGrammar =
   font-size: 14px;
 }
 
-.upload-card {
-
-  //width: fit-content;
-  width: 100%;
-  max-width: 100%;
-
-  min-width: 260px;
-
-  min-height: 120px;
-
-  padding: 20px;
-}
-
 .preview-image {
 
   max-height: 160px;
@@ -606,7 +665,7 @@ const saveGrammar =
 
   width: 100%;
 
-  min-height: 220px;
+  min-height: 180px;
 
   border: 2px dashed #dbe3ee;
 
@@ -619,6 +678,9 @@ const saveGrammar =
   transition: all .2s ease;
 
   overflow: hidden;
+
+  outline: none;
+
 }
 
 .upload-card:hover {
@@ -669,16 +731,17 @@ const saveGrammar =
 }
 
 .preview-image {
-
   display: block;
 
-  width: 100%;
+  width: auto;
+  height: auto;
 
-  max-height: 300px;
+  max-width: 100%;
+  max-height: 40vh;
+
+  margin: auto;
 
   object-fit: contain;
-
-  padding: 20px;
 }
 
 .change-image-btn {
@@ -758,6 +821,16 @@ const saveGrammar =
     );
 
   z-index: 20;
+}
+
+.upload-card:focus {
+  border-color: #4f8cff;
+  box-shadow: 0 0 0 4px rgba(
+    79,
+    140,
+    255,
+    0.15
+  );
 }
 
 </style>

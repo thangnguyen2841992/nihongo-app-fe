@@ -25,6 +25,8 @@ interface Lesson {
   lessonId: number
   name: string
   description: string
+  reading: string
+  bookId: number
 }
 
 interface Grammar {
@@ -72,8 +74,9 @@ const selectedLesson =
 const showLessonModal =
   ref(false)
 
-const editorRef =
-  ref<HTMLDivElement | null>(null)
+const editingLesson =
+  ref<Lesson | null>(null)
+
 
 const examples =
   ref<Record<number, Example[]>>({})
@@ -325,6 +328,18 @@ const fetchGrammars =
 
 const openLessonModal =
   () => {
+    editingLesson.value =
+      null
+
+    showLessonModal.value =
+      true
+  }
+
+const openEditLessonModal =
+  (lesson: Lesson) => {
+
+    editingLesson.value =
+      lesson
 
     showLessonModal.value =
       true
@@ -335,7 +350,8 @@ const closeLessonModal =
 
     showLessonModal.value =
       false
-
+    editingLesson.value =
+      null
     await fetchLessons()
   }
 
@@ -407,6 +423,16 @@ const toggleExamples =
 const goBack = () => {
 
   router.push("/staff")
+}
+
+const getStructureImage = (
+  imageUrl: string
+) => {
+
+  return imageUrl.replace(
+    "/upload/",
+    "/upload/w_1200,h_300,c_pad,b_white/"
+  )
 }
 
 /* =========================
@@ -532,15 +558,64 @@ onMounted(async () => {
 
             <div class="top-actions">
 
-              <div class="selected-lesson">
-                {{ selectedLesson.name }}
+              <div class="selected-lesson-wrapper">
+
+                <div class="selected-lesson">
+                  {{ selectedLesson.name }}
+                </div>
+
+                <button
+                  class="lesson-edit-btn"
+                  @click="
+        openEditLessonModal(
+          selectedLesson!
+        )
+      "
+                >
+                  ✏️ Sửa lesson
+                </button>
+
               </div>
 
               <button
                 class="add-btn"
-                @click="openCreateGrammarModal()">
+                @click="
+      openCreateGrammarModal()
+    "
+              >
                 + Grammar
               </button>
+
+            </div>
+
+            <div
+              v-if="selectedLesson.reading"
+              class="lesson-reading-card"
+            >
+
+              <div class="lesson-reading-header">
+
+                <div class="lesson-reading-icon">
+                  📖
+                </div>
+
+                <div>
+
+                  <div class="lesson-reading-title">
+                    Bài đọc
+                  </div>
+
+                  <div class="lesson-reading-subtitle">
+                    Nội dung luyện đọc của bài học
+                  </div>
+
+                </div>
+
+              </div>
+
+              <div class="lesson-reading-content">
+                {{ selectedLesson.reading }}
+              </div>
 
             </div>
 
@@ -621,16 +696,13 @@ onMounted(async () => {
                   class="grammar-structure"
                 >
                   <img
-                    :src="grammar.imageUrl"
+                    :src="getStructureImage(grammar.imageUrl)"
                     :alt="grammar.title"
                     class="grammar-structure-image"
                     @click="openImage(grammar.imageUrl)">
                 </div>
                 <div
-                  class="
-                    grammar-description
-                  "
-                >
+                  class="grammar-description">
                   {{
                     grammar.description
                   }}
@@ -765,16 +837,12 @@ onMounted(async () => {
     <CreateLessonModal
       v-if="showLessonModal"
       :book-id="bookId"
-      :book-name="
-        book?.bookName || ''
-      "
-      @close="
-        showLessonModal = false
-      "
-      @created="
-        closeLessonModal
-      "
+      :book-name="book?.bookName || ''"
+      :lesson="editingLesson"
+      @close="showLessonModal = false"
+      @created="closeLessonModal"
     />
+
     <ExampleModal
       v-if="showExampleModal"
       :grammar-id="selectedGrammarId!"
@@ -925,19 +993,13 @@ onMounted(async () => {
   font-size: 22px;
   font-weight: 700;
 }
+
 .grammar-scroll {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-
-.edit-btn {
-  border: none;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-}
 
 .empty-state {
   text-align: center;
@@ -1382,6 +1444,8 @@ onMounted(async () => {
   transition: all 0.25s ease;
 
   flex-shrink: 0;
+  border: none
+
 }
 
 .lesson-tab:hover {
@@ -1455,9 +1519,110 @@ onMounted(async () => {
 
 .grammar-structure {
 
-  margin: 20px 0;
+  height: 140px;
 
-  padding: 20px;
+  border-radius: 16px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 12px;
+
+  overflow: hidden;
+}
+
+.grammar-structure-image {
+
+  width: auto;
+
+  max-width: 500px;
+
+  max-height: 120px;
+
+  margin: 0 auto;
+
+  display: block;
+}
+
+.grammar-structure-image:hover {
+
+  transform: scale(1.02);
+}
+
+.grammar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+
+  margin-bottom: 16px;
+}
+
+.grammar-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  flex: 1;
+
+  font-size: 22px;
+  font-weight: 700;
+
+  color: #1e293b;
+}
+
+.grammar-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.edit-btn,
+.delete-btn {
+
+  width: 40px;
+  height: 40px;
+
+  border: none;
+  border-radius: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all .2s ease;
+}
+
+.edit-btn {
+  background: #eef4ff;
+}
+
+.edit-btn:hover {
+  background: #dbeafe;
+}
+
+.delete-btn {
+  background: #fff1f2;
+}
+
+.delete-btn:hover {
+  background: #ffe4e6;
+}
+
+.grammar-description {
+
+  position: relative;
+
+  margin-top: 18px;
+
+  padding: 20px 24px;
 
   border-radius: 20px;
 
@@ -1465,20 +1630,217 @@ onMounted(async () => {
 
   border: 1px solid #e2e8f0;
 
-  text-align: center;
+  color: #334155;
+
+  font-family: "Noto Sans JP",
+  "Noto Sans",
+  sans-serif;
+
+  font-size: 17px;
+
+  white-space: pre-wrap;
+  font-weight: 500;
+
+  line-height: 2.1;
 }
 
-.grammar-structure-image {
+.grammar-description::before {
+
+  content: "📝 Giải thích";
 
   display: block;
 
-  width: 100%;
+  margin-bottom: 12px;
 
-  max-height: 450px;
+  font-size: 13px;
 
-  object-fit: contain;
+  font-weight: 700;
 
-  margin: 0 auto;
-  cursor: zoom-in;
+  color: #4f46e5;
+
+  text-transform: uppercase;
+
+  letter-spacing: .5px;
+}
+
+.lesson-edit-btn {
+
+  border: none;
+
+  background: #eef4ff;
+
+  color: #3158d8;
+
+  padding: 8px 14px;
+
+  border-radius: 12px;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  transition: all .2s ease;
+}
+
+.lesson-edit-btn:hover {
+
+  background: #dbeafe;
+
+  transform: translateY(-1px);
+}
+
+.selected-lesson-wrapper {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+/* =========================
+   LESSON READING
+========================= */
+
+.lesson-reading-card {
+
+  margin-bottom: 24px;
+
+  background: linear-gradient(
+    180deg,
+    #ffffff,
+    #fafcff
+  );
+
+  border: 1px solid #e6ecf7;
+
+  border-radius: 24px;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 10px 30px rgba(
+      0,
+      0,
+      0,
+      0.04
+    );
+}
+
+.lesson-reading-header {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 20px 24px;
+
+  border-bottom:
+    1px solid #eef2f7;
+}
+
+.lesson-reading-icon {
+
+  width: 52px;
+
+  height: 52px;
+
+  border-radius: 16px;
+
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 24px;
+
+  color: white;
+}
+
+.lesson-reading-title {
+
+  font-size: 18px;
+
+  font-weight: 700;
+
+  color: #1e293b;
+}
+
+.lesson-reading-subtitle {
+
+  font-size: 13px;
+
+  color: #64748b;
+}
+
+.lesson-reading-content {
+
+  padding: 24px 28px;
+
+  white-space: pre-wrap;
+
+  line-height: 2.2;
+
+  font-size: 18px;
+
+  color: #334155;
+
+  font-family:
+    "Noto Sans JP",
+    "Noto Sans",
+    sans-serif;
+
+  max-height: 500px;
+
+  overflow-y: auto;
+}
+
+/* Scroll đẹp */
+
+.lesson-reading-content::-webkit-scrollbar {
+
+  width: 8px;
+}
+
+.lesson-reading-content::-webkit-scrollbar-thumb {
+
+  background: #d5ddec;
+
+  border-radius: 999px;
+}
+
+@media (max-width: 768px) {
+
+  .lesson-reading-content {
+
+    font-size: 16px;
+
+    line-height: 2;
+
+    padding: 18px;
+  }
+
+  .lesson-reading-header {
+
+    padding: 16px 18px;
+  }
+
+  .lesson-reading-icon {
+
+    width: 44px;
+
+    height: 44px;
+
+    font-size: 20px;
+  }
 }
 </style>
