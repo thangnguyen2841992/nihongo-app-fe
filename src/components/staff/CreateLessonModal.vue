@@ -33,6 +33,11 @@ const emit = defineEmits([
 
 const loading = ref(false)
 
+const readingRef =
+  ref<HTMLTextAreaElement | null>(
+    null
+  )
+
 const form = ref({
   name: "",
   description: "",
@@ -47,6 +52,38 @@ const bookDisplayName =
     props.bookName ||
     "Không xác định"
   )
+
+const makeBold = () => {
+
+  const textarea =
+    readingRef.value
+
+  if (!textarea) {
+    return
+  }
+
+  const start =
+    textarea.selectionStart
+
+  const end =
+    textarea.selectionEnd
+
+  if (start === end) {
+    return
+  }
+
+  const text =
+    form.value.reading
+
+  const selected =
+    text.substring(start, end)
+
+  form.value.reading =
+    text.substring(0, start) +
+    `<b>${selected}</b>` +
+    text.substring(end)
+
+}
 
 watch(
   () => props.lesson,
@@ -234,8 +271,17 @@ const submit = async () => {
           >
             Bài đọc
           </label>
-
+          <div class="reading-toolbar">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              @click="makeBold"
+            >
+              <b>B</b>
+            </button>
+          </div>
           <textarea
+            ref="readingRef"
             v-model="form.reading"
             class="
               form-control
@@ -518,6 +564,16 @@ textarea.form-control {
 
     width: 100%;
   }
+}
+
+
+.reading-toolbar {
+
+  display: flex;
+
+  gap: 8px;
+
+  margin-bottom: 10px;
 }
 
 </style>

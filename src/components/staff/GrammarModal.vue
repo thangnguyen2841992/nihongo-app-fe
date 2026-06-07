@@ -24,7 +24,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  saved: []
+  saved: [grammarId: number]
 }>()
 
 const fileInputRef =
@@ -159,7 +159,7 @@ const saveGrammar =
 
       if (props.grammar) {
 
-        await gatewayUrl.put(
+        const res =  await gatewayUrl.put(
           "/api/staff/grammars",
           {
             grammarId:
@@ -170,15 +170,24 @@ const saveGrammar =
           }
         )
 
+        emit(
+          "saved",
+          res.data.grammarId
+        )
+
       } else {
 
-        await gatewayUrl.post(
+     const res =  await gatewayUrl.post(
           "/api/staff/grammars",
           payload
         )
+        emit(
+          "saved",
+          res.data.grammarId
+        )
       }
 
-      emit("saved")
+
 
     } catch (e) {
 

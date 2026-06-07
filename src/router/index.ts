@@ -88,6 +88,12 @@ const routes = [
         path: 'books/:bookId',
         component: () =>
           import('@/components/staff/BookDetailView.vue')
+      },
+      {
+        path: 'lesson/:lessonId/exercises',
+        name: 'lesson-exercises',
+        component: () =>
+          import('@/components/staff/LessonExerciseView.vue')
       }
     ]
   }

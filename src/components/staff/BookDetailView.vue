@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue"
+import {nextTick, onMounted, ref} from "vue"
 
 import {useRoute, useRouter} from "vue-router"
 
@@ -135,19 +135,31 @@ const openEditGrammarModal =
       true
   }
 
-const onGrammarSaved =
-  async () => {
+const onGrammarSaved = async (
+  grammarId: number
+) => {
 
-    showGrammarModal.value =
-      false
+  showGrammarModal.value = false
 
-    if (selectedLesson.value) {
-
-      await fetchGrammars(
-        selectedLesson.value.lessonId
-      )
-    }
+  if (!selectedLesson.value) {
+    return
   }
+
+  await fetchGrammars(
+    selectedLesson.value.lessonId
+  )
+
+  await nextTick()
+
+  document
+    .getElementById(
+      `grammar-${grammarId}`
+    )
+    ?.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    })
+}
 
 const deleteGrammar =
   async (grammarId: number) => {
@@ -210,21 +222,36 @@ const openEditExampleModal = (
     true
 }
 
-const onExampleSaved =
-  async () => {
+const onExampleSaved = async (
+  exampleId: number
+) => {
 
-    showExampleModal.value =
-      false
+  showExampleModal.value = false
 
-    if (
-      selectedGrammarId.value
-    ) {
-
-      await fetchExamples(
-        selectedGrammarId.value
-      )
-    }
+  if (!selectedGrammarId.value) {
+    return
   }
+
+  // đảm bảo đang expand
+  expandedGrammar.value[
+    selectedGrammarId.value
+    ] = true
+
+  await fetchExamples(
+    selectedGrammarId.value
+  )
+
+  await nextTick()
+
+  document
+    .getElementById(
+      `example-${exampleId}`
+    )
+    ?.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    })
+}
 /* =========================
    BOOK ID
 ========================= */
@@ -353,22 +380,42 @@ const closeLessonModal =
     editingLesson.value =
       null
     await fetchLessons()
+    selectedLesson.value = lessons.value.find(l => l.lessonId === selectedLesson.value?.lessonId) || null
   }
 
 /* =========================
    OPEN LESSON
 ========================= */
 
-const openLesson =
-  async (lesson: Lesson) => {
+const openLesson = async (
+  lesson: Lesson
+) => {
 
-    selectedLesson.value =
-      lesson
+  selectedLesson.value = lesson
 
-    await fetchGrammars(
-      lesson.lessonId
+  await fetchGrammars(
+    lesson.lessonId
+  )
+
+  expandedGrammar.value = {}
+
+  grammars.value.forEach(
+    grammar => {
+      expandedGrammar.value[
+        grammar.grammarId
+        ] = true
+    }
+  )
+
+  await Promise.all(
+    grammars.value.map(
+      grammar =>
+        fetchExamples(
+          grammar.grammarId
+        )
     )
-  }
+  )
+}
 
 
 /* =========================
@@ -457,6 +504,22 @@ onMounted(async () => {
   }
 
 })
+
+const goToExercisePage =
+  () => {
+
+    if (!selectedLesson.value) {
+      return
+    }
+
+    router.push({
+      name: "lesson-exercises",
+      params: {
+        lessonId:
+        selectedLesson.value.lessonId
+      }
+    })
+  }
 </script>
 
 <template>
@@ -577,14 +640,27 @@ onMounted(async () => {
 
               </div>
 
-              <button
-                class="add-btn"
-                @click="
-      openCreateGrammarModal()
-    "
-              >
-                + Grammar
-              </button>
+              <div class="action-buttons">
+
+                <button
+                  class="exercise-btn"
+                  @click="
+        goToExercisePage()
+      "
+                >
+                  🎯 Bài tập
+                </button>
+
+                <button
+                  class="add-btn"
+                  @click="
+        openCreateGrammarModal()
+      "
+                >
+                  + Grammar
+                </button>
+
+              </div>
 
             </div>
 
@@ -613,8 +689,8 @@ onMounted(async () => {
 
               </div>
 
-              <div class="lesson-reading-content">
-                {{ selectedLesson.reading }}
+              <div class="lesson-reading-content"  v-html="selectedLesson.reading">
+
               </div>
 
             </div>
@@ -625,247 +701,250 @@ onMounted(async () => {
 
               <div
                 v-for="
-                  (
-                    grammar,
-                    index
-                  ) in grammars
-                "
+    (
+      grammar,
+      index
+    ) in grammars
+  "
                 :key="
-                  grammar.grammarId
-                "
+    grammar.grammarId
+  "
+                :id="
+    `grammar-${grammar.grammarId}`
+  "
                 class="
-                  grammar-card
-                "
+    grammar-card
+  "
+              >
+
+              <div
+                class="
+                    grammar-header
+                  "
               >
 
                 <div
                   class="
-                    grammar-header
-                  "
+                      grammar-title
+                    "
                 >
 
                   <div
                     class="
-                      grammar-title
-                    "
-                  >
-
-                    <div
-                      class="
                         grammar-number
                       "
-                    >
-                      {{
-                        index + 1
-                      }}
-                    </div>
-
+                  >
                     {{
-                      grammar.title
+                      index + 1
                     }}
-
                   </div>
 
-                  <div class="grammar-actions">
+                  {{
+                    grammar.title
+                  }}
 
-                    <button
-                      class="edit-btn"
-                      @click="openEditGrammarModal(grammar)">
-                      ✏️
-                    </button>
+                </div>
 
-                    <button
-                      class="
+                <div class="grammar-actions">
+
+                  <button
+                    class="edit-btn"
+                    @click="openEditGrammarModal(grammar)">
+                    ✏️
+                  </button>
+
+                  <button
+                    class="
       delete-btn
     "
-                      @click="
+                    @click="
       deleteGrammar(
         grammar.grammarId
       )
     "
-                    >
-                      🗑️
-                    </button>
-
-                  </div>
+                  >
+                    🗑️
+                  </button>
 
                 </div>
 
-                <div
-                  v-if="grammar.imageUrl"
-                  class="grammar-structure"
-                >
-                  <img
-                    :src="getStructureImage(grammar.imageUrl)"
-                    :alt="grammar.title"
-                    class="grammar-structure-image"
-                    @click="openImage(grammar.imageUrl)">
-                </div>
-                <div
-                  class="grammar-description">
-                  {{
-                    grammar.description
-                  }}
-                </div>
-                <!-- EXAMPLE ACTION -->
+              </div>
 
-                <div class="example-section">
+              <div
+                v-if="grammar.imageUrl"
+                class="grammar-structure"
+              >
+                <img
+                  :src="getStructureImage(grammar.imageUrl)"
+                  :alt="grammar.title"
+                  class="grammar-structure-image"
+                  @click="openImage(grammar.imageUrl)">
+              </div>
+              <div
+                class="grammar-description">
+                {{
+                  grammar.description
+                }}
+              </div>
+              <!-- EXAMPLE ACTION -->
 
-                  <button
-                    class="expand-btn"
-                    @click="
+              <div class="example-section">
+
+                <button
+                  class="expand-btn"
+                  @click="
       toggleExamples(
         grammar.grammarId
       )
     "
-                  >
-                    {{
-                      expandedGrammar[
-                        grammar.grammarId
-                        ]
-                        ? '▼ Ẩn ví dụ'
-                        : '▶ Xem ví dụ'
-                    }}
-                  </button>
+                >
+                  {{
+                    expandedGrammar[
+                      grammar.grammarId
+                      ]
+                      ? '▼ Ẩn ví dụ'
+                      : '▶ Xem ví dụ'
+                  }}
+                </button>
 
-                  <!-- EXPAND CONTENT -->
+                <!-- EXPAND CONTENT -->
 
-                  <div
-                    v-if="
+                <div
+                  v-if="
       expandedGrammar[
         grammar.grammarId
       ]
     "
-                    class="example-expand"
-                  >
+                  class="example-expand"
+                >
 
 
-                    <div class="example-topbar">
+                  <div class="example-topbar">
 
-                      <div class="example-count">
+                    <div class="example-count">
 
-                        {{
-                          examples[
-                            grammar.grammarId
-                            ]?.length || 0
-                        }}
-                        ví dụ
-
-                      </div>
-
-                      <button
-                        class="add-example-btn"
-                        @click="openCreateExampleModal(grammar.grammarId)">
-                        + Thêm ví dụ
-                      </button>
+                      {{
+                        examples[
+                          grammar.grammarId
+                          ]?.length || 0
+                      }}
+                      ví dụ
 
                     </div>
 
-                    <!-- LIST -->
+                    <button
+                      class="add-example-btn"
+                      @click="openCreateExampleModal(grammar.grammarId)">
+                      + Thêm ví dụ
+                    </button>
 
-                    <template
-                      v-if="
+                  </div>
+
+                  <!-- LIST -->
+
+                  <template
+                    v-if="
     examples[
       grammar.grammarId
     ]?.length
   "
-                    >
+                  >
 
-                      <div
-                        v-for="(example, exampleIndex) in examples[grammar.grammarId]"
-                        :key="example.exampleId"
-                        class="example-card">
-                        <div class="example-row">
-                          <div class="example-number">
-                            {{ exampleIndex + 1 }}
-                          </div>
+                    <div
+                      v-for="(example, exampleIndex) in examples[grammar.grammarId]"
+                      :key="example.exampleId"
+                      class="example-card">
+                      <div class="example-row">
+                        <div class="example-number">
+                          {{ exampleIndex + 1 }}
+                        </div>
 
-                          <div class="example-content">
+                        <div class="example-content">
 
-                            <div
-                              class="jp-text"
-                              v-html="example.nihongo"
-                            ></div>
+                          <div
+                            class="jp-text"
+                            v-html="example.nihongo"
+                          ></div>
 
-                            <div
-                              class="vn-text"
-                              v-html="example.vietnamese"
-                            ></div>
+                          <div
+                            class="vn-text"
+                            v-html="example.vietnamese"
+                          ></div>
 
-                          </div>
+                        </div>
 
-                          <button
-                            class="edit-example-btn"
-                            @click="
+                        <button
+                          class="edit-example-btn"
+                          @click="
       openEditExampleModal(
         example
       )
     "
-                          >
-                            ✏️
-                          </button>
-
-                        </div>
-
+                        >
+                          ✏️
+                        </button>
 
                       </div>
 
-                    </template>
 
-                    <div
-                      v-else
-                      class="empty-example"
-                    >
-                      Chưa có ví dụ
                     </div>
 
+                  </template>
+
+                  <div
+                    v-else
+                    class="empty-example"
+                  >
+                    Chưa có ví dụ
                   </div>
 
                 </div>
+
               </div>
-
             </div>
-
-          </template>
 
         </div>
 
-      </div>
+</template>
 
-    </div>
+</div>
 
-    <CreateLessonModal
-      v-if="showLessonModal"
-      :book-id="bookId"
-      :book-name="book?.bookName || ''"
-      :lesson="editingLesson"
-      @close="showLessonModal = false"
-      @created="closeLessonModal"
-    />
+</div>
 
-    <ExampleModal
-      v-if="showExampleModal"
-      :grammar-id="selectedGrammarId!"
-      :example="editingExample"
-      @close="showExampleModal = false"
-      @saved="onExampleSaved"
-    />
+</div>
 
-    <GrammarModal
-      v-if="showGrammarModal"
-      :lesson-id="
+<CreateLessonModal
+  v-if="showLessonModal"
+  :book-id="bookId"
+  :book-name="book?.bookName || ''"
+  :lesson="editingLesson"
+  @close="showLessonModal = false"
+  @created="closeLessonModal"
+/>
+
+<ExampleModal
+  v-if="showExampleModal"
+  :grammar-id="selectedGrammarId!"
+  :example="editingExample"
+  @close="showExampleModal = false"
+  @saved="onExampleSaved"
+/>
+
+<GrammarModal
+  v-if="showGrammarModal"
+  :lesson-id="
     selectedLesson?.lessonId || 0
   "
-      :grammar="editingGrammar"
-      @close="
+  :grammar="editingGrammar"
+  @close="
     showGrammarModal = false
   "
-      @saved="
+  @saved="
     onGrammarSaved
   "
-    />
+/>
 
-  </div>
+</div>
 
 </template>
 
@@ -1718,13 +1797,12 @@ onMounted(async () => {
 
   overflow: hidden;
 
-  box-shadow:
-    0 10px 30px rgba(
-      0,
-      0,
-      0,
-      0.04
-    );
+  box-shadow: 0 10px 30px rgba(
+    0,
+    0,
+    0,
+    0.04
+  );
 }
 
 .lesson-reading-header {
@@ -1737,8 +1815,7 @@ onMounted(async () => {
 
   padding: 20px 24px;
 
-  border-bottom:
-    1px solid #eef2f7;
+  border-bottom: 1px solid #eef2f7;
 }
 
 .lesson-reading-icon {
@@ -1794,10 +1871,9 @@ onMounted(async () => {
 
   color: #334155;
 
-  font-family:
-    "Noto Sans JP",
-    "Noto Sans",
-    sans-serif;
+  font-family: "Noto Sans JP",
+  "Noto Sans",
+  sans-serif;
 
   max-height: 500px;
 
@@ -1842,5 +1918,42 @@ onMounted(async () => {
 
     font-size: 20px;
   }
+}
+.action-buttons {
+
+  display: flex;
+
+  gap: 12px;
+
+  align-items: center;
+}
+
+.exercise-btn {
+
+  border: none;
+
+  border-radius: 12px;
+
+  padding: 10px 18px;
+
+  background: #f59e0b;
+
+  color: white;
+
+  font-weight: 600;
+
+  transition: all .25s ease;
+}
+
+.exercise-btn:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 8px 20px rgba(
+    245,
+    158,
+    11,
+    0.25
+  );
 }
 </style>
