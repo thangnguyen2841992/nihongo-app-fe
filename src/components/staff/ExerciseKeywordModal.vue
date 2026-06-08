@@ -11,6 +11,7 @@ interface ExerciseKeyword {
   answerD: string
   correctAnswer: string
   lessonId: number
+  exerciseTypeId: number | null
 }
 
 interface Lesson {
@@ -18,9 +19,14 @@ interface Lesson {
   name: string
 }
 
+interface ExerciseType {
+  exerciseTypeId: number
+  name: string
+}
 interface Props {
   lesson: Lesson
   exercise?: ExerciseKeyword | null
+  exerciseTypes: ExerciseType[]
 }
 
 const props = defineProps<Props>()
@@ -36,7 +42,8 @@ const form = ref<ExerciseKeyword>({
   answerC: "",
   answerD: "",
   correctAnswer: "A",
-  lessonId: props.lesson.lessonId
+  lessonId: props.lesson.lessonId,
+  exerciseTypeId: null
 })
 
 /**
@@ -54,7 +61,8 @@ watch(
         answerC: value.answerC || "",
         answerD: value.answerD || "",
         correctAnswer: value.correctAnswer || "A",
-        lessonId: props.lesson.lessonId
+        lessonId: props.lesson.lessonId,
+        exerciseTypeId: value.exerciseTypeId
       }
     } else {
       form.value = {
@@ -64,7 +72,8 @@ watch(
         answerC: "",
         answerD: "",
         correctAnswer: "A",
-        lessonId: props.lesson.lessonId
+        lessonId: props.lesson.lessonId,
+        exerciseTypeId: null
       }
     }
 
@@ -198,7 +207,31 @@ const save = async () => {
 
       <!-- BODY -->
       <div class="card-body">
+        <div class="mb-3">
 
+          <label class="exercise-type-label">
+            📚 Loại bài tập
+          </label>
+
+          <select
+            v-model="form.exerciseTypeId"
+            class="exercise-type-select"
+          >
+            <option :value="null">
+              Chọn loại bài tập
+            </option>
+
+            <option
+              v-for="(type,index) in exerciseTypes"
+              :key="type.exerciseTypeId"
+              :value="type.exerciseTypeId"
+            >
+              Bài {{ index + 1 }} - {{ type.name }}
+            </option>
+
+          </select>
+
+        </div>
         <!-- EDITOR -->
         <div class="mb-3">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -282,8 +315,11 @@ const save = async () => {
 
         <button
           class="btn btn-primary"
-          :disabled="loading"
-          @click="save"
+          :disabled="
+    loading ||
+    !formValid ||
+    !form.exerciseTypeId
+  "
         >
           {{ loading ? "Đang lưu..." : "Lưu" }}
         </button>
@@ -302,6 +338,7 @@ const save = async () => {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  z-index: 9999;
 }
 
 .exercise-modal {
@@ -364,5 +401,52 @@ const save = async () => {
   border: none;
   outline: none;
   flex: 1;
+}
+.exercise-type-select {
+  width: 100%;
+
+  height: 48px;
+
+  padding: 0 16px;
+
+  border: 2px solid #e5e7eb;
+
+  border-radius: 14px;
+
+  font-size: 15px;
+
+  font-weight: 500;
+
+  color: #1e293b;
+
+  background-color: #fff;
+
+  transition: all .2s ease;
+}
+
+.exercise-type-select:focus {
+  border-color: #4f8cff;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(
+      79,
+      140,
+      255,
+      .12
+    );
+
+  outline: none;
+}
+.exercise-type-label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  font-size: 15px;
+
+  font-weight: 700;
+
+  color: #334155;
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue"
+import {computed, onMounted,onUnmounted, ref} from "vue"
 import {useRoute, useRouter} from "vue-router"
 import ExerciseKeywordModal from "@/components/staff/ExerciseKeywordModal.vue";
 import {gatewayUrl} from "@/api/authApi.ts";
@@ -27,8 +27,18 @@ interface ExerciseKeyword {
   correctAnswer: string
 
   lessonId: number
+  exerciseTypeId: number
+  exerciseTypeName: string
 }
 
+interface ExerciseType {
+  exerciseTypeId: number
+  name: string
+}
+const showScrollTop =
+  ref(false)
+const activeGroupId =
+  ref<number | null>(null)
 const activeExerciseId =
   ref<number | null>(null)
 
@@ -52,6 +62,26 @@ const lessonId = computed(
       route.params.lessonId
     )
 )
+
+const exerciseTypes =
+  ref<ExerciseType[]>([])
+const handleScroll = () => {
+
+  showScrollTop.value =
+    window.scrollY > 300
+}
+
+const fetchExerciseTypes =
+  async () => {
+
+    const res =
+      await gatewayUrl.get(
+        "/api/staff/exerciseTypes"
+      )
+
+    exerciseTypes.value =
+      res.data
+  }
 
 const fetchExercises =
   async () => {
@@ -107,14 +137,23 @@ const fetchLesson =
     }
   }
 onMounted(async () => {
-
+  window.addEventListener(
+    "scroll",
+    handleScroll
+  )
   await Promise.all([
     fetchLesson(),
-    fetchExercises()
+    fetchExercises(),
+    fetchExerciseTypes()
   ])
 
 })
-
+onUnmounted(() => {
+  window.removeEventListener(
+    "scroll",
+    handleScroll
+  )
+})
 
 const openCreateModal =
   () => {
@@ -205,6 +244,83 @@ const goBack = () => {
 
   router.back()
 }
+
+const groupedExercises =
+  computed(() => {
+
+    const groups:
+      Record<
+        number,
+        {
+          exerciseTypeName: string
+          exercises: ExerciseKeyword[]
+        }
+      > = {}
+
+    exercises.value.forEach(
+      exercise => {
+        if (!exercise.exerciseTypeId) {
+          return
+        }
+        const typeId =
+          exercise.exerciseTypeId
+
+        if (!groups[typeId]) {
+
+          groups[typeId] = {
+            exerciseTypeName:
+            exercise.exerciseTypeName,
+            exercises: []
+          }
+        }
+
+        groups[typeId]!.exercises.push(
+          exercise
+        )
+      }
+    )
+
+    return Object.entries(
+      groups
+    )
+  })
+const scrollToGroup =
+  (exerciseTypeId: number) => {
+    activeGroupId.value =
+      exerciseTypeId
+    const element =
+      document.getElementById(
+        `group-${exerciseTypeId}`
+      )
+
+    if (!element) {
+      return
+    }
+
+    const y =
+      element.getBoundingClientRect().top +
+      window.scrollY -
+      90
+
+    window.scrollTo({
+      top: y,
+      behavior: "smooth"
+    })
+  }
+const scrollToTop = () => {
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  })
+  const firstGroup =
+    groupedExercises.value[0]
+
+  if (firstGroup) {
+    activeGroupId.value =
+      Number(firstGroup[0])
+  }
+}
 </script>
 
 <template>
@@ -252,39 +368,24 @@ const goBack = () => {
     <div class="exercise-tabs">
 
       <button
-        class="
-          exercise-tab
-          active
-        "
+        v-for="
+      ([exerciseTypeId, group], groupIndex)
+      in groupedExercises
+    "
+        :key="exerciseTypeId"
+        class="exercise-tab"
+        :class="{
+    active:
+      activeGroupId ===
+      Number(exerciseTypeId)
+  }"
+        @click="
+      scrollToGroup(
+        Number(exerciseTypeId)
+      )
+    "
       >
-        🎯 Keyword
-      </button>
-
-      <button
-        class="
-          exercise-tab
-          disabled
-        "
-      >
-        📖 Reading
-      </button>
-
-      <button
-        class="
-          exercise-tab
-          disabled
-        "
-      >
-        🎧 Listening
-      </button>
-
-      <button
-        class="
-          exercise-tab
-          disabled
-        "
-      >
-        🈶 Kanji
+        📘 Bài {{ groupIndex + 1 }}
       </button>
 
     </div>
@@ -303,15 +404,12 @@ const goBack = () => {
         "
       >
 
-        <div>
-          🎯 Keyword Exercise
-        </div>
-
         <button
-          class="add-btn"
+          class="floating-add-btn"
+          title="Thêm câu hỏi"
           @click="openCreateModal"
         >
-          + Thêm bài tập
+          +
         </button>
 
       </div>
@@ -335,114 +433,135 @@ const goBack = () => {
 
         <div
           v-for="
-    (exercise, index)
-    in exercises
+    ([exerciseTypeId, group], groupIndex)
+    in groupedExercises
   "
-          :key="
-    exercise.exerciseKeywordId
-  "
+          :key="exerciseTypeId"
           :id="
-    `exercise-${exercise.exerciseKeywordId}`
+    `group-${exerciseTypeId}`
   "
-          class="exercise-card"
-          :class="{
-    highlight:
-      activeExerciseId ===
-      exercise.exerciseKeywordId
-  }"
+          class="exercise-group"
         >
 
-          <div class="exercise-header">
+          <div class="group-header">
 
-            <div class="exercise-title">
-              Câu {{ index + 1 }}
-            </div>
-
-            <div class="action-group">
-
-              <button
-                class="edit-btn"
-                @click="
-        openEditModal(
-          exercise
-        )
-      "
-              >
-                ✏️ Sửa
-              </button>
-
-              <button
-                class="delete-btn"
-                @click="
-        deleteExercise(
-          exercise.exerciseKeywordId
-        )
-      "
-              >
-                🗑 Xóa
-              </button>
-
-            </div>
+            📚 Bài {{ groupIndex + 1 }}:
+            {{ group.exerciseTypeName }}
 
           </div>
 
           <div
-            class="
-        exercise-question
-      "
-            v-html="
-        exercise.contentNihongo
-      "
-          />
-
-          <div
-            class="
-        answer-grid
-      "
+            v-for="
+  (exercise, index)
+  in group.exercises
+"
+            :key="
+      exercise.exerciseKeywordId
+    "
+            :id="
+      `exercise-${exercise.exerciseKeywordId}`
+    "
+            class="exercise-card"
+            :class="{
+      highlight:
+        activeExerciseId ===
+        exercise.exerciseKeywordId
+    }"
           >
 
             <div
-              class="answer-item"
-              :class="{
+              class="exercise-header"
+            >
+
+              <div class="exercise-title-wrapper">
+
+                <div class="question-number">
+                  Câu {{ index + 1 }}
+                </div>
+
+                <div
+                  class="exercise-title"
+                  v-html="
+      exercise.contentNihongo
+    "
+                />
+
+              </div>
+
+              <div
+                class="action-group"
+              >
+
+                <button
+                  class="edit-btn"
+                  @click="
+            openEditModal(
+              exercise
+            )
+          "
+                >
+                  ✏️ Sửa
+                </button>
+
+                <button
+                  class="delete-btn"
+                  @click="
+            deleteExercise(
+              exercise.exerciseKeywordId
+            )
+          "
+                >
+                  🗑 Xóa
+                </button>
+
+              </div>
+
+            </div>
+
+            <div
+              class="answer-grid"
+            >
+
+              <div
+                class="answer-item"
+                :class="{
           correct:
             exercise.correctAnswer === 'A'
         }"
-            >
-              A.
-              {{ exercise.answerA }}
-            </div>
+              >
+                A. {{ exercise.answerA }}
+              </div>
 
-            <div
-              class="answer-item"
-              :class="{
+              <div
+                class="answer-item"
+                :class="{
           correct:
             exercise.correctAnswer === 'B'
         }"
-            >
-              B.
-              {{ exercise.answerB }}
-            </div>
+              >
+                B. {{ exercise.answerB }}
+              </div>
 
-            <div
-              class="answer-item"
-              :class="{
+              <div
+                class="answer-item"
+                :class="{
           correct:
             exercise.correctAnswer === 'C'
         }"
-            >
-              C.
-              {{ exercise.answerC }}
-            </div>
+              >
+                C. {{ exercise.answerC }}
+              </div>
 
-            <div
-              class="answer-item"
-              :class="{
+              <div
+                class="answer-item"
+                :class="{
           correct:
             exercise.correctAnswer === 'D'
         }"
-            >
-              D.
-              {{ exercise.answerD }}
+              >
+                D. {{ exercise.answerD }}
+              </div>
+
             </div>
 
           </div>
@@ -454,6 +573,14 @@ const goBack = () => {
     </div>
 
   </div>
+  <button
+    v-if="showScrollTop"
+    class="scroll-top-btn"
+    title="Trở về đầu trang"
+    @click="scrollToTop"
+  >
+    ⬆
+  </button>
   <ExerciseKeywordModal
     v-if="
     showCreateModal &&
@@ -461,6 +588,7 @@ const goBack = () => {
   "
     :lesson="lesson"
     :exercise="editingExercise"
+    :exercise-types="exerciseTypes"
     @close="closeCreateModal"
     @saved="reloadExercises"
   />
@@ -498,12 +626,25 @@ const goBack = () => {
 }
 
 .exercise-tabs {
+  position: sticky;
+  top: 10px;
+
+  z-index: 100;
 
   display: flex;
-
   gap: 12px;
 
   margin-bottom: 24px;
+
+  padding: 12px;
+
+  background: white;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 4px 16px
+    rgba(0,0,0,.06);
 }
 
 .exercise-tab {
@@ -517,8 +658,15 @@ const goBack = () => {
   background: white;
 
   font-weight: 600;
+  cursor: pointer;
 }
+.exercise-tab:hover {
+  background: #eef4ff;
 
+  color: #2563eb;
+
+  transform: translateY(-1px);
+}
 .exercise-tab.active {
 
   background: linear-gradient(
@@ -616,8 +764,15 @@ const goBack = () => {
 
 .exercise-card {
 
-  transition:
-    all .35s ease;
+  background: white;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 18px;
+
+  padding: 20px;
+
+  transition: all .35s ease;
 }
 
 .exercise-card.highlight {
@@ -657,7 +812,7 @@ const goBack = () => {
 
   justify-content: space-between;
 
-  align-items: center;
+  align-items: flex-start;
 
   margin-bottom: 16px;
 }
@@ -737,6 +892,21 @@ const goBack = () => {
   gap: 12px;
 }
 
+@media (max-width: 768px) {
+
+  .answer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .exercise-header {
+    flex-direction: column;
+  }
+
+  .action-group {
+    width: 100%;
+  }
+}
+
 .answer-item {
 
   border: 1px solid #e2e8f0;
@@ -775,5 +945,155 @@ const goBack = () => {
   gap: 8px;
 
   align-items: center;
+}
+
+.exercise-group {
+  margin-bottom: 40px;
+  scroll-margin-top: 90px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+
+  margin-bottom: 20px;
+  padding: 14px 18px;
+
+  border-radius: 16px;
+
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
+
+  color: white;
+
+  font-size: 22px;
+  font-weight: 700;
+
+  box-shadow:
+    0 8px 24px
+    rgba(
+      79,
+      140,
+      255,
+      .25
+    );
+}
+.exercise-title-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.question-number {
+  min-width: 70px;
+
+  padding: 6px 12px;
+
+  border-radius: 999px;
+
+  background: #eef4ff;
+
+  color: #2563eb;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  text-align: center;
+}
+
+.exercise-title {
+  flex: 1;
+  word-break: break-word;
+  font-size: 20px;
+  line-height: 1.8;
+
+  font-family:
+    "Noto Sans JP",
+    sans-serif;
+}
+.scroll-top-btn {
+
+  position: fixed;
+
+  right: 24px;
+  bottom: 24px;
+
+  width: 56px;
+  height: 56px;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
+
+  color: white;
+
+  font-size: 22px;
+
+  cursor: pointer;
+
+  z-index: 999;
+
+  box-shadow:
+    0 8px 20px
+    rgba(
+      79,
+      140,
+      255,
+      .35
+    );
+
+  transition: all .2s ease;
+}
+
+.scroll-top-btn:hover {
+
+  transform:
+    translateY(-3px);
+
+  box-shadow:
+    0 12px 28px
+    rgba(
+      79,
+      140,
+      255,
+      .45
+    );
+}
+.floating-add-btn {
+  position: fixed;
+
+  right: 24px;
+  bottom: 90px;
+
+  width: 56px;
+  height: 56px;
+
+  border-radius: 50%;
+
+  border: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      #22c55e,
+      #16a34a
+    );
+
+  color: white;
+
+  font-size: 28px;
+
+  z-index: 999;
 }
 </style>
