@@ -320,6 +320,7 @@ const save = async () => {
     !formValid ||
     !form.exerciseTypeId
   "
+          @click="save"
         >
           {{ loading ? "Đang lưu..." : "Lưu" }}
         </button>

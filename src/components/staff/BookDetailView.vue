@@ -9,9 +9,17 @@ import {gatewayUrl} from "@/api/authApi.ts"
 import ExampleModal from "@/components/staff/ExampleModal.vue"
 import GrammarModal from "@/components/staff/GrammarModal.vue";
 
+/* =========================
+   ROUTER
+========================= */
+
 const route = useRoute()
 
 const router = useRouter()
+
+/* =========================
+   TYPES
+========================= */
 
 interface Lesson {
   lessonId: number
@@ -40,9 +48,10 @@ interface Example {
   grammarId: number
 }
 
+/* =========================
+   STATE
+========================= */
 const showExampleModal = ref(false)
-
-const selectedLessonNumber = ref<number | null>(0)
 
 const selectedGrammarId =
   ref<number | null>(null)
@@ -68,6 +77,7 @@ const showLessonModal =
 const editingLesson =
   ref<Lesson | null>(null)
 
+
 const examples =
   ref<Record<number, Example[]>>({})
 
@@ -79,6 +89,17 @@ const showGrammarModal =
 
 const editingGrammar =
   ref<Grammar | null>(null)
+
+/* =========================
+   TOOLBAR ACTIVE
+========================= */
+
+const activeFormats = ref({
+  bold: false,
+  italic: false,
+  strikeThrough: false
+})
+
 
 const openImage = (
   imageUrl?: string
@@ -114,25 +135,31 @@ const openEditGrammarModal =
       true
   }
 
-const onGrammarSaved =
-  async () => {
+const onGrammarSaved = async (
+  grammarId: number
+) => {
 
-    showGrammarModal.value =
-      false
+  showGrammarModal.value = false
 
-    if (selectedLesson.value) {
-
-      await fetchGrammars(
-        selectedLesson.value.lessonId
-      )
-      await nextTick()
-
-      window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: "smooth"
-      })
-    }
+  if (!selectedLesson.value) {
+    return
   }
+
+  await fetchGrammars(
+    selectedLesson.value.lessonId
+  )
+
+  await nextTick()
+
+  document
+    .getElementById(
+      `grammar-${grammarId}`
+    )
+    ?.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    })
+}
 
 const deleteGrammar =
   async (grammarId: number) => {
@@ -195,44 +222,78 @@ const openEditExampleModal = (
     true
 }
 
-const onExampleSaved =
-  async () => {
+const onExampleSaved = async (
+  exampleId: number
+) => {
 
-    showExampleModal.value =
-      false
+  showExampleModal.value = false
 
-    if (
-      selectedGrammarId.value
-    ) {
-
-      await fetchExamples(
-        selectedGrammarId.value
-      )
-    }
+  if (!selectedGrammarId.value) {
+    return
   }
+
+  // đảm bảo đang expand
+  expandedGrammar.value[
+    selectedGrammarId.value
+    ] = true
+
+  await fetchExamples(
+    selectedGrammarId.value
+  )
+
+  await nextTick()
+
+  document
+    .getElementById(
+      `example-${exampleId}`
+    )
+    ?.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    })
+}
+/* =========================
+   BOOK ID
+========================= */
 
 const bookId =
   Number(route.params.bookId)
 
+/* =========================
+   FETCH BOOK
+========================= */
+
 const fetchBook =
   async () => {
+
     try {
+
       const res =
         await gatewayUrl.get(
           `/api/staff/books/${bookId}`
         )
+
       book.value = res.data
+
     } catch (e) {
+
       console.error(e)
+
       alert(
         "Không thể tải thông tin sách"
       )
     }
   }
 
+/* =========================
+   FETCH LESSONS
+========================= */
+
 const fetchLessons =
   async () => {
+
     try {
+
       const res =
         await gatewayUrl.get(
           "/api/staff/getLessonsByBook",
@@ -242,19 +303,29 @@ const fetchLessons =
             }
           }
         )
+
       lessons.value =
         res.data
+
     } catch (e) {
+
       console.error(e)
+
       alert(
         "Không thể tải bài học"
       )
     }
   }
 
+/* =========================
+   FETCH GRAMMARS
+========================= */
+
 const fetchGrammars =
   async (lessonId: number) => {
+
     try {
+
       const res =
         await gatewayUrl.get(
           "/api/staff/getAllGrammarByLesson",
@@ -264,59 +335,98 @@ const fetchGrammars =
             }
           }
         )
+
       grammars.value = res.data
+
     } catch (e) {
+
       console.error(e)
+
       alert(
         "Không thể tải grammar"
       )
     }
   }
 
+
+/* =========================
+   LESSON MODAL
+========================= */
+
 const openLessonModal =
   () => {
     editingLesson.value =
       null
+
     showLessonModal.value =
       true
   }
 
 const openEditLessonModal =
   (lesson: Lesson) => {
+
     editingLesson.value =
       lesson
+
     showLessonModal.value =
       true
   }
 
 const closeLessonModal =
   async () => {
+
     showLessonModal.value =
       false
     editingLesson.value =
       null
     await fetchLessons()
-    selectedLesson.value =
-      lessons.value.find(
-        l =>
-          l.lessonId ===
-          selectedLesson.value?.lessonId
-      ) || null
+    selectedLesson.value = lessons.value.find(l => l.lessonId === selectedLesson.value?.lessonId) || null
   }
 
-const openLesson =
-  async (lesson: Lesson) => {
-    selectedLesson.value =
-      lesson
-    await fetchGrammars(
-      lesson.lessonId
+/* =========================
+   OPEN LESSON
+========================= */
+
+const openLesson = async (
+  lesson: Lesson
+) => {
+
+  selectedLesson.value = lesson
+
+  await fetchGrammars(
+    lesson.lessonId
+  )
+
+  expandedGrammar.value = {}
+
+  grammars.value.forEach(
+    grammar => {
+      expandedGrammar.value[
+        grammar.grammarId
+        ] = true
+    }
+  )
+
+  await Promise.all(
+    grammars.value.map(
+      grammar =>
+        fetchExamples(
+          grammar.grammarId
+        )
     )
-  }
+  )
+}
 
+
+/* =========================
+   FETCH EXAMPLE
+========================= */
 const fetchExamples = async (
   grammarId: number
 ) => {
+
   try {
+
     const res =
       await gatewayUrl.get(
         "/api/staff/getAllExampleByGrammar",
@@ -326,9 +436,12 @@ const fetchExamples = async (
           }
         }
       )
+
     examples.value[grammarId] =
       res.data
+
   } catch (e) {
+
     console.error(e)
   }
 }
@@ -350,7 +463,12 @@ const toggleExamples =
     }
   }
 
+/* =========================
+   BACK
+========================= */
+
 const goBack = () => {
+
   router.push("/staff")
 }
 
@@ -364,9 +482,14 @@ const getStructureImage = (
   )
 }
 
+/* =========================
+   MOUNT
+========================= */
+
 onMounted(async () => {
 
   await fetchBook()
+
   await fetchLessons()
 
   /* AUTO OPEN FIRST LESSON */
@@ -381,6 +504,22 @@ onMounted(async () => {
   }
 
 })
+
+const goToExercisePage =
+  () => {
+
+    if (!selectedLesson.value) {
+      return
+    }
+
+    router.push({
+      name: "lesson-exercises",
+      params: {
+        lessonId:
+        selectedLesson.value.lessonId
+      }
+    })
+  }
 </script>
 
 <template>
@@ -501,14 +640,27 @@ onMounted(async () => {
 
               </div>
 
-              <button
-                class="add-btn"
-                @click="
-      openCreateGrammarModal()
-    "
-              >
-                + Grammar
-              </button>
+              <div class="action-buttons">
+
+                <button
+                  class="exercise-btn"
+                  @click="
+        goToExercisePage()
+      "
+                >
+                  🎯 Bài tập
+                </button>
+
+                <button
+                  class="add-btn"
+                  @click="
+        openCreateGrammarModal()
+      "
+                >
+                  + Grammar
+                </button>
+
+              </div>
 
             </div>
 
@@ -537,8 +689,8 @@ onMounted(async () => {
 
               </div>
 
-              <div class="lesson-reading-content">
-                {{ selectedLesson.reading }}
+              <div class="lesson-reading-content"  v-html="selectedLesson.reading">
+
               </div>
 
             </div>
@@ -549,17 +701,20 @@ onMounted(async () => {
 
               <div
                 v-for="
-                  (
-                    grammar,
-                    index
-                  ) in grammars
-                "
+    (
+      grammar,
+      index
+    ) in grammars
+  "
                 :key="
-                  grammar.grammarId
-                "
+    grammar.grammarId
+  "
+                :id="
+    `grammar-${grammar.grammarId}`
+  "
                 class="
-                  grammar-card
-                "
+    grammar-card
+  "
               >
 
                 <div
@@ -1642,13 +1797,12 @@ onMounted(async () => {
 
   overflow: hidden;
 
-  box-shadow:
-    0 10px 30px rgba(
-      0,
-      0,
-      0,
-      0.04
-    );
+  box-shadow: 0 10px 30px rgba(
+    0,
+    0,
+    0,
+    0.04
+  );
 }
 
 .lesson-reading-header {
@@ -1661,8 +1815,7 @@ onMounted(async () => {
 
   padding: 20px 24px;
 
-  border-bottom:
-    1px solid #eef2f7;
+  border-bottom: 1px solid #eef2f7;
 }
 
 .lesson-reading-icon {
@@ -1718,15 +1871,13 @@ onMounted(async () => {
 
   color: #334155;
 
-  font-family:
-    "Noto Sans JP",
-    "Noto Sans",
-    sans-serif;
+  font-family: "Noto Sans JP",
+  "Noto Sans",
+  sans-serif;
 
   max-height: 500px;
 
   overflow-y: auto;
-
 }
 
 /* Scroll đẹp */
@@ -1767,5 +1918,42 @@ onMounted(async () => {
 
     font-size: 20px;
   }
+}
+.action-buttons {
+
+  display: flex;
+
+  gap: 12px;
+
+  align-items: center;
+}
+
+.exercise-btn {
+
+  border: none;
+
+  border-radius: 12px;
+
+  padding: 10px 18px;
+
+  background: #f59e0b;
+
+  color: white;
+
+  font-weight: 600;
+
+  transition: all .25s ease;
+}
+
+.exercise-btn:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 8px 20px rgba(
+    245,
+    158,
+    11,
+    0.25
+  );
 }
 </style>

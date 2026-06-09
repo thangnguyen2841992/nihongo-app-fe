@@ -257,24 +257,33 @@ const groupedExercises =
         }
       > = {}
 
+    // Tạo trước toàn bộ nhóm
+    exerciseTypes.value.forEach(
+      type => {
+
+        groups[
+          type.exerciseTypeId
+          ] = {
+          exerciseTypeName:
+          type.name,
+          exercises: []
+        }
+      }
+    )
+
+    // Đổ câu hỏi vào nhóm tương ứng
     exercises.value.forEach(
       exercise => {
-        if (!exercise.exerciseTypeId) {
+
+        if (
+          !exercise.exerciseTypeId
+        ) {
           return
         }
-        const typeId =
+
+        groups[
           exercise.exerciseTypeId
-
-        if (!groups[typeId]) {
-
-          groups[typeId] = {
-            exerciseTypeName:
-            exercise.exerciseTypeName,
-            exercises: []
-          }
-        }
-
-        groups[typeId]!.exercises.push(
+          ]?.exercises.push(
           exercise
         )
       }
@@ -419,12 +428,12 @@ const scrollToTop = () => {
         Đang tải...
       </div>
 
-      <div
-        v-else-if="!exercises.length"
-        class="empty-state"
-      >
-        🎯 Chưa có bài tập keyword nào
-      </div>
+<!--      <div-->
+<!--        v-else-if="!exercises.length"-->
+<!--        class="empty-state"-->
+<!--      >-->
+<!--        🎯 Chưa có bài tập keyword nào-->
+<!--      </div>-->
 
       <div
         v-else
