@@ -6,7 +6,7 @@ import {
   nextTick
 } from "vue"
 
-import { gatewayUrl } from "@/api/authApi"
+import {gatewayUrl} from "@/api/authApi"
 
 interface Example {
   exampleId: number
@@ -22,7 +22,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  saved: []
+  saved: [exampleId: number]
 }>()
 
 const nihongoRef =
@@ -144,7 +144,7 @@ const save = async () => {
 
     if (props.example) {
 
-      await gatewayUrl.put(
+      const res = await gatewayUrl.put(
         "/api/staff/examples",
         {
           exampleId:
@@ -160,10 +160,11 @@ const save = async () => {
           props.grammarId
         }
       )
+      emit("saved", res.data.exampleId)
 
     } else {
 
-      await gatewayUrl.post(
+      const res = await gatewayUrl.post(
         "/api/staff/examples",
         {
           nihongo:
@@ -176,9 +177,9 @@ const save = async () => {
           props.grammarId
         }
       )
+      emit("saved", res.data.exampleId)
     }
 
-    emit("saved")
 
   } catch (e) {
 
@@ -356,13 +357,12 @@ const save = async () => {
 
   padding: 24px;
 
-  box-shadow:
-    0 20px 60px rgba(
-      0,
-      0,
-      0,
-      0.18
-    );
+  box-shadow: 0 20px 60px rgba(
+    0,
+    0,
+    0,
+    0.18
+  );
 }
 
 .modal-header {
@@ -405,13 +405,12 @@ const save = async () => {
 
   border-color: #4f8cff;
 
-  box-shadow:
-    0 0 0 4px rgba(
-      79,
-      140,
-      255,
-      0.12
-    );
+  box-shadow: 0 0 0 4px rgba(
+    79,
+    140,
+    255,
+    0.12
+  );
 }
 
 .modal-actions {
@@ -468,6 +467,7 @@ const save = async () => {
 
   background: #e3e9f1;
 }
+
 .toolbar {
 
   display: flex;
@@ -548,13 +548,12 @@ const save = async () => {
 
   border-color: #4f8cff;
 
-  box-shadow:
-    0 0 0 4px rgba(
-      79,
-      140,
-      255,
-      0.12
-    );
+  box-shadow: 0 0 0 4px rgba(
+    79,
+    140,
+    255,
+    0.12
+  );
 }
 
 .vn-editor {
