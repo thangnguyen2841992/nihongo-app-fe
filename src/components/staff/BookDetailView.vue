@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {nextTick, onMounted, ref} from "vue"
+import {nextTick, onMounted, onUnmounted, ref} from "vue"
 
 import {useRoute, useRouter} from "vue-router"
 
@@ -53,6 +53,9 @@ interface Example {
 ========================= */
 const showExampleModal = ref(false)
 
+const activeGrammarId =
+  ref<number | null>(null)
+
 const selectedGrammarId =
   ref<number | null>(null)
 
@@ -93,13 +96,58 @@ const editingGrammar =
 /* =========================
    TOOLBAR ACTIVE
 ========================= */
+const handleScroll = () => {
 
-const activeFormats = ref({
-  bold: false,
-  italic: false,
-  strikeThrough: false
-})
+  let currentId = null
 
+  for (const grammar of grammars.value) {
+
+    const el =
+      document.getElementById(
+        `grammar-${grammar.grammarId}`
+      )
+
+    if (!el) {
+      continue
+    }
+
+    const rect =
+      el.getBoundingClientRect()
+
+    if (rect.top <= 220) {
+      currentId =
+        grammar.grammarId
+    }
+  }
+
+  activeGrammarId.value =
+    currentId
+}
+const scrollToGrammar =
+  (grammarId: number) => {
+
+    activeGrammarId.value =
+      grammarId
+
+    const element =
+      document.getElementById(
+        `grammar-${grammarId}`
+      )
+
+    if (!element) {
+      return
+    }
+
+    const y =
+      element.getBoundingClientRect().top +
+      window.scrollY -
+      180
+
+    window.scrollTo({
+      top: y,
+      behavior: "smooth"
+    })
+  }
 
 const openImage = (
   imageUrl?: string
@@ -485,9 +533,18 @@ const getStructureImage = (
 /* =========================
    MOUNT
 ========================= */
+onUnmounted(() => {
+  window.removeEventListener(
+    "scroll",
+    handleScroll
+  )
+})
 
 onMounted(async () => {
-
+  window.addEventListener(
+    "scroll",
+    handleScroll
+  )
   await fetchBook()
 
   await fetchLessons()
@@ -663,7 +720,36 @@ const goToExercisePage =
               </div>
 
             </div>
+            <div
+              v-if="grammars.length"
+              class="grammar-tabs"
+            >
 
+              <button
+                v-for="
+      (grammar,index)
+      in grammars
+    "
+                :key="
+      grammar.grammarId
+    "
+                class="grammar-tab"
+                :class="{
+      active:
+        activeGrammarId ===
+        grammar.grammarId
+    }"
+                @click="
+      scrollToGrammar(
+        grammar.grammarId
+      )
+    "
+              >
+                {{ index + 1 }}.
+                {{ grammar.title }}
+              </button>
+
+            </div>
             <div
               v-if="selectedLesson.reading"
               class="lesson-reading-card"
@@ -1955,5 +2041,70 @@ const goToExercisePage =
     11,
     0.25
   );
+}
+.grammar-tabs {
+
+  position: sticky;
+
+  top: 80px;
+
+  z-index: 90;
+
+  display: flex;
+
+  gap: 10px;
+
+  overflow-x: auto;
+
+  padding: 12px;
+
+  margin-bottom: 20px;
+
+  background: white;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 4px 16px
+    rgba(0,0,0,.06);
+}
+
+.grammar-tab {
+
+  border: none;
+
+  flex-shrink: 0;
+
+  padding: 10px 16px;
+
+  border-radius: 12px;
+
+  background: #f8fafc;
+
+  color: #475569;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  transition: .2s;
+}
+
+.grammar-tab:hover {
+
+  background: #eef4ff;
+
+  color: #2563eb;
+}
+
+.grammar-tab.active {
+
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
+
+  color: white;
 }
 </style>

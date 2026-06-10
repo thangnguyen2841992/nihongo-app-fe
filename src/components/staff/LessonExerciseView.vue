@@ -35,7 +35,7 @@ interface ExerciseType {
   exerciseTypeId: number
   name: string
 }
-const showScrollTop =
+const isAutoScrolling =
   ref(false)
 const activeGroupId =
   ref<number | null>(null)
@@ -65,12 +65,93 @@ const lessonId = computed(
 
 const exerciseTypes =
   ref<ExerciseType[]>([])
+
 const handleScroll = () => {
 
-  showScrollTop.value =
-    window.scrollY > 300
-}
+  if (
+    isAutoScrolling.value
+  ) {
+    return
+  }
 
+  // Đầu trang
+  if (
+    window.scrollY < 100 &&
+    groupedExercises.value.length
+  ) {
+
+    const firstGroup =
+      groupedExercises.value[0]
+
+    if (firstGroup) {
+
+      activeGroupId.value =
+        Number(firstGroup[0])
+
+    }
+
+    return
+  }
+
+  // Cuối trang
+  const isBottom =
+    window.innerHeight +
+    window.scrollY >=
+    document.documentElement
+      .scrollHeight - 20
+
+  if (
+    isBottom &&
+    groupedExercises.value.length
+  ) {
+
+    const lastGroup =
+      groupedExercises.value[
+      groupedExercises.value.length - 1
+        ]
+
+    if (lastGroup) {
+
+      activeGroupId.value =
+        Number(lastGroup[0])
+
+    }
+
+    return
+  }
+
+  // Vị trí kích hoạt active
+  const triggerLine = 180
+
+  for (
+    const [exerciseTypeId]
+    of groupedExercises.value
+    ) {
+
+    const el =
+      document.getElementById(
+        `group-${exerciseTypeId}`
+      )
+
+    if (!el) {
+      continue
+    }
+
+    const rect =
+      el.getBoundingClientRect()
+
+    if (
+      rect.top <= triggerLine &&
+      rect.bottom > triggerLine
+    ) {
+
+      activeGroupId.value =
+        Number(exerciseTypeId)
+
+      return
+    }
+  }
+}
 const fetchExerciseTypes =
   async () => {
 
@@ -141,20 +222,30 @@ onMounted(async () => {
     "scroll",
     handleScroll
   )
+
   await Promise.all([
     fetchLesson(),
     fetchExercises(),
     fetchExerciseTypes()
   ])
+  if (
+    groupedExercises.value.length
+  ) {
+    activeGroupId.value =
+      Number(
+        groupedExercises.value[0]![0]
+      )
+  }
+  handleScroll()
 
 })
 onUnmounted(() => {
+
   window.removeEventListener(
     "scroll",
     handleScroll
   )
 })
-
 const openCreateModal =
   () => {
     showCreateModal.value =
@@ -286,41 +377,43 @@ const groupedExercises =
   })
 const scrollToGroup =
   (exerciseTypeId: number) => {
+
+    isAutoScrolling.value =
+      true
+
     activeGroupId.value =
       exerciseTypeId
+
     const element =
       document.getElementById(
         `group-${exerciseTypeId}`
       )
 
     if (!element) {
+
+      isAutoScrolling.value =
+        false
+
       return
     }
 
     const y =
       element.getBoundingClientRect().top +
       window.scrollY -
-      90
+      180
 
     window.scrollTo({
       top: y,
       behavior: "smooth"
     })
-  }
-const scrollToTop = () => {
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  })
-  const firstGroup =
-    groupedExercises.value[0]
+    setTimeout(() => {
 
-  if (firstGroup) {
-    activeGroupId.value =
-      Number(firstGroup[0])
+      isAutoScrolling.value =
+        false
+
+    }, 600)
   }
-}
 </script>
 
 <template>
@@ -342,15 +435,12 @@ const scrollToTop = () => {
       <div>
 
         <h2 class="page-title">
+          📘 Bài tập:
           {{
             lesson?.name ||
             "Đang tải..."
           }}
         </h2>
-
-        <div class="page-subtitle">
-          🎯 Quản lý bài tập Keyword
-        </div>
 
       </div>
 
@@ -367,25 +457,37 @@ const scrollToTop = () => {
 
     <div class="exercise-tabs">
 
-      <button
-        v-for="
-      ([exerciseTypeId, group], groupIndex)
-      in groupedExercises
-    "
-        :key="exerciseTypeId"
-        class="exercise-tab"
-        :class="{
-    active:
-      activeGroupId ===
-      Number(exerciseTypeId)
-  }"
-        @click="
-      scrollToGroup(
+      <div class="tabs-left">
+
+        <button
+          v-for="
+        ([exerciseTypeId, group], groupIndex)
+        in groupedExercises
+      "
+          :key="exerciseTypeId"
+          class="exercise-tab"
+          :class="{
+        active:
+        activeGroupId ===
         Number(exerciseTypeId)
-      )
-    "
+      }"
+          @click="
+        scrollToGroup(
+          Number(exerciseTypeId)
+        )
+      "
+        >
+          📘 Bài {{ groupIndex + 1 }}
+        </button>
+
+      </div>
+
+      <button
+        class="add-exercise-btn"
+        title="Thêm câu hỏi"
+        @click="openCreateModal"
       >
-        📘 Bài {{ groupIndex + 1 }}
+        ➕ Thêm câu hỏi
       </button>
 
     </div>
@@ -397,22 +499,6 @@ const scrollToTop = () => {
         exercise-content
       "
     >
-
-      <div
-        class="
-          section-header
-        "
-      >
-
-        <button
-          class="floating-add-btn"
-          title="Thêm câu hỏi"
-          @click="openCreateModal"
-        >
-          +
-        </button>
-
-      </div>
 
       <div v-if="loadingExercises"
            class="empty-state">
@@ -573,14 +659,6 @@ const scrollToTop = () => {
     </div>
 
   </div>
-  <button
-    v-if="showScrollTop"
-    class="scroll-top-btn"
-    title="Trở về đầu trang"
-    @click="scrollToTop"
-  >
-    ⬆
-  </button>
   <ExerciseKeywordModal
     v-if="
     showCreateModal &&
@@ -626,17 +704,24 @@ const scrollToTop = () => {
 }
 
 .exercise-tabs {
-  position: sticky;
-  top: 10px;
 
-  z-index: 100;
+  position: sticky;
+
+  top: 80px;
+
+  z-index: 90;
 
   display: flex;
-  gap: 12px;
 
-  margin-bottom: 24px;
+  align-items: center;
+
+  gap: 10px;
+
+  overflow-x: auto;
 
   padding: 12px;
+
+  margin-bottom: 20px;
 
   background: white;
 
@@ -1070,30 +1155,84 @@ const scrollToTop = () => {
       .45
     );
 }
-.floating-add-btn {
-  position: fixed;
+.tabs-left {
 
-  right: 24px;
-  bottom: 90px;
+  display: flex;
 
-  width: 56px;
-  height: 56px;
+  gap: 10px;
 
-  border-radius: 50%;
+  flex: 1;
 
+  overflow-x: auto;
+
+  scrollbar-width: thin;
+}
+.tabs-left::-webkit-scrollbar {
+  height: 6px;
+}
+
+.tabs-left::-webkit-scrollbar-thumb {
+  background: #d7dfeb;
+  border-radius: 999px;
+}
+
+.add-exercise-btn {
+  flex-shrink: 0;
+
+  white-space: nowrap;
   border: none;
 
-  background:
-    linear-gradient(
-      135deg,
-      #22c55e,
-      #16a34a
-    );
+  padding: 12px 18px;
+
+  border-radius: 14px;
+
+  background: linear-gradient(
+    135deg,
+    #22c55e,
+    #16a34a
+  );
 
   color: white;
 
-  font-size: 28px;
+  font-weight: 700;
 
-  z-index: 999;
+  cursor: pointer;
+
+  transition: .2s;
+}
+
+.add-exercise-btn:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 20px
+    rgba(
+      34,
+      197,
+      94,
+      .3
+    );
+}
+.exercise-tabs {
+  position: sticky;
+  top: 80px;
+
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-bottom: 24px;
+
+  padding: 12px;
+
+  background: white;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 4px 16px
+    rgba(0,0,0,.06);
 }
 </style>
