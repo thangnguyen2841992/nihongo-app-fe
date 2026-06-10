@@ -803,234 +803,234 @@ const goToExercisePage =
   "
               >
 
-              <div
-                class="
-                    grammar-header
-                  "
-              >
-
                 <div
                   class="
-                      grammar-title
-                    "
+                    grammar-header
+                  "
                 >
 
                   <div
                     class="
+                      grammar-title
+                    "
+                  >
+
+                    <div
+                      class="
                         grammar-number
                       "
-                  >
+                    >
+                      {{
+                        index + 1
+                      }}
+                    </div>
+
                     {{
-                      index + 1
+                      grammar.title
                     }}
+
                   </div>
 
-                  {{
-                    grammar.title
-                  }}
+                  <div class="grammar-actions">
 
-                </div>
+                    <button
+                      class="edit-btn"
+                      @click="openEditGrammarModal(grammar)">
+                      ✏️
+                    </button>
 
-                <div class="grammar-actions">
-
-                  <button
-                    class="edit-btn"
-                    @click="openEditGrammarModal(grammar)">
-                    ✏️
-                  </button>
-
-                  <button
-                    class="
+                    <button
+                      class="
       delete-btn
     "
-                    @click="
+                      @click="
       deleteGrammar(
         grammar.grammarId
       )
     "
-                  >
-                    🗑️
-                  </button>
-
-                </div>
-
-              </div>
-
-              <div
-                v-if="grammar.imageUrl"
-                class="grammar-structure"
-              >
-                <img
-                  :src="getStructureImage(grammar.imageUrl)"
-                  :alt="grammar.title"
-                  class="grammar-structure-image"
-                  @click="openImage(grammar.imageUrl)">
-              </div>
-              <div
-                class="grammar-description">
-                {{
-                  grammar.description
-                }}
-              </div>
-              <!-- EXAMPLE ACTION -->
-
-              <div class="example-section">
-
-                <button
-                  class="expand-btn"
-                  @click="
-      toggleExamples(
-        grammar.grammarId
-      )
-    "
-                >
-                  {{
-                    expandedGrammar[
-                      grammar.grammarId
-                      ]
-                      ? '▼ Ẩn ví dụ'
-                      : '▶ Xem ví dụ'
-                  }}
-                </button>
-
-                <!-- EXPAND CONTENT -->
-
-                <div
-                  v-if="
-      expandedGrammar[
-        grammar.grammarId
-      ]
-    "
-                  class="example-expand"
-                >
-
-
-                  <div class="example-topbar">
-
-                    <div class="example-count">
-
-                      {{
-                        examples[
-                          grammar.grammarId
-                          ]?.length || 0
-                      }}
-                      ví dụ
-
-                    </div>
-
-                    <button
-                      class="add-example-btn"
-                      @click="openCreateExampleModal(grammar.grammarId)">
-                      + Thêm ví dụ
+                    >
+                      🗑️
                     </button>
 
                   </div>
 
-                  <!-- LIST -->
+                </div>
 
-                  <template
+                <div
+                  v-if="grammar.imageUrl"
+                  class="grammar-structure"
+                >
+                  <img
+                    :src="getStructureImage(grammar.imageUrl)"
+                    :alt="grammar.title"
+                    class="grammar-structure-image"
+                    @click="openImage(grammar.imageUrl)">
+                </div>
+                <div
+                  class="grammar-description">
+                  {{
+                    grammar.description
+                  }}
+                </div>
+                <!-- EXAMPLE ACTION -->
+
+                <div class="example-section">
+
+                  <button
+                    class="expand-btn"
+                    @click="
+      toggleExamples(
+        grammar.grammarId
+      )
+    "
+                  >
+                    {{
+                      expandedGrammar[
+                        grammar.grammarId
+                        ]
+                        ? '▼ Ẩn ví dụ'
+                        : '▶ Xem ví dụ'
+                    }}
+                  </button>
+
+                  <!-- EXPAND CONTENT -->
+
+                  <div
                     v-if="
+      expandedGrammar[
+        grammar.grammarId
+      ]
+    "
+                    class="example-expand"
+                  >
+
+
+                    <div class="example-topbar">
+
+                      <div class="example-count">
+
+                        {{
+                          examples[
+                            grammar.grammarId
+                            ]?.length || 0
+                        }}
+                        ví dụ
+
+                      </div>
+
+                      <button
+                        class="add-example-btn"
+                        @click="openCreateExampleModal(grammar.grammarId)">
+                        + Thêm ví dụ
+                      </button>
+
+                    </div>
+
+                    <!-- LIST -->
+
+                    <template
+                      v-if="
     examples[
       grammar.grammarId
     ]?.length
   "
-                  >
+                    >
 
-                    <div
-                      v-for="(example, exampleIndex) in examples[grammar.grammarId]"
-                      :key="example.exampleId"
-                      class="example-card">
-                      <div class="example-row">
-                        <div class="example-number">
-                          {{ exampleIndex + 1 }}
-                        </div>
+                      <div
+                        v-for="(example, exampleIndex) in examples[grammar.grammarId]"
+                        :key="example.exampleId"
+                        class="example-card">
+                        <div class="example-row">
+                          <div class="example-number">
+                            {{ exampleIndex + 1 }}
+                          </div>
 
-                        <div class="example-content">
+                          <div class="example-content">
 
-                          <div
-                            class="jp-text"
-                            v-html="example.nihongo"
-                          ></div>
+                            <div
+                              class="jp-text"
+                              v-html="example.nihongo"
+                            ></div>
 
-                          <div
-                            class="vn-text"
-                            v-html="example.vietnamese"
-                          ></div>
+                            <div
+                              class="vn-text"
+                              v-html="example.vietnamese"
+                            ></div>
 
-                        </div>
+                          </div>
 
-                        <button
-                          class="edit-example-btn"
-                          @click="
+                          <button
+                            class="edit-example-btn"
+                            @click="
       openEditExampleModal(
         example
       )
     "
-                        >
-                          ✏️
-                        </button>
+                          >
+                            ✏️
+                          </button>
+
+                        </div>
+
 
                       </div>
 
+                    </template>
 
+                    <div
+                      v-else
+                      class="empty-example"
+                    >
+                      Chưa có ví dụ
                     </div>
 
-                  </template>
-
-                  <div
-                    v-else
-                    class="empty-example"
-                  >
-                    Chưa có ví dụ
                   </div>
 
                 </div>
-
               </div>
+
             </div>
+
+          </template>
 
         </div>
 
-</template>
+      </div>
 
-</div>
+    </div>
 
-</div>
+    <CreateLessonModal
+      v-if="showLessonModal"
+      :book-id="bookId"
+      :book-name="book?.bookName || ''"
+      :lesson="editingLesson"
+      @close="showLessonModal = false"
+      @created="closeLessonModal"
+    />
 
-</div>
+    <ExampleModal
+      v-if="showExampleModal"
+      :grammar-id="selectedGrammarId!"
+      :example="editingExample"
+      @close="showExampleModal = false"
+      @saved="onExampleSaved"
+    />
 
-<CreateLessonModal
-  v-if="showLessonModal"
-  :book-id="bookId"
-  :book-name="book?.bookName || ''"
-  :lesson="editingLesson"
-  @close="showLessonModal = false"
-  @created="closeLessonModal"
-/>
-
-<ExampleModal
-  v-if="showExampleModal"
-  :grammar-id="selectedGrammarId!"
-  :example="editingExample"
-  @close="showExampleModal = false"
-  @saved="onExampleSaved"
-/>
-
-<GrammarModal
-  v-if="showGrammarModal"
-  :lesson-id="
+    <GrammarModal
+      v-if="showGrammarModal"
+      :lesson-id="
     selectedLesson?.lessonId || 0
   "
-  :grammar="editingGrammar"
-  @close="
+      :grammar="editingGrammar"
+      @close="
     showGrammarModal = false
   "
-  @saved="
+      @saved="
     onGrammarSaved
   "
-/>
+    />
 
-</div>
+  </div>
 
 </template>
 
