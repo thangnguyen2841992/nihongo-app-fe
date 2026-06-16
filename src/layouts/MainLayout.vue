@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import {onMounted, ref} from 'vue'
-import Navbar from '@/components/Navbar.vue'
-import Sidebar from '@/components/Sidebar.vue'
+import Navbar from '@/users/Navbar.vue'
+import Sidebar from '@/users/Sidebar.vue'
 import {gatewayUrl} from "@/api/authApi.ts";
+import NavbarUser from "@/users/NavbarUser.vue";
 
 const isLoggedIn = ref<boolean>(false)
 
@@ -35,12 +36,12 @@ const toggleSidebar = () => isOpen.value = !isOpen.value
     :email="email"
     @toggle="toggleSidebar"
   />
-
+  <NavbarUser/>
   <div class="layout">
-    <Sidebar :isOpen="isOpen" @close="isOpen = false" />
+    <Sidebar :isOpen="isOpen" @close="isOpen = false"/>
 
     <div class="main-content">
-      <router-view />
+      <router-view/>
     </div>
   </div>
 </template>

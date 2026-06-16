@@ -1,7 +1,7 @@
 import {createRouter, createWebHistory} from 'vue-router'
 
 import MainLayout from '@/layouts/MainLayout.vue'
-import Home from '@/views/Home-User.vue'
+import Home from '@/users/Home-User.vue'
 
 import LoginView from '@/components/auth/LoginView.vue'
 import CheckEmailView from '@/components/auth/CheckEmailView.vue'
@@ -16,6 +16,7 @@ import AdminHome from "@/components/admin/Admin-home.vue";
 import AdminLayout from "@/components/admin/AdminLayout.vue";
 import StaffLayout from "@/components/staff/StaffLayout.vue";
 import StaffHome from "@/components/staff/StaffHome.vue";
+import CourseView from "@/users/CourseView.vue";
 
 const routes = [
   // 🔥 layout chính
@@ -23,11 +24,13 @@ const routes = [
     path: '/',
     component: MainLayout,
     children: [
-      {path: '', component: Home}
+      {path: '', component: Home},
+      {
+        path: '/courses',
+        component: CourseView
+      }
     ]
   },
-
-  // 🔥 auth
   {
     path: '/login',
     component: LoginView
