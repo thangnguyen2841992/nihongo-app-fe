@@ -1,3 +1,4 @@
+```vue
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
 import {gatewayUrl} from "@/api/authApi.ts";
@@ -10,22 +11,14 @@ interface Course {
   originalPrice: number
   salePrice: number
 }
+interface UserCourseRequest {
+  courseId: number
+}
+
 
 const courses = ref<Course[]>([])
+const registering = ref<number | null>(null)
 const selectedCourse = ref<Course | null>(null)
-
-const getPriceChangePercent = (course: Course) => {
-  if (!course.originalPrice) {
-    return 0
-  }
-
-  return Math.round(
-    (
-      (course.salePrice - course.originalPrice)
-      / course.originalPrice
-    ) * 100
-  )
-}
 
 const getDiscountPercent = (course: Course) => {
   if (
@@ -66,12 +59,27 @@ const loadCourses = async () => {
   }
 }
 
-const chooseCourse = (course: Course) => {
-  selectedCourse.value = course
+const chooseCourse = async (course: Course) => {
+  try {
+    registering.value = course.courseId
 
-  // TODO gọi API đăng ký khóa học
-  // await axios.post(...)
+    await gatewayUrl.post(
+      '/api/nihongo-user/userCourses',
+      {
+        courseId: course.courseId
+      }
+    )
+
+    selectedCourse.value = course
+
+  } catch (e) {
+    console.error(e)
+    alert('Đăng ký khóa học thất bại')
+  } finally {
+    registering.value = null
+  }
 }
+
 
 onMounted(() => {
   loadCourses()
@@ -92,79 +100,82 @@ onMounted(() => {
       :key="course.courseId"
       class="col-md-4 mb-4"
     >
-      <div
-        class="card course-card h-100 border-0"
-      >
+      <div class="card course-card h-100 border-0">
+
         <div class="card-body d-flex flex-column">
 
-          <h5 class="fw-bold">
-            {{ course.courseName }}
-          </h5>
+
+          <div class="course-header">
+
+            <h5 class="course-title">
+              {{ course.courseName }}
+            </h5>
+
+            <div class="course-badges">
+
+    <span
+      class="course-status"
+      :class="{
+        active: course.active === 'Đang hoạt động',
+        full: course.active === 'Đã đủ người',
+        inactive: course.active === 'Tạm ngưng hoạt động'
+      }"
+    >
+      {{ course.active }}
+    </span>
+
+              <span
+                v-if="getDiscountPercent(course) > 0"
+                class="discount-ribbon"
+              >
+      -{{ getDiscountPercent(course) }}%
+    </span>
+
+            </div>
+
+          </div>
 
           <p class="text-muted flex-grow-1">
             {{ course.courseDescription }}
           </p>
+          <div class="course-footer">
 
-          <span
-            class="course-status"
-            :class="{
-    active: course.active === 'Đang hoạt động',
-    full: course.active === 'Đã đủ người',
-    inactive: course.active === 'Tạm ngưng hoạt động'
-  }"
-          >
-  {{ course.active }}
-</span>
+            <div class="price-section">
 
-          <div class="mb-3">
+              <div class="sale-price">
+                {{ formatPrice(course.salePrice) }}
+              </div>
 
-            <div class="d-flex align-items-center gap-2 mb-1">
-
-  <span class="original-price">
-    {{ formatPrice(course.originalPrice) }}
-  </span>
-
-              <span
-                class="price-change-badge"
-                :class="{
-      discount: getPriceChangePercent(course) < 0,
-      increase: getPriceChangePercent(course) > 0,
-      same: getPriceChangePercent(course) === 0
-    }"
+              <div
+                v-if="course.originalPrice > course.salePrice"
+                class="original-price"
               >
-    {{
-                  getPriceChangePercent(course) < 0
-                    ? `${Math.abs(getPriceChangePercent(course))}% OFF`
-                    : getPriceChangePercent(course) > 0
-                      ? `+${getPriceChangePercent(course)}%`
-                      : '0%'
-                }}
-  </span>
+                {{ formatPrice(course.originalPrice) }}
+              </div>
 
             </div>
 
-            <div class="sale-price">
-              {{ formatPrice(course.salePrice) }}
-            </div>
-
-            <small
-              v-if="course.originalPrice > course.salePrice"
-              class="text-success saving-text"
+            <button
+              class="btn-buy"
+              :disabled="registering === course.courseId"
+              @click="chooseCourse(course)"
             >
-              Tiết kiệm
-              {{ formatPrice(getSavingAmount(course)) }}
-            </small>
+              <template v-if="registering === course.courseId">
+                ⏳ Đang đăng ký...
+              </template>
+
+              <template v-else>
+                🛒 Đăng ký
+              </template>
+            </button>
 
           </div>
 
-          <button
-            class="btn btn-primary w-100"
-            @click="chooseCourse(course)"
-          >
-            Đăng ký ngay
-          </button>
+
+
 
         </div>
+
       </div>
     </div>
   </div>
@@ -186,10 +197,13 @@ onMounted(() => {
     </strong>
   </div>
 </template>
+
+```css
 <style scoped>
 .course-card {
   border-radius: 16px;
   overflow: hidden;
+  background: #fff;
   transition: all 0.25s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
@@ -201,47 +215,46 @@ onMounted(() => {
 
 .course-card .card-body {
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.course-card h5 {
-  min-height: 60px;
+/* Header */
+
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.course-title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #212529;
+  text-align: left;
 }
 
-.course-card p {
-  min-height: 72px;
-  line-height: 1.6;
+.course-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.original-price {
-  font-size: 0.95rem;
-  color: #6c757d;
-  text-decoration: line-through;
-}
-
-.sale-price {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #dc3545;
-}
-
-.saving-text {
-  display: block;
-  margin-top: 4px;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
+/* Status */
 
 .course-status {
   display: inline-flex;
   align-items: center;
-  padding: 6px 14px;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  width: fit-content;
-  margin-bottom: 10px;
 }
 
 .course-status.active {
@@ -258,25 +271,105 @@ onMounted(() => {
   color: #dc3545;
   background: #f8d7da;
 }
-.price-change-badge {
-  padding: 4px 10px;
-  border-radius: 999px;
+
+/* Discount */
+
+.discount-ribbon {
+  background: linear-gradient(
+    135deg,
+    #ff4d4f,
+    #dc3545
+  );
+
+  color: white;
+  font-weight: 700;
   font-size: 0.8rem;
-  font-weight: 600;
+
+  padding: 6px 12px;
+  border-radius: 999px;
+
+  box-shadow:
+    0 4px 12px rgba(220,53,69,.3);
 }
 
-.price-change-badge.discount {
-  background: #ffe5e5;
+/* Description */
+
+.course-card p {
+  min-height: 72px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* Footer */
+
+.course-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+}
+
+/* Price */
+
+.price-section {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sale-price {
+  font-size: 1.5rem;
+  font-weight: 500;
   color: #dc3545;
+  line-height: 1;
 }
 
-.price-change-badge.increase {
-  background: #fff3cd;
-  color: #fd7e14;
-}
-
-.price-change-badge.same {
-  background: #e9ecef;
+.original-price {
+  font-size: 1rem;
   color: #6c757d;
+  text-decoration: line-through;
+}
+
+/* Button */
+
+.btn-buy {
+  flex-shrink: 0;
+
+  border: none;
+  border-radius: 10px;
+
+  padding: 10px 18px;
+
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  background: linear-gradient(
+    135deg,
+    #0d6efd,
+    #4f8cff
+  );
+
+  transition: all .25s ease;
+}
+
+.btn-buy:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 20px rgba(13,110,253,.25);
+}
+
+.btn-buy:active {
+  transform: scale(.98);
+}
+.btn-buy:disabled {
+  opacity: .7;
+  cursor: not-allowed;
 }
 </style>
+
