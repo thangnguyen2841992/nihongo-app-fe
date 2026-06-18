@@ -11,6 +11,7 @@ interface Course {
   originalPrice: number
   salePrice: number
 }
+
 interface UserCourseRequest {
   courseId: number
 }
@@ -34,10 +35,6 @@ const getDiscountPercent = (course: Course) => {
       / course.originalPrice
     ) * 100
   )
-}
-
-const getSavingAmount = (course: Course) => {
-  return course.originalPrice - course.salePrice
 }
 
 const formatPrice = (price: number) => {
@@ -161,18 +158,15 @@ onMounted(() => {
               @click="chooseCourse(course)"
             >
               <template v-if="registering === course.courseId">
-                ⏳ Đang đăng ký...
+                ⏳ Đang xử lý...
               </template>
 
               <template v-else>
-                🛒 Đăng ký
+                🛒 Mua
               </template>
             </button>
 
           </div>
-
-
-
 
         </div>
 
@@ -288,8 +282,7 @@ onMounted(() => {
   padding: 6px 12px;
   border-radius: 999px;
 
-  box-shadow:
-    0 4px 12px rgba(220,53,69,.3);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, .3);
 }
 
 /* Description */
@@ -360,13 +353,13 @@ onMounted(() => {
 .btn-buy:hover {
   transform: translateY(-2px);
 
-  box-shadow:
-    0 8px 20px rgba(13,110,253,.25);
+  box-shadow: 0 8px 20px rgba(13, 110, 253, .25);
 }
 
 .btn-buy:active {
   transform: scale(.98);
 }
+
 .btn-buy:disabled {
   opacity: .7;
   cursor: not-allowed;
