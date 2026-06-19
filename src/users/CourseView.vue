@@ -20,6 +20,32 @@ interface UserCourseRequest {
 const courses = ref<Course[]>([])
 const registering = ref<number | null>(null)
 const selectedCourse = ref<Course | null>(null)
+const registeredCourseIds =
+  ref<number[]>([])
+
+const loadRegisteredCourses =
+  async () => {
+    try {
+
+      const res =
+        await gatewayUrl.get(
+          '/api/nihongo-user/my-courses'
+        )
+
+      registeredCourseIds.value =
+        res.data
+
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+const isRegistered = (
+  courseId: number
+) => {
+  return registeredCourseIds.value
+    .includes(courseId)
+}
 
 const getDiscountPercent = (course: Course) => {
   if (
@@ -66,7 +92,9 @@ const chooseCourse = async (course: Course) => {
         courseId: course.courseId
       }
     )
-
+    registeredCourseIds.value.push(
+      course.courseId
+    )
     selectedCourse.value = course
 
   } catch (e) {
@@ -78,8 +106,11 @@ const chooseCourse = async (course: Course) => {
 }
 
 
-onMounted(() => {
-  loadCourses()
+onMounted(async () => {
+  await Promise.all([
+    loadCourses(),
+    loadRegisteredCourses()
+  ])
 })
 </script>
 
@@ -154,10 +185,34 @@ onMounted(() => {
 
             <button
               class="btn-buy"
-              :disabled="registering === course.courseId"
+              :class="{
+    registered:
+      isRegistered(
+        course.courseId
+      )
+  }"
+              :disabled="
+    registering === course.courseId ||
+    isRegistered(course.courseId)
+  "
               @click="chooseCourse(course)"
             >
-              <template v-if="registering === course.courseId">
+              <template
+                v-if="
+      isRegistered(
+        course.courseId
+      )
+    "
+              >
+                ✅ Đã đăng ký
+              </template>
+
+              <template
+                v-else-if="
+      registering ===
+      course.courseId
+    "
+              >
                 ⏳ Đang xử lý...
               </template>
 
@@ -363,6 +418,18 @@ onMounted(() => {
 .btn-buy:disabled {
   opacity: .7;
   cursor: not-allowed;
+}
+.btn-buy.registered {
+  background: linear-gradient(
+    135deg,
+    #198754,
+    #20c997
+  );
+}
+
+.btn-buy.registered:hover {
+  transform: none;
+  box-shadow: none;
 }
 </style>
 
