@@ -55,7 +55,7 @@ const toggleSidebar = () => isOpen.value = !isOpen.value
 .main-content {
   flex: 1;
   margin-left: 220px;
-  padding: 80px 20px 20px;
+  padding: 40px 20px 20px;
 }
 
 /* Responsive */
