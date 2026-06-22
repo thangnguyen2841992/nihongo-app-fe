@@ -33,6 +33,12 @@ const routes = [
       {
         path: 'user/my-courses',
         component: MyCoursesView
+      },
+      {
+        path: '/course/:courseId',
+        name: 'course-learning',
+        component: () =>
+          import('@/users/CourseLearningView.vue')
       }
     ]
   },
