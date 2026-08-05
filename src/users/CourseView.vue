@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
-import { gatewayUrl } from "@/api/authApi"
+import {onMounted, ref} from "vue"
+import {gatewayUrl} from "@/api/authApi"
 
 interface CoursePackage {
   packageId: number
@@ -17,15 +17,22 @@ interface Course {
   packages: CoursePackage[]
 }
 
+interface MyCourse {
+  courseId: number
+  expiredAt: string
+}
+
 const courses = ref<Course[]>([])
 const registering = ref<number | null>(null)
 const registeredCourseIds = ref<number[]>([])
-
+const isRenewMode = ref(false)
 const showPackageModal = ref(false)
 const selectedCourse = ref<Course | null>(null)
+const myCourses = ref<MyCourse[]>([])
 
-const openPackageModal = (course: Course) => {
+const openPackageModal = (course: Course, renew = false) => {
   selectedCourse.value = course
+  isRenewMode.value = renew
   showPackageModal.value = true
 }
 
@@ -42,7 +49,7 @@ const subscribe = async (packageId: number) => {
       }
     })
 
-    registeredCourseIds.value.push(selectedCourse.value.courseId)
+    await loadMyCourses();
 
     showPackageModal.value = false
     selectedCourse.value = null
@@ -61,12 +68,82 @@ const loadCourses = async () => {
 }
 
 const loadMyCourses = async () => {
-  const res = await gatewayUrl.get("/api/nihongo-user/my-courses")
-  registeredCourseIds.value = res.data
+  const res = await gatewayUrl.get("/api/nihongo-user/my-courses-dto")
+
+  myCourses.value = res.data
+
+  registeredCourseIds.value = res.data.map((x: MyCourse) => x.courseId)
+}
+
+const isExpired = (courseId: number) => {
+  const course = myCourses.value.find(c => c.courseId === courseId)
+
+  if (!course) return false
+
+  return new Date(course.expiredAt).getTime() < Date.now()
+}
+
+const getExpiredDate = (courseId: number) => {
+  const course = myCourses.value.find(c => c.courseId === courseId)
+
+  if (!course) return ""
+
+  return new Date(course.expiredAt).toLocaleDateString("vi-VN")
 }
 
 const isRegistered = (id: number) =>
-  registeredCourseIds.value.includes(id)
+  registeredCourseIds.value.includes(id);
+const renewSubscription = async (packageId: number) => {
+
+  if (!selectedCourse.value) return
+
+  try {
+
+    registering.value = selectedCourse.value.courseId
+
+    await gatewayUrl.post(
+      "/api/nihongo-user/subscriptions/renew",
+      null,
+      {
+        params: {
+          courseId: selectedCourse.value.courseId,
+          packageId
+        }
+      }
+    )
+
+    alert("Gia hạn thành công!")
+
+    showPackageModal.value = false
+    selectedCourse.value = null
+
+    await loadMyCourses()
+
+  } catch (e) {
+
+    console.error(e)
+    alert("Gia hạn thất bại")
+
+  } finally {
+
+    registering.value = null
+
+  }
+
+}
+const renewCourse = (courseId: number) => {
+
+  const course = courses.value.find(c => c.courseId === courseId)
+
+  if (!course) return
+
+  openPackageModal(course, true)
+
+}
+
+const continueLearning = (courseId: number) => {
+  alert('Học tiếp nào ' + courseId)
+}
 
 onMounted(() => {
   loadCourses()
@@ -101,7 +178,34 @@ onMounted(() => {
         <p class="desc">
           {{ course.courseDescription }}
         </p>
+        <div class="course-status">
 
+          <template v-if="isRegistered(course.courseId)">
+
+    <span
+      v-if="isExpired(course.courseId)"
+      class="expired"
+    >
+      🔴 Đã hết hạn
+      {{ getExpiredDate(course.courseId) }}
+    </span>
+
+            <span
+              v-else
+              class="active"
+            >
+      🟢 Đang học
+    </span>
+
+          </template>
+
+          <template v-else>
+    <span class="placeholder">
+      &nbsp;
+    </span>
+          </template>
+
+        </div>
         <!-- PACKAGES PREVIEW -->
         <div class="packages">
           <div
@@ -122,15 +226,20 @@ onMounted(() => {
           <button
             class="btn"
             :class="{
-              primary: !isRegistered(course.courseId),
-              success: isRegistered(course.courseId)
-            }"
-            :disabled="isRegistered(course.courseId) || registering === course.courseId"
-            @click="openPackageModal(course)"
-          >
-            <span v-if="isRegistered(course.courseId)">
-              ✓ Đã đăng ký
-            </span>
+    primary: !isRegistered(course.courseId),
+    success: isRegistered(course.courseId) && !isExpired(course.courseId),
+    warning: isRegistered(course.courseId) && isExpired(course.courseId)
+}"
+            :disabled="registering === course.courseId"
+            @click="
+    isRegistered(course.courseId)
+        ? isExpired(course.courseId)
+            ? renewCourse(course.courseId)
+            : continueLearning(course.courseId)
+        : openPackageModal(course)">
+           <span v-if="isRegistered(course.courseId)">
+    {{ isExpired(course.courseId) ? "🔄 Gia hạn" : "▶ Học tiếp" }}
+</span>
 
             <span v-else-if="registering === course.courseId">
               ⏳ Đang xử lý
@@ -160,7 +269,11 @@ onMounted(() => {
         </h3>
 
         <p class="sub">
-          Chọn gói phù hợp với bạn
+          {{
+            isRenewMode
+              ? "Chọn gói để gia hạn khóa học"
+              : "Chọn gói phù hợp với bạn"
+          }}
         </p>
 
         <div class="package-grid">
@@ -185,10 +298,14 @@ onMounted(() => {
 
             <button
               class="buy-btn"
-              @click="subscribe(p.packageId)"
               :disabled="registering === selectedCourse?.courseId"
+              @click="
+      isRenewMode
+        ? renewSubscription(p.packageId)
+        : subscribe(p.packageId)
+  "
             >
-              Chọn gói
+              {{ isRenewMode ? 'Gia hạn gói' : 'Chọn gói' }}
             </button>
 
           </div>
@@ -230,14 +347,14 @@ onMounted(() => {
   border-radius: 18px;
   padding: 18px;
   position: relative;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   transition: 0.25s;
   overflow: hidden;
 }
 
 .card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 18px 50px rgba(0,0,0,0.12);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
 }
 
 /* BADGE */
@@ -245,7 +362,7 @@ onMounted(() => {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: linear-gradient(135deg,#4f8cff,#1677ff);
+  background: linear-gradient(135deg, #4f8cff, #1677ff);
   color: white;
   padding: 5px 10px;
   font-size: 12px;
@@ -298,12 +415,12 @@ onMounted(() => {
 }
 
 .btn.primary {
-  background: linear-gradient(135deg,#1677ff,#4f8cff);
+  background: linear-gradient(135deg, #1677ff, #4f8cff);
   color: white;
 }
 
 .btn.success {
-  background: linear-gradient(135deg,#20c997,#198754);
+  background: linear-gradient(135deg, #20c997, #198754);
   color: white;
 }
 
@@ -318,7 +435,7 @@ onMounted(() => {
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -386,5 +503,24 @@ onMounted(() => {
   border: none;
   background: #eee;
   border-radius: 10px;
+}
+
+.course-status {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.course-status .expired {
+  color: #dc3545;
+}
+
+.course-status .active {
+  color: #28a745;
+}
+
+.btn.warning{
+  background:#fa8c16;
+  color:white;
 }
 </style>

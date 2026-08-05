@@ -39,7 +39,18 @@ const routes = [
         name: 'course-learning',
         component: () =>
           import('@/users/CourseLearningView.vue')
-      }
+      },
+      {
+        path: "/course/:courseId/books",
+        name: "CourseBooks",
+        component: () => import("@/users/CourseBooksView.vue")
+      },
+      {
+        path: '/course/book/:bookId',
+        name: "CourseBookDetail",
+        component: () =>
+          import('@/users/CourseBookDetailView.vue')
+      },
     ]
   },
   {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from "vue"
-import { gatewayUrl } from "@/api/authApi"
+import {onMounted, ref} from "vue"
+import {gatewayUrl} from "@/api/authApi"
+import { useRouter } from "vue-router"
 
 interface MyCourse {
   courseId: number
@@ -13,6 +14,7 @@ interface MyCourse {
 
 const courses = ref<MyCourse[]>([])
 const loading = ref(true)
+const router = useRouter()
 
 const loadCourses = async () => {
   try {
@@ -27,6 +29,10 @@ const loadCourses = async () => {
 
 const continueLearning = (courseId: number) => {
   window.location.href = `/course/${courseId}`
+}
+
+const startLearning = (courseId: number) => {
+  router.push(`/course/${courseId}/books`)
 }
 
 /**
@@ -163,10 +169,14 @@ onMounted(loadCourses)
           <td>
             <button
               class="btn"
-              @click="continueLearning(c.courseId)"
+              @click="
+        c.progress === 0
+            ? startLearning(c.courseId)
+            : continueLearning(c.courseId)
+    "
               :disabled="isExpired(c.expiredAt)"
             >
-              ▶ Học tiếp
+              {{ c.progress === 0 ? '📖 Bắt đầu học' : '▶ Học tiếp' }}
             </button>
           </td>
 
