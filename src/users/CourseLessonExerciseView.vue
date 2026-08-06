@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import {computed, onMounted,onUnmounted, ref} from "vue"
+import {computed, nextTick, onMounted, onUnmounted, ref} from "vue"
 import {useRoute, useRouter} from "vue-router"
-import ExerciseKeywordModal from "@/components/staff/ExerciseKeywordModal.vue";
 import {gatewayUrl} from "@/api/authApi.ts";
 
 const route = useRoute()
@@ -10,17 +9,28 @@ const started = ref(false)
 const submitted = ref(false)
 const remainSeconds = ref(0)
 let timer: number | null = null
-const showResultModal = ref(false)
-const totalCorrect = ref(0)
-const totalWrong = ref(0)
-const score = ref(0)
+const showResult = ref(false)
+const showTimeUp = ref(false)
+const score = ref<ScoreResult>({
+  total: 0,
+  correct: 0,
+  wrong: 0
+})
+
 interface Lesson {
   lessonId: number
   name: string
   description: string
   reading: string
-  bookId : number
+  bookId: number
 }
+
+interface ScoreResult {
+  total: number
+  correct: number
+  wrong: number
+}
+
 interface ExerciseKeyword {
   exerciseKeywordId: number
 
@@ -42,6 +52,22 @@ interface ExerciseType {
   exerciseTypeId: number
   name: string
 }
+const comment = computed(()=>{
+
+  if(percent.value>=95)
+    return "Hoàn hảo! Bạn đã nắm rất chắc bài học.";
+
+  if(percent.value>=80)
+    return "Rất tốt! Chỉ còn vài lỗi nhỏ.";
+
+  if(percent.value>=60)
+    return "Khá ổn. Hãy luyện thêm để đạt điểm cao hơn.";
+
+  return "Đừng nản! Làm lại một lần nữa nhé 💪";
+
+})
+
+
 const isAutoScrolling =
   ref(false)
 const activeGroupId =
@@ -69,35 +95,139 @@ const lessonId = computed(
       route.params.lessonId
     )
 )
-const submitExercise = () => {
+
+const formattedTime = computed(() => {
+
+  const minute = Math.floor(remainSeconds.value / 60)
+  const second = remainSeconds.value % 60
+
+  return `${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`
+
+})
+const startExercise = () => {
+
+  if (started.value) {
+    return
+  }
+
+  started.value = true
+
+  remainSeconds.value = exercises.value.length * 30
+
+  timer = window.setInterval(async () => {
+
+    if (remainSeconds.value <= 0) {
+
+      remainSeconds.value = 0
+
+      await submitExercise(true)
+
+      return
+
+    }
+
+    remainSeconds.value--
+
+  }, 1000)
+
+}
+const percent = computed(() => {
+
+  if (score.value.total === 0) {
+    return 0
+  }
+
+  return Math.round(
+    score.value.correct * 100 / score.value.total
+  )
+
+})
+const restartExercise = () => {
+
+  started.value = false
+  submitted.value = false
+
+  showResult.value = false
+  showTimeUp.value = false
+
+  remainSeconds.value = 0
+
+  selectedAnswers.value = {}
+
+  score.value = {
+    total: 0,
+    correct: 0,
+    wrong: 0
+  }
+
+  if (timer != null) {
+    clearInterval(timer)
+    timer = null
+  }
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  })
+}
+const submitExercise = async (isTimeUp = false) => {
+
+  if (submitted.value) {
+    return
+  }
 
   submitted.value = true
+  started.value = false
+
+  if (timer !== null) {
+    clearInterval(timer)
+    timer = null
+  }
 
   let correct = 0
+  let wrong = 0
 
-  exercises.value.forEach(exercise => {
+  exercises.value.forEach(e => {
 
-    const selected =
-      selectedAnswers.value[
-        exercise.exerciseKeywordId
-        ]
+    const answer = selectedAnswers.value[e.exerciseKeywordId]
 
-    if (selected === exercise.correctAnswer) {
+    if (!answer) {
+      return
+    }
+
+    if (answer === e.correctAnswer) {
       correct++
+    } else {
+      wrong++
     }
 
   })
 
-  totalCorrect.value = correct
+  score.value = {
+    total: exercises.value.length,
+    correct,
+    wrong
+  }
 
-  totalWrong.value =
-    exercises.value.length - correct
-
-  score.value = Math.round(
-    correct * 100 / exercises.value.length
+  await gatewayUrl.post(
+    "/api/nihongo-user/userExerciseAttempt",
+    {
+      lessonId: lessonId.value,
+      totalQuestion: exercises.value.length,
+      correctCount: correct,
+      wrongCount: wrong
+    }
   )
 
-  showResultModal.value = true
+  if (isTimeUp) {
+
+    showTimeUp.value = true
+
+  } else {
+
+    showResult.value = true
+
+  }
 
 }
 const exerciseTypes =
@@ -109,7 +239,13 @@ const selectAnswer = (
   exerciseId: number,
   answer: string
 ) => {
+
+  if (!started.value || submitted.value) {
+    return
+  }
+
   selectedAnswers.value[exerciseId] = answer
+
 }
 const handleScroll = () => {
 
@@ -291,8 +427,6 @@ onUnmounted(() => {
     handleScroll
   )
 })
-
-import { nextTick } from "vue"
 
 const reloadExercises =
   async (
@@ -484,19 +618,39 @@ const scrollToGroup =
         </button>
 
       </div>
+
+      <div v-if="started && !submitted" class="timer" :class="{ warning: remainSeconds <= 60 }">
+        ⏰ {{ formattedTime }}
+      </div>
+
+      <button
+        v-if="submitted"
+        class="restart-btn"
+        @click="restartExercise">
+
+        🔄 Làm lại
+
+      </button>
       <div class="submit-wrap">
 
         <button
           class="start-btn"
           @click="startExercise"
-          :disabled="started"
-        >
-          {{ started ? "Đang làm bài" : "Bắt đầu" }}
+          :disabled="started || submitted">
+
+          {{
+            submitted
+              ? "Đã kết thúc"
+              : started
+                ? "Đang làm bài"
+                : "Bắt đầu"
+          }}
+
         </button>
 
         <button
           class="submit-btn"
-          @click="submitExercise"
+          @click="submitExercise()"
           :disabled="!started || submitted"
         >
           {{ submitted ? "Đã nộp" : "Nộp bài" }}
@@ -586,19 +740,15 @@ const scrollToGroup =
                 class="answer-item"
                 :class="{
 
-    selected:
-      selectedAnswers[exercise.exerciseKeywordId] === 'A',
+        selected:
+        selectedAnswers[exercise.exerciseKeywordId]=='A',
 
-    correct:
-      submitted &&
-      exercise.correctAnswer === 'A',
+        wrong:
+        submitted &&
+        selectedAnswers[exercise.exerciseKeywordId]=='A' &&
+        exercise.correctAnswer!='A'
 
-    wrong:
-      submitted &&
-      selectedAnswers[exercise.exerciseKeywordId] === 'A' &&
-      exercise.correctAnswer !== 'A'
-
-  }"
+    }"
                 @click="selectAnswer(exercise.exerciseKeywordId, 'A')"
               >
                 A. {{ exercise.answerA }}
@@ -608,19 +758,15 @@ const scrollToGroup =
                 class="answer-item"
                 :class="{
 
-    selected:
-      selectedAnswers[exercise.exerciseKeywordId] === 'B',
+        selected:
+        selectedAnswers[exercise.exerciseKeywordId]=='B',
 
-    correct:
-      submitted &&
-      exercise.correctAnswer === 'B',
+        wrong:
+        submitted &&
+        selectedAnswers[exercise.exerciseKeywordId]=='B' &&
+        exercise.correctAnswer!='B'
 
-    wrong:
-      submitted &&
-      selectedAnswers[exercise.exerciseKeywordId] === 'B' &&
-      exercise.correctAnswer !== 'B'
-
-  }"
+    }"
                 @click="selectAnswer(exercise.exerciseKeywordId, 'B')"
               >
                 B. {{ exercise.answerB }}
@@ -630,19 +776,15 @@ const scrollToGroup =
                 class="answer-item"
                 :class="{
 
-    selected:
-      selectedAnswers[exercise.exerciseKeywordId] === 'C',
+        selected:
+        selectedAnswers[exercise.exerciseKeywordId]=='C',
 
-    correct:
-      submitted &&
-      exercise.correctAnswer === 'C',
+        wrong:
+        submitted &&
+        selectedAnswers[exercise.exerciseKeywordId]=='C' &&
+        exercise.correctAnswer!='C'
 
-    wrong:
-      submitted &&
-      selectedAnswers[exercise.exerciseKeywordId] === 'C' &&
-      exercise.correctAnswer !== 'C'
-
-  }"
+    }"
                 @click="selectAnswer(exercise.exerciseKeywordId, 'C')"
               >
                 C. {{ exercise.answerC }}
@@ -652,19 +794,15 @@ const scrollToGroup =
                 class="answer-item"
                 :class="{
 
-    selected:
-      selectedAnswers[exercise.exerciseKeywordId] === 'D',
+        selected:
+        selectedAnswers[exercise.exerciseKeywordId]=='D',
 
-    correct:
-      submitted &&
-      exercise.correctAnswer === 'D',
+        wrong:
+        submitted &&
+        selectedAnswers[exercise.exerciseKeywordId]=='D' &&
+        exercise.correctAnswer!='D'
 
-    wrong:
-      submitted &&
-      selectedAnswers[exercise.exerciseKeywordId] === 'D' &&
-      exercise.correctAnswer !== 'D'
-
-  }"
+    }"
                 @click="selectAnswer(exercise.exerciseKeywordId, 'D')"
               >
                 D. {{ exercise.answerD }}
@@ -681,51 +819,191 @@ const scrollToGroup =
     </div>
 
   </div>
-
   <div
-    v-if="showResultModal"
-    class="modal-mask"
-  >
+    v-if="showTimeUp"
+    class="result-mask">
 
-    <div class="result-modal">
+    <div class="result-dialog">
 
-      <h2>🎉 Kết quả</h2>
+      <div class="result-icon">
+        🎉
+      </div>
 
-      <p>
-        Tổng số câu:
-        {{ exercises.length }}
-      </p>
+      <h2>Kết quả bài làm</h2>
 
-      <p>
-        Đúng:
-        <b style="color:#16a34a">
-          {{ totalCorrect }}
-        </b>
-      </p>
+      <div class="result-summary">
 
-      <p>
-        Sai:
-        <b style="color:#dc2626">
-          {{ totalWrong }}
-        </b>
-      </p>
+        <div class="summary-item">
+          <span>Tổng câu</span>
+          <strong>{{ score.total }}</strong>
+        </div>
 
-      <h1>
-        {{ score }} điểm
-      </h1>
+        <div class="summary-item correct">
+          <span>Đúng</span>
+          <strong>{{ score.correct }}</strong>
+        </div>
 
-      <button
-        class="close-btn"
-        @click="showResultModal=false"
-      >
+        <div class="summary-item wrong">
+          <span>Sai</span>
+          <strong>{{ score.wrong }}</strong>
+        </div>
 
-        Đóng
+      </div>
 
-      </button>
+      <div class="score-circle">
+
+        {{ Math.round(score.correct * 100 / score.total) }}
+
+        <small>điểm</small>
+
+      </div>
+
+      <div class="dialog-actions">
+
+        <button
+          class="restart-btn"
+          @click="restartExercise">
+
+          🔄 Làm lại
+
+        </button>
+
+        <button
+          class="close-btn"
+          @click="showResult=false">
+
+          Đóng
+
+        </button>
+
+      </div>
 
     </div>
 
   </div>
+  <div
+    v-if="showResult"
+    class="result-mask"
+  >
+
+    <div class="result-dialog">
+
+      <div class="result-icon">
+        🏆
+      </div>
+
+      <h2>Hoàn thành bài tập</h2>
+
+      <div
+        class="badge"
+        :class="{
+            excellent: percent>=90,
+            good: percent>=70 && percent<90,
+            normal: percent<70
+        }">
+
+        {{
+          percent>=90
+            ? 'Xuất sắc'
+            : percent>=70
+              ? 'Tốt'
+              : 'Cần cố gắng'
+        }}
+
+      </div>
+      <!-- THÊM Ở ĐÂY -->
+      <p class="result-comment">
+        {{ comment }}
+      </p>
+
+      <div class="score-circle">
+
+        <div class="score-number">
+          {{ percent }}
+        </div>
+
+        <span>điểm</span>
+
+      </div>
+      <div class="result-grid">
+
+        <div class="item">
+
+          <small>Tổng câu</small>
+
+          <strong>{{score.total}}</strong>
+
+        </div>
+
+        <div class="item correct">
+
+          <small>Đúng</small>
+
+          <strong>{{score.correct}}</strong>
+
+        </div>
+
+        <div class="item wrong">
+
+          <small>Sai</small>
+
+          <strong>{{score.wrong}}</strong>
+
+        </div>
+
+      </div>
+      <div class="progress-box">
+
+        <div class="progress-bar-custom">
+
+          <div
+            class="progress-correct"
+            :style="{width: percent+'%'}"/>
+
+          <div
+            class="progress-wrong"
+            :style="{width:(100-percent)+'%'}"/>
+
+        </div>
+
+        <div class="progress-text">
+
+          {{percent}}%
+
+        </div>
+
+      </div>
+      <div class="dialog-actions">
+
+        <button
+          class="restart-btn"
+          @click="restartExercise">
+
+          🔄 Làm lại
+
+        </button>
+
+        <button
+          class="answer-btn">
+
+          📖 Xem đáp án
+
+        </button>
+
+        <button
+          class="close-btn"
+          @click="showResult=false">
+
+          Đóng
+
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+
+
 </template>
 
 <style scoped>
@@ -737,13 +1015,6 @@ const scrollToGroup =
   font-weight: 700;
 
   margin: 0;
-}
-
-.page-subtitle {
-
-  color: #64748b;
-
-  margin-top: 4px;
 }
 
 .back-btn {
@@ -760,18 +1031,28 @@ const scrollToGroup =
 }
 
 .exercise-tabs {
-  position: sticky;
-  top: 80px;
-  z-index: 100;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;   /* căn giữa theo chiều dọc */
-  gap: 16px;
-  padding: 12px 20px;
-  margin-bottom: 24px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.06);
+  position:sticky;
+  top:80px;
+  z-index:1000;
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+
+  padding:18px 24px;
+
+  background:#ffffff;
+
+  border-radius:22px;
+
+  border:1px solid rgba(37,99,235,.15);
+
+  box-shadow:
+    0 12px 40px rgba(15,23,42,.12),
+    0 2px 8px rgba(15,23,42,.08);
+
+  margin-bottom:30px;
 }
 
 .exercise-tab {
@@ -787,6 +1068,7 @@ const scrollToGroup =
   font-weight: 600;
   cursor: pointer;
 }
+
 .exercise-tab:hover {
   background: #eef4ff;
 
@@ -794,6 +1076,7 @@ const scrollToGroup =
 
   transform: translateY(-1px);
 }
+
 .exercise-tab.active {
 
   background: linear-gradient(
@@ -803,52 +1086,6 @@ const scrollToGroup =
   );
 
   color: white;
-}
-
-.exercise-tab.disabled {
-
-  opacity: .5;
-
-  cursor: not-allowed;
-}
-
-.exercise-content {
-
-  background: white;
-
-  border-radius: 24px;
-
-  padding: 24px;
-}
-
-.section-header {
-
-  display: flex;
-
-  justify-content: space-between;
-
-  align-items: center;
-
-  margin-bottom: 24px;
-}
-
-.add-btn {
-
-  border: none;
-
-  border-radius: 12px;
-
-  padding: 10px 18px;
-
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
-
-  color: white;
-
-  font-weight: 600;
 }
 
 .empty-state {
@@ -869,15 +1106,6 @@ const scrollToGroup =
   margin: 0;
 
   color: #1e293b;
-}
-
-.page-subtitle {
-
-  margin-top: 6px;
-
-  color: #64748b;
-
-  font-size: 15px;
 }
 
 .exercise-list {
@@ -906,31 +1134,26 @@ const scrollToGroup =
 
   border: 2px solid #4f8cff;
 
-  box-shadow:
-    0 0 0 6px
-    rgba(
-      79,
-      140,
-      255,
-      .15
-    );
+  box-shadow: 0 0 0 6px rgba(
+    79,
+    140,
+    255,
+    .15
+  );
 
-  transform:
-    scale(1.02);
+  transform: scale(1.02);
 }
 
 .exercise-card:hover {
 
   transform: translateY(-2px);
 
-  box-shadow:
-    0 10px 30px
-    rgba(
-      0,
-      0,
-      0,
-      .08
-    );
+  box-shadow: 0 10px 30px rgba(
+    0,
+    0,
+    0,
+    .08
+  );
 }
 
 .exercise-header {
@@ -944,68 +1167,7 @@ const scrollToGroup =
   margin-bottom: 16px;
 }
 
-.exercise-id {
 
-  font-size: 13px;
-
-  font-weight: 700;
-
-  color: #64748b;
-}
-
-.edit-btn {
-
-  border: none;
-
-  background: #eef4ff;
-
-  color: #2563eb;
-
-  border-radius: 10px;
-
-  padding: 8px 14px;
-
-  font-weight: 600;
-
-  transition: .2s;
-}
-.edit-btn:hover {
-
-  background: #dbeafe;
-}
-.exercise-question {
-
-  font-size: 22px;
-
-  line-height: 2;
-
-  margin-bottom: 18px;
-
-  font-family:
-    "Noto Sans JP",
-    sans-serif;
-}
-.delete-btn {
-
-  border: none;
-
-  background: #fef2f2;
-
-  color: #dc2626;
-
-  border-radius: 10px;
-
-  padding: 8px 14px;
-
-  font-weight: 600;
-
-  transition: .2s;
-}
-
-.delete-btn:hover {
-
-  background: #fee2e2;
-}
 .answer-grid {
 
   display: grid;
@@ -1055,27 +1217,16 @@ const scrollToGroup =
   color: #1d4ed8;
   font-weight: 700;
 }
-.answer-item.correct{
 
-  background:#dcfce7;
+.answer-item.wrong {
 
-  border:2px solid #22c55e;
+  background: #fee2e2;
 
-  color:#166534;
+  border: 2px solid #ef4444;
 
-  font-weight:700;
+  color: #991b1b;
 
-}
-
-.answer-item.wrong{
-
-  background:#fee2e2;
-
-  border:2px solid #ef4444;
-
-  color:#991b1b;
-
-  font-weight:700;
+  font-weight: 700;
 
 }
 
@@ -1123,15 +1274,14 @@ const scrollToGroup =
   font-size: 22px;
   font-weight: 700;
 
-  box-shadow:
-    0 8px 24px
-    rgba(
-      79,
-      140,
-      255,
-      .25
-    );
+  box-shadow: 0 8px 24px rgba(
+    79,
+    140,
+    255,
+    .25
+  );
 }
+
 .exercise-title-wrapper {
   display: flex;
   align-items: flex-start;
@@ -1163,71 +1313,18 @@ const scrollToGroup =
   font-size: 20px;
   line-height: 1.8;
 
-  font-family:
-    "Noto Sans JP",
-    sans-serif;
-}
-.scroll-top-btn {
-
-  position: fixed;
-
-  right: 24px;
-  bottom: 24px;
-
-  width: 56px;
-  height: 56px;
-
-  border: none;
-
-  border-radius: 50%;
-
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
-
-  color: white;
-
-  font-size: 22px;
-
-  cursor: pointer;
-
-  z-index: 999;
-
-  box-shadow:
-    0 8px 20px
-    rgba(
-      79,
-      140,
-      255,
-      .35
-    );
-
-  transition: all .2s ease;
+  font-family: "Noto Sans JP",
+  sans-serif;
 }
 
-.scroll-top-btn:hover {
-
-  transform:
-    translateY(-3px);
-
-  box-shadow:
-    0 12px 28px
-    rgba(
-      79,
-      140,
-      255,
-      .45
-    );
-}
 .tabs-left {
-  display: flex;
-  gap: 10px;
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   overflow-x: auto;
-  scrollbar-width: thin;
 }
+
 .tabs-left::-webkit-scrollbar {
   height: 6px;
 }
@@ -1237,131 +1334,561 @@ const scrollToGroup =
   border-radius: 999px;
 }
 
-.add-exercise-btn {
+.submit-wrap {
   flex-shrink: 0;
-
-  white-space: nowrap;
-  border: none;
-
-  padding: 12px 18px;
-
-  border-radius: 14px;
-
-  background: linear-gradient(
-    135deg,
-    #22c55e,
-    #16a34a
-  );
-
-  color: white;
-
-  font-weight: 700;
-
-  cursor: pointer;
-
-  transition: .2s;
-}
-
-.add-exercise-btn:hover {
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 8px 20px
-    rgba(
-      34,
-      197,
-      94,
-      .3
-    );
-}
-.exercise-tabs {
-  position: sticky;
-  top: 80px;
-
-  z-index: 100;
-
   display: flex;
   align-items: center;
-  gap: 12px;
-
-  margin-bottom: 24px;
-
-  padding: 12px;
-
-  background: white;
-
-  border-radius: 16px;
-
-  box-shadow:
-    0 4px 16px
-    rgba(0,0,0,.06);
-}
-.submit-wrap{
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
+  gap: 10px;
 }
 
-.submit-btn{
+.start-btn {
+  margin-right: 10px;
+}
+
+.submit-btn, .start-btn {
   border: none;
   padding: 12px 18px;
   border-radius: 14px;
   background: white;
   font-weight: 600;
   cursor: pointer;
+  font-size: 18px;
+  background: linear-gradient(135deg, #2563eb, #4f8cff);
+  color: white;
+}
+
+.timer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 2px solid #2563eb;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.time {
+  color: #dc2626;
+  font-size: 26px;
+  font-weight: 800;
+  min-width: 70px;
+  text-align: center;
+}
+
+.timer.warning {
+
+  animation: blink .8s infinite;
+
+}
+
+@keyframes blink {
+
+  0% {
+    background: #fff;
+  }
+
+  50% {
+    background: #fee2e2;
+  }
+
+  100% {
+    background: #fff;
+  }
+
+}
+
+.answer-item.wrong {
+
+  background: #fee2e2;
+
+  border-color: #dc2626;
+
+  color: #dc2626;
+
+}
+
+.result-mask{
+
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(0,0,0,.45);
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  z-index: 9999;
+
+  animation: fadeIn .25s ease;
+
+}
+
+.result-dialog h2{
+
+  margin-bottom:20px;
+
+  font-size:28px;
+
+  font-weight:700;
+
+  color:#1e293b;
+
+}
+
+.result-dialog p{
+
+  margin:12px 0;
+
   font-size:18px;
-  background:linear-gradient(135deg,#2563eb,#4f8cff);
-  color:white;
-}
-.modal-mask{
 
-  position:fixed;
-
-  inset:0;
-
-  background:rgba(0,0,0,.45);
-
-  display:flex;
-
-  justify-content:center;
-
-  align-items:center;
-
-  z-index:9999;
+  color:#475569;
 
 }
 
-.result-modal{
+.result-dialog .score{
 
-  background:white;
+  margin:24px 0;
 
-  width:420px;
+  font-size:42px;
 
-  border-radius:20px;
+  font-weight:800;
 
-  padding:35px;
-
-  text-align:center;
+  color:#2563eb;
 
 }
 
 .close-btn{
 
-  margin-top:20px;
+  margin-top:24px;
 
   width:100%;
 
-  border:none;
-
   padding:12px;
 
-  border-radius:10px;
+  border:none;
 
-  background:#2563eb;
+  border-radius:12px;
+
+  background:linear-gradient(
+    135deg,
+    #2563eb,
+    #4f8cff
+  );
+
+  color:white;
+
+  font-size:17px;
+
+  font-weight:700;
+
+  cursor:pointer;
+
+  transition:.2s;
+
+}
+
+.close-btn:hover{
+
+  transform:translateY(-2px);
+
+  box-shadow:0 10px 20px rgba(37,99,235,.35);
+
+}
+
+@keyframes fadeIn{
+
+  from{
+    opacity:0;
+  }
+
+  to{
+    opacity:1;
+  }
+
+}
+
+@keyframes popup{
+
+  from{
+
+    opacity:0;
+
+    transform:scale(.85);
+
+  }
+
+  to{
+
+    opacity:1;
+
+    transform:scale(1);
+
+  }
+
+}
+
+.result-icon{
+
+  width:90px;
+  height:90px;
+
+  margin:auto;
+
+  border-radius:50%;
+
+  background:#eef4ff;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  font-size:45px;
+
+  margin-bottom:20px;
+
+}
+
+.result-summary{
+
+  display:grid;
+
+  grid-template-columns:repeat(3,1fr);
+
+  gap:15px;
+
+  margin:25px 0;
+
+}
+
+.summary-item{
+
+  background:#f8fafc;
+
+  padding:15px;
+
+  border-radius:15px;
+
+}
+
+.summary-item span{
+
+  display:block;
+
+  color:#64748b;
+
+  margin-bottom:8px;
+
+}
+
+.summary-item strong{
+
+  font-size:28px;
+
+}
+
+.summary-item.correct{
+
+  background:#dcfce7;
+
+  color:#15803d;
+
+}
+
+.summary-item.wrong{
+
+  background:#fee2e2;
+
+  color:#dc2626;
+
+}
+
+@keyframes zoom{
+
+  0%{
+
+    transform:scale(.5);
+
+    opacity:0;
+
+  }
+
+  100%{
+
+    transform:scale(1);
+
+    opacity:1;
+
+  }
+
+}
+
+.score-circle::before{
+
+  content:"";
+
+  position:absolute;
+
+  width:240px;
+
+  height:240px;
+
+  background:rgba(255,255,255,.18);
+
+  border-radius:50%;
+
+  top:-130px;
+
+  left:-40px;
+
+}
+
+
+.score-circle small{
+
+  font-size:18px;
+
+  font-weight:600;
+
+}
+
+.dialog-actions{
+
+  display:flex;
+
+  gap:15px;
+
+  margin-top:25px;
+
+}
+
+.dialog-actions button{
+
+  flex:1;
+
+}
+
+.restart-btn{
+
+  border:none;
+
+  padding:14px;
+
+  border-radius:12px;
+
+  background:#f59e0b;
 
   color:white;
 
   font-weight:700;
 
+  cursor:pointer;
+
+  transition:.2s;
+
 }
+
+.restart-btn:hover{
+
+  background:#d97706;
+
+  transform:translateY(-2px);
+
+}
+
+.close-btn{
+
+  margin-top:0;
+
+}
+.result-dialog{
+
+  width:620px;
+
+  max-width:92vw;
+
+  border-radius:32px;
+
+  padding:40px;
+
+  background:white;
+
+  box-shadow:
+    0 25px 70px rgba(0,0,0,.2);
+
+}
+.result-grid{
+
+  display:grid;
+
+  grid-template-columns:repeat(3,1fr);
+
+  gap:18px;
+
+  margin:30px 0;
+
+}
+.item{
+
+  background:#f8fafc;
+
+  border-radius:18px;
+
+  padding:20px;
+
+  text-align:center;
+  transition:.25s;
+}
+.item:hover{
+
+  transform:translateY(-4px);
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.08);
+
+}
+.score-circle{
+
+  position:relative;
+  overflow:hidden;
+
+  width:170px;
+  height:170px;
+
+  margin:28px auto;
+
+  border-radius:50%;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+
+  color:white;
+
+  font-weight:800;
+
+  box-shadow:
+    0 18px 40px rgba(37,99,235,.35);
+
+  animation:zoom .5s ease;
+
+}
+.progress-bar-custom{
+
+  display:flex;
+
+  height:20px;
+
+  border-radius:999px;
+
+  box-shadow:
+    inset 0 2px 6px rgba(0,0,0,.08);
+
+  overflow:hidden;
+
+  background:#f1f5f9;
+
+  margin-top:20px;
+
+}
+
+.progress-correct{
+
+  background:#22c55e;
+
+  transition:1s;
+  animation:fillGreen 1s ease;
+}
+
+.progress-wrong{
+
+  background:#ef4444;
+
+  transition:1s;
+  animation:fillRed 1s ease;
+}
+.badge{
+
+  display:inline-flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  border-radius:999px;
+
+  font-size:20px;
+
+  letter-spacing:1px;
+
+  padding:12px 28px;
+
+  font-weight:700;
+
+  margin:20px auto;
+
+}
+
+.badge.excellent{
+
+  background:#fef3c7;
+
+  color:#ca8a04;
+
+}
+
+.badge.good{
+
+  background:#dcfce7;
+
+  color:#15803d;
+
+}
+
+.badge.normal{
+
+  background:#fee2e2;
+
+  color:#dc2626;
+
+}
+.score-number{
+
+  font-size:58px;
+
+  font-weight:900;
+
+  line-height:1;
+
+}
+.score-circle span{
+
+  margin-top:8px;
+
+  font-size:18px;
+
+  opacity:.9;
+
+}
+.result-comment{
+
+  margin-top:18px;
+
+  color:#64748b;
+
+  font-size:17px;
+
+  line-height:1.7;
+
+}
+
 </style>
