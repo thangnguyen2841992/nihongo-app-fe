@@ -51,6 +51,13 @@ const routes = [
         component: () =>
           import('@/users/CourseBookDetailView.vue')
       },
+
+      {
+        path: 'course/lesson/:lessonId/exercises',
+        name: 'course-lesson-exercises',
+        component: () =>
+          import('@/users/CourseLessonExerciseView.vue')
+      }
     ]
   },
   {

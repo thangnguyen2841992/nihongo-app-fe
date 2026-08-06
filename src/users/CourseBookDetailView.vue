@@ -564,13 +564,11 @@ onMounted(async () => {
 
 const goToExercisePage =
   () => {
-
     if (!selectedLesson.value) {
       return
     }
-
     router.push({
-      name: "lesson-exercises",
+      name: "course-lesson-exercises",
       params: {
         lessonId:
         selectedLesson.value.lessonId
@@ -845,10 +843,7 @@ const goToExercisePage =
         grammar.grammarId
       ]
     "
-                    class="example-expand"
-                  >
-
-
+                    class="example-expand">
                     <div class="example-topbar">
 
                       <div class="example-count">
@@ -925,37 +920,6 @@ const goToExercisePage =
       </div>
 
     </div>
-
-    <CreateLessonModal
-      v-if="showLessonModal"
-      :book-id="bookId"
-      :book-name="book?.bookName || ''"
-      :lesson="editingLesson"
-      @close="showLessonModal = false"
-      @created="closeLessonModal"
-    />
-
-    <ExampleModal
-      v-if="showExampleModal"
-      :grammar-id="selectedGrammarId!"
-      :example="editingExample"
-      @close="showExampleModal = false"
-      @saved="onExampleSaved"
-    />
-
-    <GrammarModal
-      v-if="showGrammarModal"
-      :lesson-id="
-    selectedLesson?.lessonId || 0
-  "
-      :grammar="editingGrammar"
-      @close="
-    showGrammarModal = false
-  "
-      @saved="
-    onGrammarSaved
-  "
-    />
 
   </div>
 
