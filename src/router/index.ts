@@ -57,7 +57,15 @@ const routes = [
         name: 'course-lesson-exercises',
         component: () =>
           import('@/users/CourseLessonExerciseView.vue')
+      },
+
+      {
+        path: 'users/exercises/history',
+        name: 'user-exercise-history',
+        component: () =>
+          import('@/users/HistoryExercise.vue')
       }
+
     ]
   },
   {

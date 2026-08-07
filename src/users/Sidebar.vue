@@ -7,12 +7,12 @@ const emit = defineEmits(['close'])
   <div :class="['sidebar', { open: isOpen }]">
     <h5 class="text-center mt-3">Menu</h5>
 
-    <router-link to="/">🏠 Trang chủ</router-link>
-    <router-link to="/courses">📚 Khóa học</router-link>
-    <router-link to="/lessons">📝 Bài học</router-link>
-    <router-link to="/vocab">🌐 Từ vựng</router-link>
-    <router-link to="/kanji">🈶 Kanji</router-link>
-    <router-link to="/settings">⚙️ Cài đặt</router-link>
+    <router-link to="/courses">🏠 Trang chủ</router-link>
+    <router-link to="/user/my-courses">📚 Khóa học của tôi</router-link>
+    <router-link :to="{ name: 'user-exercise-history' }">📊 Lịch sử làm bài tập</router-link>
+<!--    <router-link to="/vocab">🌐 Từ vựng</router-link>-->
+<!--    <router-link to="/kanji">🈶 Kanji</router-link>-->
+<!--    <router-link to="/settings">⚙️ Cài đặt</router-link>-->
   </div>
 
   <!-- overlay mobile -->

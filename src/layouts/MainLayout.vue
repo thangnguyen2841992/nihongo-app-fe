@@ -36,7 +36,7 @@ const toggleSidebar = () => isOpen.value = !isOpen.value
     :email="email"
     @toggle="toggleSidebar"
   />
-  <NavbarUser/>
+<!--  <NavbarUser/>-->
   <div class="layout">
     <Sidebar :isOpen="isOpen" @close="isOpen = false"/>
 
@@ -55,6 +55,7 @@ const toggleSidebar = () => isOpen.value = !isOpen.value
 .main-content {
   flex: 1;
   margin-left: 220px;
+  margin-top: 15px;
   padding: 40px 20px 20px;
 }
 
