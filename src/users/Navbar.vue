@@ -5,8 +5,8 @@ import {logout} from "@/services/authState.ts"
 
 const props = defineProps<{
   isLoggedIn: boolean
-  name: string
-  email: string
+  name?: string
+  email?: string
 }>()
 
 const emit =

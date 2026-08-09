@@ -17,6 +17,12 @@ const score = ref<ScoreResult>({
   wrong: 0
 })
 
+interface ExerciseGroup {
+  exerciseTypeId: number
+  exerciseTypeName: string
+  exercises: ExerciseKeyword[]
+}
+
 interface Lesson {
   lessonId: number
   name: string
@@ -52,15 +58,16 @@ interface ExerciseType {
   exerciseTypeId: number
   name: string
 }
-const comment = computed(()=>{
 
-  if(percent.value>=95)
+const comment = computed(() => {
+
+  if (percent.value >= 95)
     return "Hoàn hảo! Bạn đã nắm rất chắc bài học.";
 
-  if(percent.value>=80)
+  if (percent.value >= 80)
     return "Rất tốt! Chỉ còn vài lỗi nhỏ.";
 
-  if(percent.value>=60)
+  if (percent.value >= 60)
     return "Khá ổn. Hãy luyện thêm để đạt điểm cao hơn.";
 
   return "Đừng nản! Làm lại một lần nữa nhé 💪";
@@ -267,8 +274,7 @@ const handleScroll = () => {
     if (firstGroup) {
 
       activeGroupId.value =
-        Number(firstGroup[0])
-
+        firstGroup.exerciseTypeId
     }
 
     return
@@ -294,7 +300,7 @@ const handleScroll = () => {
     if (lastGroup) {
 
       activeGroupId.value =
-        Number(lastGroup[0])
+        lastGroup.exerciseTypeId
 
     }
 
@@ -304,14 +310,10 @@ const handleScroll = () => {
   // Vị trí kích hoạt active
   const triggerLine = 180
 
-  for (
-    const [exerciseTypeId]
-    of groupedExercises.value
-    ) {
-
+  for (const group of groupedExercises.value) {
     const el =
       document.getElementById(
-        `group-${exerciseTypeId}`
+        `group-${group.exerciseTypeId}`
       )
 
     if (!el) {
@@ -327,7 +329,7 @@ const handleScroll = () => {
     ) {
 
       activeGroupId.value =
-        Number(exerciseTypeId)
+        Number(group.exerciseTypeId)
 
       return
     }
@@ -409,13 +411,9 @@ onMounted(async () => {
     fetchExercises(),
     fetchExerciseTypes()
   ])
-  if (
-    groupedExercises.value.length
-  ) {
+  if (groupedExercises.value.length) {
     activeGroupId.value =
-      Number(
-        groupedExercises.value[0]![0]
-      )
+      groupedExercises.value[0]!.exerciseTypeId
   }
   handleScroll()
 
@@ -464,54 +462,27 @@ const goBack = () => {
   router.back()
 }
 
-const groupedExercises =
-  computed(() => {
+const groupedExercises = computed<ExerciseGroup[]>(() => {
+  const groups: Record<number, ExerciseGroup> = {}
 
-    const groups:
-      Record<
-        number,
-        {
-          exerciseTypeName: string
-          exercises: ExerciseKeyword[]
-        }
-      > = {}
-
-    // Tạo trước toàn bộ nhóm
-    exerciseTypes.value.forEach(
-      type => {
-
-        groups[
-          type.exerciseTypeId
-          ] = {
-          exerciseTypeName:
-          type.name,
-          exercises: []
-        }
-      }
-    )
-
-    // Đổ câu hỏi vào nhóm tương ứng
-    exercises.value.forEach(
-      exercise => {
-
-        if (
-          !exercise.exerciseTypeId
-        ) {
-          return
-        }
-
-        groups[
-          exercise.exerciseTypeId
-          ]?.exercises.push(
-          exercise
-        )
-      }
-    )
-
-    return Object.entries(
-      groups
-    )
+  exerciseTypes.value.forEach(type => {
+    groups[type.exerciseTypeId] = {
+      exerciseTypeId: type.exerciseTypeId,
+      exerciseTypeName: type.name,
+      exercises: []
+    }
   })
+
+  exercises.value.forEach(exercise => {
+    if (!exercise.exerciseTypeId) {
+      return
+    }
+
+    groups[exercise.exerciseTypeId]?.exercises.push(exercise)
+  })
+
+  return Object.values(groups)
+})
 const scrollToGroup =
   (exerciseTypeId: number) => {
 
@@ -597,20 +568,17 @@ const scrollToGroup =
       <div class="tabs-left">
 
         <button
-          v-for="
-        ([exerciseTypeId, group], groupIndex)
-        in groupedExercises
-      "
-          :key="exerciseTypeId"
+          v-for="(group, groupIndex) in groupedExercises"
+          :key="group.exerciseTypeId"
           class="exercise-tab"
           :class="{
         active:
         activeGroupId ===
-        Number(exerciseTypeId)
+        Number(group.exerciseTypeId)
       }"
           @click="
         scrollToGroup(
-          Number(exerciseTypeId)
+          Number(group.exerciseTypeId)
         )
       "
         >
@@ -678,24 +646,14 @@ const scrollToGroup =
       >
 
         <div
-          v-for="
-    ([exerciseTypeId, group], groupIndex)
-    in groupedExercises
-  "
-          :key="exerciseTypeId"
-          :id="
-    `group-${exerciseTypeId}`
-  "
-          class="exercise-group"
-        >
-
+          v-for="(group, groupIndex) in groupedExercises"
+          :key="group.exerciseTypeId"
+          :id="`group-${group.exerciseTypeId}`"
+          class="exercise-group">
           <div class="group-header">
-
             📚 Bài {{ groupIndex + 1 }}:
             {{ group.exerciseTypeName }}
-
           </div>
-
           <div
             v-for="
   (exercise, index)
@@ -903,9 +861,9 @@ const scrollToGroup =
         }">
 
         {{
-          percent>=90
+          percent >= 90
             ? 'Xuất sắc'
-            : percent>=70
+            : percent >= 70
               ? 'Tốt'
               : 'Cần cố gắng'
         }}
@@ -931,7 +889,7 @@ const scrollToGroup =
 
           <small>Tổng câu</small>
 
-          <strong>{{score.total}}</strong>
+          <strong>{{ score.total }}</strong>
 
         </div>
 
@@ -939,7 +897,7 @@ const scrollToGroup =
 
           <small>Đúng</small>
 
-          <strong>{{score.correct}}</strong>
+          <strong>{{ score.correct }}</strong>
 
         </div>
 
@@ -947,7 +905,7 @@ const scrollToGroup =
 
           <small>Sai</small>
 
-          <strong>{{score.wrong}}</strong>
+          <strong>{{ score.wrong }}</strong>
 
         </div>
 
@@ -968,7 +926,7 @@ const scrollToGroup =
 
         <div class="progress-text">
 
-          {{percent}}%
+          {{ percent }}%
 
         </div>
 
@@ -1031,28 +989,27 @@ const scrollToGroup =
 }
 
 .exercise-tabs {
-  position:sticky;
-  top:80px;
-  z-index:1000;
+  position: sticky;
+  top: 80px;
+  z-index: 1000;
 
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
 
-  padding:18px 24px;
+  padding: 18px 24px;
 
-  background:#ffffff;
+  background: #ffffff;
 
-  border-radius:22px;
+  border-radius: 22px;
 
-  border:1px solid rgba(37,99,235,.15);
+  border: 1px solid rgba(37, 99, 235, .15);
 
-  box-shadow:
-    0 12px 40px rgba(15,23,42,.12),
-    0 2px 8px rgba(15,23,42,.08);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, .12),
+  0 2px 8px rgba(15, 23, 42, .08);
 
-  margin-bottom:30px;
+  margin-bottom: 30px;
 }
 
 .exercise-tab {
@@ -1410,13 +1367,13 @@ const scrollToGroup =
 
 }
 
-.result-mask{
+.result-mask {
 
   position: fixed;
 
   inset: 0;
 
-  background: rgba(0,0,0,.45);
+  background: rgba(0, 0, 0, .45);
 
   display: flex;
 
@@ -1430,464 +1387,470 @@ const scrollToGroup =
 
 }
 
-.result-dialog h2{
+.result-dialog h2 {
 
-  margin-bottom:20px;
+  margin-bottom: 20px;
 
-  font-size:28px;
+  font-size: 28px;
 
-  font-weight:700;
+  font-weight: 700;
 
-  color:#1e293b;
-
-}
-
-.result-dialog p{
-
-  margin:12px 0;
-
-  font-size:18px;
-
-  color:#475569;
+  color: #1e293b;
 
 }
 
-.result-dialog .score{
+.result-dialog p {
 
-  margin:24px 0;
+  margin: 12px 0;
 
-  font-size:42px;
+  font-size: 18px;
 
-  font-weight:800;
-
-  color:#2563eb;
+  color: #475569;
 
 }
 
-.close-btn{
+.result-dialog .score {
 
-  margin-top:24px;
+  margin: 24px 0;
 
-  width:100%;
+  font-size: 42px;
 
-  padding:12px;
+  font-weight: 800;
 
-  border:none;
+  color: #2563eb;
 
-  border-radius:12px;
+}
 
-  background:linear-gradient(
+.close-btn {
+
+  margin-top: 24px;
+
+  width: 100%;
+
+  padding: 12px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: linear-gradient(
     135deg,
     #2563eb,
     #4f8cff
   );
 
-  color:white;
+  color: white;
 
-  font-size:17px;
+  font-size: 17px;
 
-  font-weight:700;
+  font-weight: 700;
 
-  cursor:pointer;
+  cursor: pointer;
 
-  transition:.2s;
-
-}
-
-.close-btn:hover{
-
-  transform:translateY(-2px);
-
-  box-shadow:0 10px 20px rgba(37,99,235,.35);
+  transition: .2s;
 
 }
 
-@keyframes fadeIn{
+.close-btn:hover {
 
-  from{
-    opacity:0;
-  }
+  transform: translateY(-2px);
 
-  to{
-    opacity:1;
-  }
+  box-shadow: 0 10px 20px rgba(37, 99, 235, .35);
 
 }
 
-@keyframes popup{
+@keyframes fadeIn {
 
-  from{
-
-    opacity:0;
-
-    transform:scale(.85);
-
+  from {
+    opacity: 0;
   }
 
-  to{
-
-    opacity:1;
-
-    transform:scale(1);
-
+  to {
+    opacity: 1;
   }
 
 }
 
-.result-icon{
+@keyframes popup {
 
-  width:90px;
-  height:90px;
+  from {
 
-  margin:auto;
+    opacity: 0;
 
-  border-radius:50%;
-
-  background:#eef4ff;
-
-  display:flex;
-  justify-content:center;
-  align-items:center;
-
-  font-size:45px;
-
-  margin-bottom:20px;
-
-}
-
-.result-summary{
-
-  display:grid;
-
-  grid-template-columns:repeat(3,1fr);
-
-  gap:15px;
-
-  margin:25px 0;
-
-}
-
-.summary-item{
-
-  background:#f8fafc;
-
-  padding:15px;
-
-  border-radius:15px;
-
-}
-
-.summary-item span{
-
-  display:block;
-
-  color:#64748b;
-
-  margin-bottom:8px;
-
-}
-
-.summary-item strong{
-
-  font-size:28px;
-
-}
-
-.summary-item.correct{
-
-  background:#dcfce7;
-
-  color:#15803d;
-
-}
-
-.summary-item.wrong{
-
-  background:#fee2e2;
-
-  color:#dc2626;
-
-}
-
-@keyframes zoom{
-
-  0%{
-
-    transform:scale(.5);
-
-    opacity:0;
+    transform: scale(.85);
 
   }
 
-  100%{
+  to {
 
-    transform:scale(1);
+    opacity: 1;
 
-    opacity:1;
+    transform: scale(1);
 
   }
 
 }
 
-.score-circle::before{
+.result-icon {
 
-  content:"";
+  width: 90px;
+  height: 90px;
 
-  position:absolute;
+  margin: auto;
 
-  width:240px;
+  border-radius: 50%;
 
-  height:240px;
+  background: #eef4ff;
 
-  background:rgba(255,255,255,.18);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-  border-radius:50%;
+  font-size: 45px;
 
-  top:-130px;
+  margin-bottom: 20px;
 
-  left:-40px;
+}
+
+.result-summary {
+
+  display: grid;
+
+  grid-template-columns:repeat(3, 1fr);
+
+  gap: 15px;
+
+  margin: 25px 0;
+
+}
+
+.summary-item {
+
+  background: #f8fafc;
+
+  padding: 15px;
+
+  border-radius: 15px;
+
+}
+
+.summary-item span {
+
+  display: block;
+
+  color: #64748b;
+
+  margin-bottom: 8px;
+
+}
+
+.summary-item strong {
+
+  font-size: 28px;
+
+}
+
+.summary-item.correct {
+
+  background: #dcfce7;
+
+  color: #15803d;
+
+}
+
+.summary-item.wrong {
+
+  background: #fee2e2;
+
+  color: #dc2626;
+
+}
+
+@keyframes zoom {
+
+  0% {
+
+    transform: scale(.5);
+
+    opacity: 0;
+
+  }
+
+  100% {
+
+    transform: scale(1);
+
+    opacity: 1;
+
+  }
+
+}
+
+.score-circle::before {
+
+  content: "";
+
+  position: absolute;
+
+  width: 240px;
+
+  height: 240px;
+
+  background: rgba(255, 255, 255, .18);
+
+  border-radius: 50%;
+
+  top: -130px;
+
+  left: -40px;
 
 }
 
 
-.score-circle small{
+.score-circle small {
 
-  font-size:18px;
+  font-size: 18px;
 
-  font-weight:600;
-
-}
-
-.dialog-actions{
-
-  display:flex;
-
-  gap:15px;
-
-  margin-top:25px;
+  font-weight: 600;
 
 }
 
-.dialog-actions button{
+.dialog-actions {
 
-  flex:1;
+  display: flex;
 
-}
+  gap: 15px;
 
-.restart-btn{
-
-  border:none;
-
-  padding:14px;
-
-  border-radius:12px;
-
-  background:#f59e0b;
-
-  color:white;
-
-  font-weight:700;
-
-  cursor:pointer;
-
-  transition:.2s;
+  margin-top: 25px;
 
 }
 
-.restart-btn:hover{
+.dialog-actions button {
 
-  background:#d97706;
-
-  transform:translateY(-2px);
+  flex: 1;
 
 }
 
-.close-btn{
+.restart-btn {
 
-  margin-top:0;
+  border: none;
 
-}
-.result-dialog{
+  padding: 14px;
 
-  width:620px;
+  border-radius: 12px;
 
-  max-width:92vw;
+  background: #f59e0b;
 
-  border-radius:32px;
+  color: white;
 
-  padding:40px;
+  font-weight: 700;
 
-  background:white;
+  cursor: pointer;
 
-  box-shadow:
-    0 25px 70px rgba(0,0,0,.2);
-
-}
-.result-grid{
-
-  display:grid;
-
-  grid-template-columns:repeat(3,1fr);
-
-  gap:18px;
-
-  margin:30px 0;
-
-}
-.item{
-
-  background:#f8fafc;
-
-  border-radius:18px;
-
-  padding:20px;
-
-  text-align:center;
-  transition:.25s;
-}
-.item:hover{
-
-  transform:translateY(-4px);
-
-  box-shadow:
-    0 10px 30px rgba(0,0,0,.08);
-
-}
-.score-circle{
-
-  position:relative;
-  overflow:hidden;
-
-  width:170px;
-  height:170px;
-
-  margin:28px auto;
-
-  border-radius:50%;
-
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-
-  background:linear-gradient(135deg,#2563eb,#7c3aed);
-
-  color:white;
-
-  font-weight:800;
-
-  box-shadow:
-    0 18px 40px rgba(37,99,235,.35);
-
-  animation:zoom .5s ease;
-
-}
-.progress-bar-custom{
-
-  display:flex;
-
-  height:20px;
-
-  border-radius:999px;
-
-  box-shadow:
-    inset 0 2px 6px rgba(0,0,0,.08);
-
-  overflow:hidden;
-
-  background:#f1f5f9;
-
-  margin-top:20px;
+  transition: .2s;
 
 }
 
-.progress-correct{
+.restart-btn:hover {
 
-  background:#22c55e;
+  background: #d97706;
 
-  transition:1s;
-  animation:fillGreen 1s ease;
-}
-
-.progress-wrong{
-
-  background:#ef4444;
-
-  transition:1s;
-  animation:fillRed 1s ease;
-}
-.badge{
-
-  display:inline-flex;
-
-  align-items:center;
-
-  justify-content:center;
-
-  border-radius:999px;
-
-  font-size:20px;
-
-  letter-spacing:1px;
-
-  padding:12px 28px;
-
-  font-weight:700;
-
-  margin:20px auto;
+  transform: translateY(-2px);
 
 }
 
-.badge.excellent{
+.close-btn {
 
-  background:#fef3c7;
-
-  color:#ca8a04;
+  margin-top: 0;
 
 }
 
-.badge.good{
+.result-dialog {
 
-  background:#dcfce7;
+  width: 620px;
 
-  color:#15803d;
+  max-width: 92vw;
+
+  border-radius: 32px;
+
+  padding: 40px;
+
+  background: white;
+
+  box-shadow: 0 25px 70px rgba(0, 0, 0, .2);
+
+}
+
+.result-grid {
+
+  display: grid;
+
+  grid-template-columns:repeat(3, 1fr);
+
+  gap: 18px;
+
+  margin: 30px 0;
 
 }
 
-.badge.normal{
+.item {
 
-  background:#fee2e2;
+  background: #f8fafc;
 
-  color:#dc2626;
+  border-radius: 18px;
+
+  padding: 20px;
+
+  text-align: center;
+  transition: .25s;
+}
+
+.item:hover {
+
+  transform: translateY(-4px);
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
 
 }
-.score-number{
 
-  font-size:58px;
+.score-circle {
 
-  font-weight:900;
+  position: relative;
+  overflow: hidden;
 
-  line-height:1;
+  width: 170px;
+  height: 170px;
+
+  margin: 28px auto;
+
+  border-radius: 50%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+
+  color: white;
+
+  font-weight: 800;
+
+  box-shadow: 0 18px 40px rgba(37, 99, 235, .35);
+
+  animation: zoom .5s ease;
 
 }
-.score-circle span{
 
-  margin-top:8px;
+.progress-bar-custom {
 
-  font-size:18px;
+  display: flex;
 
-  opacity:.9;
+  height: 20px;
+
+  border-radius: 999px;
+
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .08);
+
+  overflow: hidden;
+
+  background: #f1f5f9;
+
+  margin-top: 20px;
 
 }
-.result-comment{
 
-  margin-top:18px;
+.progress-correct {
 
-  color:#64748b;
+  background: #22c55e;
 
-  font-size:17px;
+  transition: 1s;
+  animation: fillGreen 1s ease;
+}
 
-  line-height:1.7;
+.progress-wrong {
+
+  background: #ef4444;
+
+  transition: 1s;
+  animation: fillRed 1s ease;
+}
+
+.badge {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 999px;
+
+  font-size: 20px;
+
+  letter-spacing: 1px;
+
+  padding: 12px 28px;
+
+  font-weight: 700;
+
+  margin: 20px auto;
+
+}
+
+.badge.excellent {
+
+  background: #fef3c7;
+
+  color: #ca8a04;
+
+}
+
+.badge.good {
+
+  background: #dcfce7;
+
+  color: #15803d;
+
+}
+
+.badge.normal {
+
+  background: #fee2e2;
+
+  color: #dc2626;
+
+}
+
+.score-number {
+
+  font-size: 58px;
+
+  font-weight: 900;
+
+  line-height: 1;
+
+}
+
+.score-circle span {
+
+  margin-top: 8px;
+
+  font-size: 18px;
+
+  opacity: .9;
+
+}
+
+.result-comment {
+
+  margin-top: 18px;
+
+  color: #64748b;
+
+  font-size: 17px;
+
+  line-height: 1.7;
 
 }
 
