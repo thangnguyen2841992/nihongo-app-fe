@@ -22,7 +22,16 @@ interface ExerciseGroup {
   exerciseTypeName: string
   exercises: ExerciseKeyword[]
 }
+const goToHistory = () => {
 
+  router.push({
+    name: "user-exercise-history",
+    params: {
+      lessonId: lessonId.value
+    }
+  })
+
+}
 interface Lesson {
   lessonId: number
   name: string
@@ -552,12 +561,27 @@ const scrollToGroup =
 
       </div>
 
-      <button
-        class="back-btn"
-        @click="goBack"
-      >
-        ← Quay lại
-      </button>
+      <div class="header-actions">
+
+        <!-- Lịch sử làm bài -->
+
+        <button
+          class="history-btn"
+          @click="goToHistory"
+        >
+          📊 Lịch sử làm bài
+        </button>
+
+        <!-- Quay lại -->
+
+        <button
+          class="back-btn"
+          @click="goBack"
+        >
+          ← Quay lại
+        </button>
+
+      </div>
 
     </div>
 
@@ -973,19 +997,6 @@ const scrollToGroup =
   font-weight: 700;
 
   margin: 0;
-}
-
-.back-btn {
-
-  border: none;
-
-  padding: 10px 18px;
-
-  border-radius: 12px;
-
-  background: white;
-
-  font-weight: 600;
 }
 
 .exercise-tabs {
@@ -1853,5 +1864,96 @@ const scrollToGroup =
   line-height: 1.7;
 
 }
+.header-actions {
 
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+}
+
+.history-btn {
+
+  border: none;
+
+  padding: 10px 18px;
+
+  border-radius: 12px;
+
+  background: #eef4ff;
+
+  color: #2563eb;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all .2s ease;
+
+}
+
+.history-btn:hover {
+
+  background: #dbeafe;
+
+  transform: translateY(-1px);
+
+}
+
+.back-btn {
+
+  border: none;
+
+  padding: 10px 18px;
+
+  border-radius: 12px;
+
+  background: white;
+
+  color: #334155;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all .2s ease;
+
+}
+
+.back-btn:hover {
+
+  background: #f1f5f9;
+
+  transform: translateY(-1px);
+
+}
+
+@media (max-width: 768px) {
+
+  .page-header {
+
+    align-items: flex-start !important;
+
+    gap: 15px;
+
+  }
+
+  .header-actions {
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+  }
+
+  .history-btn,
+  .back-btn {
+
+    white-space: nowrap;
+
+  }
+
+}
 </style>

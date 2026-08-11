@@ -60,12 +60,11 @@ const routes = [
       },
 
       {
-        path: 'users/exercises/history',
+        path: 'users/exercises/history/:lessonId',
         name: 'user-exercise-history',
         component: () =>
           import('@/users/HistoryExercise.vue')
       }
-
     ]
   },
   {

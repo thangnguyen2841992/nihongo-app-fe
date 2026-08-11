@@ -579,17 +579,19 @@ const goToExercisePage =
 
 <template>
 
-  <div class="container-fluid py-4">
+  <div class="grammar-page">
+
+    <!-- HEADER -->
 
     <div class="mb-4">
 
       <div
         class="
-    page-header
-    d-flex
-    justify-content-between
-    align-items-start
-  "
+          page-header
+          d-flex
+          justify-content-between
+          align-items-start
+        "
       >
 
         <div>
@@ -608,18 +610,16 @@ const goToExercisePage =
           class="back-btn"
           @click="goBack"
         >
-  <span class="back-icon">
-    ←
-  </span>
-
-          <span>
-    Quay lại
-  </span>
+          ← Quay lại
         </button>
 
       </div>
 
     </div>
+
+
+    <!-- LESSON TABS -->
+
     <div class="lesson-tabs">
 
       <button
@@ -627,297 +627,313 @@ const goToExercisePage =
         :key="lesson.lessonId"
         class="lesson-tab"
         :class="{
-    active:
-      selectedLesson?.lessonId ===
-      lesson.lessonId
-  }"
+          active:
+            selectedLesson?.lessonId ===
+            lesson.lessonId
+        }"
         @click="openLesson(lesson)"
       >
         Bài {{ index + 1 }}
       </button>
 
-
     </div>
-    <div class="row g-4">
 
-      <!-- RIGHT -->
 
-      <div class="col-lg-12">
+    <!-- CONTENT -->
 
-        <div class="grammar-panel">
+    <div class="grammar-panel">
 
-          <div
-            v-if="!selectedLesson"
-            class="empty-state"
-          >
+      <div
+        v-if="!selectedLesson"
+        class="empty-state"
+      >
 
-            <div class="empty-icon">
-              📘
-            </div>
+        <div class="empty-icon">
+          📘
+        </div>
 
-            <div class="empty-title">
-              Chọn bài học
-            </div>
+        <div class="empty-title">
+          Chọn bài học
+        </div>
 
-            <div class="empty-desc">
-              Hãy chọn lesson bên trái
-              để xem grammar.
+        <div class="empty-desc">
+          Hãy chọn lesson để xem grammar.
+        </div>
+
+      </div>
+
+
+      <template v-else>
+
+        <!-- TOP ACTION -->
+
+        <div class="top-actions">
+
+          <div class="selected-lesson-wrapper">
+
+            <div class="selected-lesson">
+              {{ selectedLesson.name }}
             </div>
 
           </div>
 
-          <template v-else>
+          <div class="action-buttons">
 
-            <div class="top-actions">
-
-              <div class="selected-lesson-wrapper">
-
-                <div class="selected-lesson">
-                  {{ selectedLesson.name }}
-                </div>
-
-              </div>
-
-              <div class="action-buttons">
-
-                <button
-                  class="exercise-btn"
-                  @click="
-        goToExercisePage()
-      "
-                >
-                  🎯 Bài tập
-                </button>
-
-              </div>
-
-            </div>
-            <div
-              v-if="grammars.length"
-              class="grammar-tabs"
+            <button
+              class="exercise-btn"
+              @click="goToExercisePage()"
             >
+              🎯 Bài tập
+            </button>
 
-              <button
-                v-for="
-      (grammar,index)
-      in grammars
-    "
-                :key="
-      grammar.grammarId
-    "
-                class="grammar-tab"
-                :class="{
-      active:
-        activeGrammarId ===
-        grammar.grammarId
-    }"
-                @click="
-      scrollToGrammar(
-        grammar.grammarId
-      )
-    "
-              >
-                {{ index + 1 }}.
-                {{ grammar.title }}
-              </button>
-
-            </div>
-            <div
-              v-if="selectedLesson.reading"
-              class="lesson-reading-card"
-            >
-
-              <div class="lesson-reading-header">
-
-                <div class="lesson-reading-icon">
-                  📖
-                </div>
-
-                <div>
-
-                  <div class="lesson-reading-title">
-                    Bài đọc
-                  </div>
-
-                  <div class="lesson-reading-subtitle">
-                    Nội dung luyện đọc của bài học
-                  </div>
-
-                </div>
-
-              </div>
-
-              <div class="lesson-reading-content"  v-html="selectedLesson.reading">
-
-              </div>
-
-            </div>
-
-            <!-- LIST -->
-
-            <div class="grammar-scroll">
-
-              <div
-                v-for="
-    (
-      grammar,
-      index
-    ) in grammars
-  "
-                :key="
-    grammar.grammarId
-  "
-                :id="
-    `grammar-${grammar.grammarId}`
-  "
-                class="grammar-card">
-                <div
-                  class="
-                    grammar-header
-                  ">
-
-                  <div
-                    class="
-                      grammar-title
-                    ">
-
-                    <div
-                      class="
-                        grammar-number
-                      "
-                    >
-                      {{
-                        index + 1
-                      }}
-                    </div>
-
-                    {{
-                      grammar.title
-                    }}
-
-                  </div>
-                </div>
-
-                <div
-                  v-if="grammar.imageUrl"
-                  class="grammar-structure"
-                >
-                  <img
-                    :src="getStructureImage(grammar.imageUrl)"
-                    :alt="grammar.title"
-                    class="grammar-structure-image"
-                    @click="openImage(grammar.imageUrl)">
-                </div>
-                <div
-                  class="grammar-description">
-                  {{
-                    grammar.description
-                  }}
-                </div>
-                <!-- EXAMPLE ACTION -->
-
-                <div class="example-section">
-
-                  <button
-                    class="expand-btn"
-                    @click="
-      toggleExamples(
-        grammar.grammarId
-      )
-    "
-                  >
-                    {{
-                      expandedGrammar[
-                        grammar.grammarId
-                        ]
-                        ? '▼ Ẩn ví dụ'
-                        : '▶ Xem ví dụ'
-                    }}
-                  </button>
-
-                  <!-- EXPAND CONTENT -->
-
-                  <div
-                    v-if="
-      expandedGrammar[
-        grammar.grammarId
-      ]
-    "
-                    class="example-expand">
-                    <div class="example-topbar">
-
-                      <div class="example-count">
-
-                        {{
-                          examples[
-                            grammar.grammarId
-                            ]?.length || 0
-                        }}
-                        ví dụ
-
-                      </div>
-
-                    </div>
-
-                    <!-- LIST -->
-
-                    <template
-                      v-if="
-    examples[
-      grammar.grammarId
-    ]?.length
-  "
-                    >
-
-                      <div
-                        v-for="(example, exampleIndex) in examples[grammar.grammarId]"
-                        :key="example.exampleId"
-                        class="example-card">
-                        <div class="example-row">
-                          <div class="example-number">
-                            {{ exampleIndex + 1 }}
-                          </div>
-
-                          <div class="example-content">
-
-                            <div
-                              class="jp-text"
-                              v-html="example.nihongo"
-                            ></div>
-
-                            <div
-                              class="vn-text"
-                              v-html="example.vietnamese"
-                            ></div>
-
-                          </div>
-
-                        </div>
-
-
-                      </div>
-
-                    </template>
-
-                    <div
-                      v-else
-                      class="empty-example"
-                    >
-                      Chưa có ví dụ
-                    </div>
-
-                  </div>
-
-                </div>
-              </div>
-
-            </div>
-
-          </template>
+          </div>
 
         </div>
 
-      </div>
+
+        <!-- GRAMMAR TABS -->
+
+        <div
+          v-if="grammars.length"
+          class="grammar-tabs"
+        >
+
+          <button
+            v-for="(grammar,index) in grammars"
+            :key="grammar.grammarId"
+            class="grammar-tab"
+            :class="{
+    active:
+      activeGrammarId === grammar.grammarId
+  }"
+            :data-tooltip="`${index + 1}. ${grammar.title}`"
+            @click="
+    scrollToGrammar(
+      grammar.grammarId
+    )
+  "
+          >
+  <span class="grammar-tab-text">
+    {{ index + 1 }}. {{ grammar.title }}
+  </span>
+          </button>
+
+        </div>
+
+
+        <!-- READING -->
+
+        <div
+          v-if="selectedLesson.reading"
+          class="lesson-reading-card"
+        >
+
+          <div class="lesson-reading-header">
+
+            <div class="lesson-reading-icon">
+              📖
+            </div>
+
+            <div>
+
+              <div class="lesson-reading-title">
+                Bài đọc
+              </div>
+
+              <div class="lesson-reading-subtitle">
+                Nội dung luyện đọc của bài học
+              </div>
+
+            </div>
+
+          </div>
+
+          <div
+            class="lesson-reading-content"
+            v-html="selectedLesson.reading"
+          />
+
+        </div>
+
+
+        <!-- GRAMMAR LIST -->
+
+        <div class="grammar-scroll">
+
+          <div
+            v-for="(grammar,index) in grammars"
+            :key="grammar.grammarId"
+            :id="`grammar-${grammar.grammarId}`"
+            class="grammar-card"
+          >
+
+            <!-- TITLE -->
+
+            <div class="grammar-title">
+
+              <div class="grammar-number">
+                {{ index + 1 }}
+              </div>
+
+              <div class="grammar-title-text">
+                {{ grammar.title }}
+              </div>
+
+            </div>
+
+
+            <!-- IMAGE -->
+
+            <div
+              v-if="grammar.imageUrl"
+              class="grammar-structure"
+            >
+
+              <img
+                :src="
+                  getStructureImage(
+                    grammar.imageUrl
+                  )
+                "
+                :alt="grammar.title"
+                class="grammar-structure-image"
+                @click="
+                  openImage(
+                    grammar.imageUrl
+                  )
+                "
+              >
+
+            </div>
+
+
+            <!-- DESCRIPTION -->
+
+            <div class="grammar-description">
+
+              {{ grammar.description }}
+
+            </div>
+
+
+            <!-- EXAMPLES -->
+
+            <div class="example-section">
+
+              <button
+                class="expand-btn"
+                @click="
+                  toggleExamples(
+                    grammar.grammarId
+                  )
+                "
+              >
+
+                {{
+                  expandedGrammar[
+                    grammar.grammarId
+                    ]
+                    ? '▼ Ẩn ví dụ'
+                    : '▶ Xem ví dụ'
+                }}
+
+              </button>
+
+
+              <div
+                v-if="
+                  expandedGrammar[
+                    grammar.grammarId
+                  ]
+                "
+                class="example-expand"
+              >
+
+                <div class="example-topbar">
+
+                  <div class="example-count">
+
+                    {{
+                      examples[
+                        grammar.grammarId
+                        ]?.length || 0
+                    }}
+
+                    ví dụ
+
+                  </div>
+
+                </div>
+
+
+                <!-- EXAMPLE LIST -->
+
+                <template
+                  v-if="
+                    examples[
+                      grammar.grammarId
+                    ]?.length
+                  "
+                >
+
+                  <div
+                    v-for="
+                      (example, exampleIndex)
+                      in examples[
+                        grammar.grammarId
+                      ]
+                    "
+                    :key="example.exampleId"
+                    class="example-card"
+                  >
+
+                    <div class="example-row">
+
+                      <div class="example-number">
+                        {{ exampleIndex + 1 }}
+                      </div>
+
+                      <div class="example-content">
+
+                        <div
+                          class="jp-text"
+                          v-html="
+                            example.nihongo
+                          "
+                        />
+
+                        <div
+                          class="vn-text"
+                          v-html="
+                            example.vietnamese
+                          "
+                        />
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </template>
+
+
+                <div
+                  v-else
+                  class="empty-example"
+                >
+                  Chưa có ví dụ
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </template>
 
     </div>
 
@@ -926,10 +942,6 @@ const goToExercisePage =
 </template>
 
 <style scoped>
-
-.container-fluid {
-  background: #f4f7fb;
-}
 
 .back-btn {
 
@@ -982,91 +994,91 @@ const goToExercisePage =
   transform: translateY(0);
 }
 
-.back-icon {
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  width: 28px;
-
-  height: 28px;
-
-  border-radius: 50%;
-
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
-
-  color: white;
-
-  font-size: 14px;
-
-  font-weight: 700;
-
-  flex-shrink: 0;
-}
-
 .sub-title {
-  color: #7c8595;
+  color: #64748b;
+  font-size: 14px;
 }
 
 .grammar-panel {
-  background: white;
-  border-radius: 24px;
-  padding: 24px;
-}
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 
+  box-sizing: border-box;
 
-.add-btn {
-  border: none;
-  border-radius: 12px;
-}
-
-.add-btn {
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
-
-  color: white;
-  padding: 10px 18px;
+  overflow: hidden;
 }
 
 .top-actions {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+
+  gap: 16px;
+
+  box-sizing: border-box;
 }
 
 .selected-lesson {
   font-size: 22px;
   font-weight: 700;
+
+  color: #1e293b;
+
+  overflow-wrap: anywhere;
 }
 
 .grammar-scroll {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  overflow-x: hidden;
 }
 
+.grammar-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 
+  box-sizing: border-box;
+
+  margin-bottom: 24px;
+
+  padding: 24px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 18px;
+
+  overflow: hidden;
+}
 .empty-state {
+  padding: 70px 20px;
+
   text-align: center;
-  padding: 90px 20px;
+
+  color: #64748b;
 }
-
-.grammar-actions {
-
-  display: flex;
-
-  gap: 10px;
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+.empty-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.empty-desc {
+  margin-top: 6px;
 }
 
 /* =========================
@@ -1075,38 +1087,28 @@ const goToExercisePage =
 
 .example-section {
 
-  margin-top: 28px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* TOGGLE BUTTON */
 
 .expand-btn {
 
-  background: linear-gradient(
-    135deg,
-    #f4f8ff,
-    #eef2ff
-  );
+  border: none;
 
-  color: #3158d8;
+  padding: 9px 14px;
 
-  padding: 12px 18px;
+  border-radius: 10px;
 
-  border-radius: 16px;
+  background: #eef4ff;
 
-  font-weight: 700;
+  color: #2563eb;
 
-  font-size: 14px;
+  font-weight: 600;
 
-  transition: all 0.25s ease;
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 10px;
-
-  border: 1px solid #dce6ff;
+  cursor: pointer;
 }
 
 .expand-btn:hover {
@@ -1131,34 +1133,42 @@ const goToExercisePage =
 
 .example-expand {
 
-  margin-top: 20px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 
-  background: linear-gradient(
-    180deg,
-    #fcfdff,
-    #f7f9ff
-  );
+  margin-top: 14px;
 
-  border-radius: 24px;
+  padding: 16px;
 
-  border: 1px solid #e6ecf7;
+  box-sizing: border-box;
 
-  padding: 24px;
+  border-radius: 14px;
+
+  background: #f8fafc;
+
+  overflow: hidden;
 }
 
 /* CARD */
 
 .example-card {
 
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  padding: 14px;
+
+  margin-bottom: 10px;
+
   background: white;
 
-  border: 1px solid #e9eef7;
+  border: 1px solid #e2e8f0;
 
-  border-radius: 18px;
-
-  padding: 18px 20px;
-
-  transition: all 0.2s ease;
+  border-radius: 12px;
 }
 
 .example-card:hover {
@@ -1179,7 +1189,11 @@ const goToExercisePage =
 
   align-items: flex-start;
 
-  gap: 16px;
+  gap: 12px;
+
+  width: 100%;
+
+  min-width: 0;
 }
 
 .jp-text :deep(*) {
@@ -1232,29 +1246,28 @@ const goToExercisePage =
 
 .jp-text {
 
-  font-family: "Noto Sans JP",
-  sans-serif;
+  font-family:
+    "Noto Sans JP",
+    sans-serif;
 
-  font-size: 24px;
+  font-size: 18px;
 
   line-height: 1.8;
 
-  color: #1a2c73;
+  overflow-wrap: anywhere;
 }
 
 /* VIETNAMESE */
 
 .vn-text {
 
-  position: relative;
+  margin-top: 6px;
 
-  padding-left: 18px;
+  color: #64748b;
 
-  color: #647084;
+  line-height: 1.7;
 
-  line-height: 1.8;
-
-  font-size: 16px;
+  overflow-wrap: anywhere;
 }
 
 .vn-text::before {
@@ -1295,23 +1308,95 @@ const goToExercisePage =
   font-weight: 500;
 }
 
-/* MOBILE */
+/* =========================
+   MOBILE
+========================= */
 
 @media (max-width: 768px) {
 
+  .grammar-page {
+    padding: 16px 12px;
+  }
+
+  .grammar-panel {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+
+    gap: 12px;
+  }
+
+  .top-actions {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .action-buttons {
+    width: 100%;
+  }
+
+  .exercise-btn {
+    width: 100%;
+  }
+
+  .grammar-card {
+    padding: 14px;
+  }
+
+  .grammar-title {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    margin-bottom: 24px;
+    padding: 18px 22px;
+
+    background: #f8faff;
+
+    border: 1px solid #dbe7ff;
+    border-left: 7px solid #4f8cff;
+
+    border-radius: 14px;
+
+    box-shadow:
+      0 6px 20px
+      rgba(37, 99, 235, .08);
+
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.5;
+
+    color: #172554;
+  }
+
+  .lesson-reading-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
+
+    margin-bottom: 24px;
+
+    padding: 24px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 18px;
+
+    overflow: hidden;
+  }
+
   .example-expand {
-
-    padding: 18px;
-  }
-
-  .jp-text {
-
-    font-size: 22px;
-  }
-
-  .vn-text {
-
-    font-size: 15px;
+    padding: 10px;
   }
 
 }
@@ -1322,28 +1407,13 @@ const goToExercisePage =
 
 .example-topbar {
 
-  display: flex;
-
-  justify-content: space-between;
-
-  align-items: center;
-
-  margin-bottom: 22px;
+  margin-bottom: 12px;
 }
 
 .example-count {
 
-  font-size: 14px;
-
   font-weight: 700;
-
-  color: #647084;
-
-  background: #eef3ff;
-
-  padding: 10px 16px;
-
-  border-radius: 999px;
+  color: #475569;
 }
 
 /* ADD BUTTON */
@@ -1420,33 +1490,23 @@ const goToExercisePage =
 
 .example-number {
 
-  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
 
-  width: 34px;
-
-  height: 34px;
-
-  border-radius: 50%;
-
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
-
-  color: white;
+  min-width: 30px;
 
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
-  font-size: 14px;
+  border-radius: 50%;
+
+  background: #eef4ff;
+
+  color: #2563eb;
 
   font-weight: 700;
-
-  margin-top: 2px;
 }
 
 .example-content {
@@ -1454,21 +1514,29 @@ const goToExercisePage =
   flex: 1;
 
   min-width: 0;
+
+  overflow-wrap: anywhere;
+
+  word-break: break-word;
 }
 
 .lesson-tabs {
 
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
   display: flex;
+  gap: 10px;
 
-  align-items: center;
-
-  gap: 12px;
+  margin-bottom: 20px;
 
   overflow-x: auto;
+  overflow-y: hidden;
 
-  padding-bottom: 8px;
+  padding: 4px;
 
-  margin-bottom: 24px;
+  scrollbar-width: thin;
 }
 
 .lesson-tabs::-webkit-scrollbar {
@@ -1485,35 +1553,32 @@ const goToExercisePage =
 
 .lesson-tab {
 
-  background: white;
+  flex-shrink: 0;
 
-  border-radius: 16px;
+  border: none;
 
-  padding: 12px 20px;
+  padding: 10px 18px;
 
-  white-space: nowrap;
+  border-radius: 12px;
+
+  background: #f1f5f9;
+
+  color: #475569;
 
   font-weight: 600;
 
-  color: #556070;
+  cursor: pointer;
 
-  transition: all 0.25s ease;
+  white-space: nowrap;
 
-  flex-shrink: 0;
-  border: none
+  transition: all .2s ease;
 
 }
 
 .lesson-tab:hover {
 
-  transform: translateY(-1px);
-
-  box-shadow: 0 8px 20px rgba(
-    0,
-    0,
-    0,
-    0.06
-  );
+  background: #e0e7ff;
+  color: #4f46e5;
 }
 
 .lesson-tab.active {
@@ -1525,15 +1590,6 @@ const goToExercisePage =
   );
 
   color: white;
-
-  border-color: transparent;
-
-  box-shadow: 0 10px 24px rgba(
-    79,
-    140,
-    255,
-    0.25
-  );
 }
 
 
@@ -1566,138 +1622,117 @@ const goToExercisePage =
 
 .book-title {
 
-  margin: 0;
-
-  font-size: 32px;
-
+  font-size: 28px;
   font-weight: 700;
+  color: #1e293b;
+  overflow-wrap: anywhere;
 }
 
 .grammar-structure {
-
-  height: 140px;
-
-  border-radius: 16px;
-
-  background: #f8fafc;
-
-  border: 1px solid #e2e8f0;
+  width: 100%;
+  max-width: 100%;
 
   display: flex;
-
+  justify-content: center;
   align-items: center;
 
-  justify-content: center;
-
-  padding: 12px;
+  margin: 20px 0;
 
   overflow: hidden;
 }
 
 .grammar-structure-image {
+  display: block;
 
   width: auto;
+  max-width: min(650px, 100%);
 
-  max-width: 500px;
+  height: auto;
 
-  max-height: 120px;
+  object-fit: contain;
 
-  margin: 0 auto;
+  border-radius: 12px;
 
-  display: block;
+  cursor: pointer;
 }
 
 .grammar-structure-image:hover {
-
   transform: scale(1.02);
-}
-
-.grammar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-
-  margin-bottom: 16px;
 }
 
 .grammar-title {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-
-  flex: 1;
-
-  font-size: 22px;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 18px;
+  font-size: 20px;
   font-weight: 700;
-
-  color: #1e293b;
+  color: #1e293b
 }
-
-.grammar-actions {
-  display: flex;
-  gap: 8px;
+.grammar-number {
   flex-shrink: 0;
-}
 
-.edit-btn,
-.delete-btn {
+  flex-shrink: 0;
 
-  width: 40px;
-  height: 40px;
-
-  border: none;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  transition: all .2s ease;
-}
+  border-radius: 50%;
 
-.edit-btn {
-  background: #eef4ff;
-}
+  background: linear-gradient(
+    135deg,
+    #2563eb,
+    #7c3aed
+  );
 
-.edit-btn:hover {
-  background: #dbeafe;
-}
+  color: white;
 
-.delete-btn {
-  background: #fff1f2;
-}
+  font-size: 20px;
+  font-weight: 800;
 
-.delete-btn:hover {
-  background: #ffe4e6;
+  box-shadow:
+    0 6px 16px
+    rgba(37, 99, 235, .3);
+}
+.grammar-title-text {
+  flex: 1;
+  min-width: 0;
+
+  color: #172554;
+
+  font-size: 26px;
+  font-weight: 800;
+
+  line-height: 1.5;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .grammar-description {
 
-  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
 
   margin-top: 18px;
 
-  padding: 20px 24px;
-
-  border-radius: 20px;
-
-  background: #f8fafc;
-
-  border: 1px solid #e2e8f0;
-
-  color: #334155;
-
-  font-family: "Noto Sans JP",
-  "Noto Sans",
-  sans-serif;
-
   font-size: 17px;
+  line-height: 1.9;
 
-  white-space: pre-wrap;
-  font-weight: 500;
+  white-space: normal;
 
-  line-height: 2.1;
+  word-break: break-word;
+
+  overflow-wrap: anywhere;
 }
 
 .grammar-description::before {
@@ -1719,39 +1754,10 @@ const goToExercisePage =
   letter-spacing: .5px;
 }
 
-.lesson-edit-btn {
-
-  border: none;
-
-  background: #eef4ff;
-
-  color: #3158d8;
-
-  padding: 8px 14px;
-
-  border-radius: 12px;
-
-  font-size: 14px;
-
-  font-weight: 600;
-
-  transition: all .2s ease;
-}
-
-.lesson-edit-btn:hover {
-
-  background: #dbeafe;
-
-  transform: translateY(-1px);
-}
-
 .selected-lesson-wrapper {
 
-  display: flex;
-
-  align-items: center;
-
-  gap: 12px;
+  min-width: 0;
+  flex: 1;
 }
 
 /* =========================
@@ -1760,103 +1766,148 @@ const goToExercisePage =
 
 .lesson-reading-card {
 
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
   margin-bottom: 24px;
+  padding: 24px;
 
-  background: linear-gradient(
-    180deg,
-    #ffffff,
-    #fafcff
-  );
-
-  border: 1px solid #e6ecf7;
-
-  border-radius: 24px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
 
   overflow: hidden;
-
-  box-shadow: 0 10px 30px rgba(
-    0,
-    0,
-    0,
-    0.04
-  );
 }
 
 .lesson-reading-header {
 
-  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 
+  display: flex;
   align-items: center;
 
   gap: 14px;
 
-  padding: 20px 24px;
+  margin-bottom: 20px;
 
-  border-bottom: 1px solid #eef2f7;
+  box-sizing: border-box;
 }
 
 .lesson-reading-icon {
-
-  width: 52px;
-
-  height: 52px;
-
-  border-radius: 16px;
-
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
+  width: 42px;
+  height: 42px;
 
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
-  font-size: 24px;
+  border-radius: 12px;
 
-  color: white;
+  background: #e0e7ff;
+
+  font-size: 22px;
+
+  flex-shrink: 0;
 }
 
 .lesson-reading-title {
 
-  font-size: 18px;
-
   font-weight: 700;
-
   color: #1e293b;
 }
 
 .lesson-reading-subtitle {
 
   font-size: 13px;
-
   color: #64748b;
 }
 
 .lesson-reading-content {
 
-  padding: 24px 28px;
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  font-size: 17px;
+  line-height: 1.9;
+  color: #334155;
+
+  overflow-x: hidden;
+  overflow-y: visible;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.lesson-reading-content :deep(*) {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.lesson-reading-content :deep(p),
+.lesson-reading-content :deep(div),
+.lesson-reading-content :deep(span) {
+  max-width: 100%;
+
+  white-space: normal;
+
+  word-break: break-word;
+
+  overflow-wrap: anywhere;
+}
+.lesson-reading-content :deep(table) {
+  width: 100%;
+  max-width: 100%;
+
+  table-layout: fixed;
+
+  border-collapse: collapse;
+
+  overflow-wrap: anywhere;
+}
+.lesson-reading-content :deep(img) {
+  display: block;
+
+  max-width: 100%;
+  height: auto;
+
+  object-fit: contain;
+}
+
+
+/* Nếu có iframe */
+
+.lesson-reading-content :deep(iframe) {
+  max-width: 100%;
+}
+
+
+/* Nếu có pre/code */
+
+.lesson-reading-content :deep(pre) {
+  max-width: 100%;
+
+  overflow-x: auto;
 
   white-space: pre-wrap;
 
-  line-height: 2.2;
-
-  font-size: 18px;
-
-  color: #334155;
-
-  font-family: "Noto Sans JP",
-  "Noto Sans",
-  sans-serif;
-
-  max-height: 500px;
-
-  overflow-y: auto;
+  word-break: break-word;
 }
 
+.lesson-reading-content :deep(code) {
+  max-width: 100%;
+
+  word-break: break-word;
+}
 /* Scroll đẹp */
 
 .lesson-reading-content::-webkit-scrollbar {
@@ -1898,28 +1949,30 @@ const goToExercisePage =
 }
 .action-buttons {
 
-  display: flex;
-
-  gap: 12px;
-
-  align-items: center;
+  flex-shrink: 0;
 }
 
 .exercise-btn {
 
   border: none;
 
-  border-radius: 12px;
-
   padding: 10px 18px;
 
-  background: #f59e0b;
+  border-radius: 12px;
+
+  background: linear-gradient(
+    135deg,
+    #22c55e,
+    #16a34a
+  );
 
   color: white;
 
-  font-weight: 600;
+  font-weight: 700;
 
-  transition: all .25s ease;
+  cursor: pointer;
+
+  white-space: nowrap;
 }
 
 .exercise-btn:hover {
@@ -1935,67 +1988,118 @@ const goToExercisePage =
 }
 .grammar-tabs {
 
-  position: sticky;
-
-  top: 80px;
-
-  z-index: 90;
-
   display: flex;
-
   gap: 10px;
 
+  width: 100%;
+  max-width: 100%;
+
   overflow-x: auto;
+  overflow-y: visible;
 
-  padding: 12px;
+  padding: 10px 4px 14px;
 
-  margin-bottom: 20px;
+  scrollbar-width: thin;
 
-  background: white;
-
-  border-radius: 16px;
-
-  box-shadow:
-    0 4px 16px
-    rgba(0,0,0,.06);
+  /* Quan trọng */
+  min-width: 0;
 }
 
 .grammar-tab {
 
-  border: none;
+  position: relative;
 
-  flex-shrink: 0;
+  flex: 0 1 220px;
+  min-width: 0;
+  max-width: 220px;
 
-  padding: 10px 16px;
+  height: 46px;
 
+  padding: 0 16px;
+
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
 
   background: #f8fafc;
 
-  color: #475569;
+  color: #334155;
 
   font-weight: 600;
 
+  cursor: pointer;
+
   white-space: nowrap;
 
-  transition: .2s;
-}
+  overflow: hidden;
+  text-overflow: ellipsis;
 
+  transition:
+    background .2s,
+    color .2s,
+    border-color .2s,
+    transform .2s;
+
+  flex-shrink: 1;
+}
+.grammar-tab-text {
+  display: block;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .grammar-tab:hover {
 
   background: #eef4ff;
-
+  border-color: #4f8cff;
   color: #2563eb;
-}
 
+  z-index: 1000;
+}
+/* Tooltip full text */
+.grammar-tab:hover::after {
+  content: attr(data-tooltip);
+
+  position: absolute;
+
+  left: 0;
+  top: calc(100% + 8px);
+
+  width: max-content;
+  max-width: 420px;
+
+  padding: 10px 14px;
+
+  border-radius: 10px;
+
+  background: #1e293b;
+  color: white;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+
+  white-space: normal;
+  word-break: break-word;
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, .18);
+
+  pointer-events: none;
+}
 .grammar-tab.active {
 
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
-
+  background: #4f8cff;
   color: white;
 }
+.grammar-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  padding: 20px 24px;
+}
+
 </style>

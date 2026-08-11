@@ -9,7 +9,6 @@ const emit = defineEmits(['close'])
 
     <router-link to="/courses">🏠 Trang chủ</router-link>
     <router-link to="/user/my-courses">📚 Khóa học của tôi</router-link>
-    <router-link :to="{ name: 'user-exercise-history' }">📊 Lịch sử làm bài tập</router-link>
 <!--    <router-link to="/vocab">🌐 Từ vựng</router-link>-->
 <!--    <router-link to="/kanji">🈶 Kanji</router-link>-->
 <!--    <router-link to="/settings">⚙️ Cài đặt</router-link>-->

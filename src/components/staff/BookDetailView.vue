@@ -2044,57 +2044,73 @@ const goToExercisePage =
 }
 .grammar-tabs {
 
-  position: sticky;
-
-  top: 80px;
-
-  z-index: 90;
-
   display: flex;
-
   gap: 10px;
 
+  width: 100%;
+  max-width: 100%;
+
   overflow-x: auto;
+  overflow-y: visible;
 
-  padding: 12px;
+  padding: 10px 4px 14px;
 
-  margin-bottom: 20px;
+  scrollbar-width: thin;
 
-  background: white;
-
-  border-radius: 16px;
-
-  box-shadow:
-    0 4px 16px
-    rgba(0,0,0,.06);
+  /* Quan trọng */
+  min-width: 0;
 }
 
 .grammar-tab {
 
-  border: none;
+  position: relative;
 
-  flex-shrink: 0;
+  flex: 0 1 220px;
+  min-width: 0;
+  max-width: 220px;
 
-  padding: 10px 16px;
+  height: 46px;
 
+  padding: 0 16px;
+
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
 
   background: #f8fafc;
 
-  color: #475569;
+  color: #334155;
 
   font-weight: 600;
 
+  cursor: pointer;
+
   white-space: nowrap;
 
-  transition: .2s;
-}
+  overflow: hidden;
+  text-overflow: ellipsis;
 
+  transition:
+    background .2s,
+    color .2s,
+    border-color .2s,
+    transform .2s;
+
+  flex-shrink: 1;
+}
+.grammar-tab-text {
+  display: block;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .grammar-tab:hover {
 
   background: #eef4ff;
-
+  border-color: #4f8cff;
   color: #2563eb;
+
+  z-index: 1000;
 }
 
 .grammar-tab.active {
