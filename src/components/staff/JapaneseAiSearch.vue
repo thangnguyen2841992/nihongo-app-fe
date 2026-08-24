@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { ref } from 'vue'
-import { gatewayUrl } from '@/api/authApi.ts'
+import { analyzeJapanese as analyzeJapaneseApi } from '@/services/japaneseAiService'
 
 /* =========================================================
    Types
@@ -57,17 +57,7 @@ const analyzeJapanese = async () => {
 
   try {
 
-    const response = await gatewayUrl.post<JapaneseAiResponse>(
-      '/api/ai/japanese',
-      {
-        text: text.value.trim()
-      },
-      {
-        withCredentials: true
-      }
-    )
-
-    result.value = response.data
+    result.value = await analyzeJapaneseApi(text.value)
 
   } catch (e: any) {
 

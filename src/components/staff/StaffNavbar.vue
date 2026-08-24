@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { ref } from "vue"
 import { logout, useAuthState } from "@/services/authState.ts"
 import router from "@/router"
-
+import { analyzeJapanese } from "@/services/japaneseAiService"
 /* =========================
    AUTH STATE
 ========================= */
@@ -11,6 +12,39 @@ const {
   userEmail
 } = useAuthState()
 
+/* =========================
+   SEARCH
+========================= */
+
+const searchKeyword = ref("")
+const searchLoading = ref(false)
+
+const handleSearch = async () => {
+
+  const keyword = searchKeyword.value.trim()
+
+  if (!keyword || searchLoading.value) {
+    return
+  }
+
+  try {
+
+    searchLoading.value = true
+
+    const result = await analyzeJapanese(keyword)
+
+    console.log("Japanese AI result:", result)
+
+  } catch (e) {
+
+    console.error("Japanese AI search error:", e)
+
+  } finally {
+
+    searchLoading.value = false
+
+  }
+}
 /* =========================
    LOGOUT
 ========================= */
@@ -46,6 +80,39 @@ const handleLogout = async () => {
 
       </span>
 
+
+      <!-- =========================
+           SEARCH
+      ========================== -->
+
+      <form
+        class="navbar-search"
+        @submit.prevent="handleSearch"
+      >
+
+        <i class="bi bi-search search-icon"></i>
+
+        <input
+          v-model="searchKeyword"
+          type="text"
+          class="form-control search-input"
+          placeholder="Tìm kiếm..."
+        />
+
+        <button
+          v-if="searchKeyword"
+          type="button"
+          class="search-clear"
+          @click="searchKeyword = ''"
+        >
+
+          <i class="bi bi-x"></i>
+
+        </button>
+
+      </form>
+
+
       <!-- RIGHT -->
       <div class="d-flex align-items-center">
 
@@ -63,6 +130,7 @@ const handleLogout = async () => {
           </span>
 
         </button>
+
 
         <!-- USER DROPDOWN -->
         <div class="dropdown">
@@ -97,6 +165,7 @@ const handleLogout = async () => {
             </div>
 
           </button>
+
 
           <!-- MENU -->
           <ul
@@ -178,6 +247,89 @@ const handleLogout = async () => {
   background: white;
 }
 
+
+/* =========================
+   SEARCH
+========================= */
+
+.navbar-search {
+  position: relative;
+
+  width: 420px;
+
+  margin-left: 50px;
+  margin-right: auto;
+}
+
+.search-input {
+  height: 44px;
+
+  padding-left: 42px;
+  padding-right: 42px;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 12px;
+
+  background: #f8f9fa;
+
+  font-size: 14px;
+
+  transition: 0.2s ease;
+}
+
+.search-input:focus {
+  background: white;
+
+  border-color: #86b7fe;
+
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+
+  left: 15px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  color: #6c757d;
+
+  z-index: 2;
+}
+
+.search-clear {
+  position: absolute;
+
+  right: 10px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  border: none;
+
+  background: transparent;
+
+  color: #6c757d;
+
+  width: 28px;
+  height: 28px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.search-clear:hover {
+  background: #e9ecef;
+}
+
+
 /* =========================
    NOTIFICATION BUTTON
 ========================= */
@@ -198,6 +350,7 @@ const handleLogout = async () => {
 .notification-btn:hover {
   background: #f1f3f5;
 }
+
 
 /* =========================
    USER BUTTON
@@ -222,6 +375,7 @@ const handleLogout = async () => {
 .user-dropdown-btn:hover {
   background: #f8f9fa;
 }
+
 
 /* =========================
    AVATAR
@@ -250,6 +404,7 @@ const handleLogout = async () => {
   flex-shrink: 0;
 }
 
+
 /* =========================
    USER INFO
 ========================= */
@@ -273,6 +428,7 @@ const handleLogout = async () => {
 
   line-height: 1.2;
 }
+
 
 /* =========================
    DROPDOWN
@@ -300,11 +456,28 @@ const handleLogout = async () => {
   background: #f5f7fa;
 }
 
+
 /* =========================
    MOBILE
 ========================= */
 
+@media (max-width: 992px) {
+
+  .navbar-search {
+    width: 280px;
+
+    margin-left: 20px;
+  }
+
+}
+
 @media (max-width: 768px) {
+
+  .navbar-search {
+    width: 200px;
+
+    margin-left: 10px;
+  }
 
   .user-email {
     display: none;
@@ -313,6 +486,45 @@ const handleLogout = async () => {
   .user-dropdown-btn {
     padding: 8px 10px;
   }
+
+}
+
+@media (max-width: 576px) {
+
+  .navbar-search {
+    width: 44px;
+
+    margin-left: auto;
+    margin-right: 10px;
+  }
+
+  .search-input {
+    width: 44px;
+
+    padding-left: 42px;
+    padding-right: 5px;
+
+    cursor: pointer;
+  }
+
+  .search-input::placeholder {
+    color: transparent;
+  }
+
+  .search-input:focus {
+    position: absolute;
+
+    right: 0;
+
+    width: 220px;
+
+    background: white;
+  }
+
+  .search-clear {
+    display: none;
+  }
+
 }
 
 </style>
