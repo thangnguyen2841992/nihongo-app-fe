@@ -3,6 +3,7 @@ import { gatewayUrl } from '@/api/authApi.ts'
 export interface Vocabulary {
   word: string
   reading: string
+  kanjiReading: string
   meaning: string
 }
 
@@ -12,6 +13,7 @@ export interface Grammar {
 }
 
 export interface JapaneseAiResponse {
+  originalText: string
   translation: string
   reading: string
   vocabulary: Vocabulary[]

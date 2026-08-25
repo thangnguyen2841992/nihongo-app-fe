@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from "vue"
-import { logout, useAuthState } from "@/services/authState.ts"
+import {ref} from "vue"
+import {logout, useAuthState} from "@/services/authState.ts"
 import router from "@/router"
-import { analyzeJapanese } from "@/services/japaneseAiService"
+import {analyzeJapanese} from "@/services/japaneseAiService"
 /* =========================
    AUTH STATE
 ========================= */
@@ -30,16 +30,13 @@ const handleSearch = async () => {
   try {
 
     searchLoading.value = true
+    await router.push({
+      path: '/japanese-ai',
+      query: {
+        q: keyword
+      }
+    })
 
-    const result = await analyzeJapanese(keyword)
-
-    console.log("Japanese AI result:", result)
-    sessionStorage.setItem(
-      'japaneseAiResult',
-      JSON.stringify(result)
-    )
-
-    await router.push('/japanese-ai')
   } catch (e) {
 
     console.error("Japanese AI search error:", e)
