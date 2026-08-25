@@ -34,7 +34,12 @@ const handleSearch = async () => {
     const result = await analyzeJapanese(keyword)
 
     console.log("Japanese AI result:", result)
+    sessionStorage.setItem(
+      'japaneseAiResult',
+      JSON.stringify(result)
+    )
 
+    await router.push('/japanese-ai')
   } catch (e) {
 
     console.error("Japanese AI search error:", e)

@@ -113,7 +113,32 @@ const handleKeydown = (event: KeyboardEvent) => {
 <template>
 
   <div class="ai-search">
+    <!-- LOADING OVERLAY -->
+    <div
+      v-if="loading"
+      class="loading-overlay"
+    >
+      <div class="loading-box">
 
+        <div class="loading-icon">
+          🇯🇵
+        </div>
+
+        <div class="loading-text">
+          日本語を解析しています...
+        </div>
+
+        <div class="loading-subtext">
+          AI đang phân tích, vui lòng chờ trong giây lát
+        </div>
+
+        <!-- Loading bar -->
+        <div class="loading-bar">
+          <div class="loading-bar-progress"></div>
+        </div>
+
+      </div>
+    </div>
     <!-- =====================================================
          Search Box
     ====================================================== -->
@@ -174,23 +199,6 @@ const handleKeydown = (event: KeyboardEvent) => {
       {{ error }}
     </div>
 
-
-    <!-- =====================================================
-         Loading
-    ====================================================== -->
-
-    <div
-      v-if="loading"
-      class="loading"
-    >
-
-      <div class="loading-spinner"></div>
-
-      <span>
-        日本語を解析しています...
-      </span>
-
-    </div>
 
 
     <!-- =====================================================
@@ -916,4 +924,152 @@ button:disabled {
 
 }
 
+/* =========================================================
+   Loading Overlay
+========================================================= */
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 99999;
+
+  background: rgba(255, 255, 255, 0.75);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: wait;
+}
+
+
+/* =========================================================
+   Loading Box
+========================================================= */
+
+.loading-box {
+  width: 320px;
+
+  padding: 30px;
+
+  background: #fff;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.15);
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   Loading Icon
+========================================================= */
+
+.loading-icon {
+  font-size: 42px;
+
+  margin-bottom: 15px;
+
+  animation: loading-bounce 1.2s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   Loading Text
+========================================================= */
+
+.loading-text {
+  font-size: 17px;
+
+  font-weight: 600;
+
+  color: #333;
+}
+
+
+/* =========================================================
+   Loading Subtext
+========================================================= */
+
+.loading-subtext {
+  margin-top: 7px;
+
+  font-size: 13px;
+
+  color: #888;
+}
+
+
+/* =========================================================
+   Loading Bar
+========================================================= */
+
+.loading-bar {
+  width: 100%;
+
+  height: 5px;
+
+  margin-top: 22px;
+
+  overflow: hidden;
+
+  border-radius: 10px;
+
+  background: #e9ecef;
+}
+
+
+/* =========================================================
+   Moving Progress
+========================================================= */
+
+.loading-bar-progress {
+  width: 35%;
+
+  height: 100%;
+
+  border-radius: 10px;
+
+  background: #0d6efd;
+
+  animation: loading-progress 1.2s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   Animations
+========================================================= */
+
+@keyframes loading-progress {
+
+  0% {
+    transform: translateX(-120%);
+  }
+
+  50% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(300%);
+  }
+
+}
+
+
+@keyframes loading-bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+
+}
 </style>

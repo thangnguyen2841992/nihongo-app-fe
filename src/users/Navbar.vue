@@ -2,6 +2,7 @@
 import {ref} from "vue"
 import {useRouter} from "vue-router"
 import {logout} from "@/services/authState.ts"
+import {analyzeJapanese} from "@/services/japaneseAiService.ts";
 
 const props = defineProps<{
   isLoggedIn: boolean
@@ -65,6 +66,44 @@ const handleLogout =
       )
     }
   }
+const searchKeyword = ref('')
+const searchLoading = ref(false)
+
+const handleSearch = async () => {
+
+  const keyword = searchKeyword.value.trim()
+
+  if (!keyword || searchLoading.value) {
+    return
+  }
+
+  try {
+
+    searchLoading.value = true
+
+    const result = await analyzeJapanese(keyword)
+
+    // Lưu kết quả để JapaneseAiResult.vue đọc
+    sessionStorage.setItem(
+      'japaneseAiResult',
+      JSON.stringify(result)
+    )
+
+    await router.push('/japanese-ai')
+
+  } catch (e) {
+
+    console.error(
+      'Japanese AI search error:',
+      e
+    )
+
+  } finally {
+
+    searchLoading.value = false
+
+  }
+}
 </script>
 <template>
 
@@ -83,7 +122,39 @@ const handleLogout =
     >
       🇯🇵 NihongoApp
     </div>
+    <form
+      class="ai-search"
+      @submit.prevent="handleSearch"
+    >
+  <span class="search-icon">
+    🔍
+  </span>
 
+      <input
+        v-model="searchKeyword"
+        type="text"
+        placeholder="Tìm kiếm tiếng Nhật..."
+        :disabled="searchLoading"
+      />
+
+      <button
+        v-if="searchKeyword"
+        type="button"
+        class="search-clear"
+        @click="searchKeyword = ''"
+      >
+        ×
+      </button>
+
+      <button
+        type="submit"
+        class="search-ai-btn"
+        :disabled="searchLoading || !searchKeyword.trim()"
+      >
+        <span v-if="searchLoading">...</span>
+        <span v-else>AI</span>
+      </button>
+    </form>
     <div class="ms-auto">
 
       <div
@@ -256,14 +327,11 @@ const handleLogout =
 
   background: white;
 
-  border-bottom:
-    1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
 
   z-index: 1000;
 
-  box-shadow:
-    0 2px 12px
-    rgba(0,0,0,.04);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, .04);
 }
 
 .brand {
@@ -356,9 +424,7 @@ const handleLogout =
 
   overflow: hidden;
 
-  box-shadow:
-    0 10px 30px
-    rgba(0,0,0,.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
 }
 
 .notification-title {
@@ -367,8 +433,7 @@ const handleLogout =
 
   font-weight: 700;
 
-  border-bottom:
-    1px solid #eee;
+  border-bottom: 1px solid #eee;
 }
 
 .notification-item {
@@ -400,12 +465,11 @@ const handleLogout =
 
   border-radius: 50%;
 
-  background:
-    linear-gradient(
-      135deg,
-      #4f8cff,
-      #7b61ff
-    );
+  background: linear-gradient(
+    135deg,
+    #4f8cff,
+    #7b61ff
+  );
 
   color: white;
 
@@ -465,4 +529,100 @@ max-width: 768px
   }
 }
 
+/* =========================
+   AI SEARCH
+========================= */
+
+.ai-search {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  width: 360px;
+
+  margin-left: 40px;
+}
+
+.ai-search input {
+  width: 100%;
+  height: 42px;
+
+  padding: 0 75px 0 40px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  background: #f8fafc;
+
+  outline: none;
+
+  font-size: 14px;
+
+  transition: .2s;
+}
+
+.ai-search input:focus {
+  background: white;
+
+  border-color: #86b7fe;
+
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, .1);
+}
+
+.search-icon {
+  position: absolute;
+
+  left: 14px;
+
+  z-index: 2;
+
+  font-size: 15px;
+}
+
+.search-clear {
+  position: absolute;
+
+  right: 48px;
+
+  width: 25px;
+  height: 25px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: #64748b;
+
+  cursor: pointer;
+}
+
+.search-ai-btn {
+  position: absolute;
+
+  right: 5px;
+
+  height: 32px;
+
+  padding: 0 10px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #2563eb;
+
+  color: white;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.search-ai-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
 </style>

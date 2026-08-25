@@ -18,6 +18,7 @@ import StaffLayout from "@/components/staff/StaffLayout.vue";
 import StaffHome from "@/components/staff/StaffHome.vue";
 import CourseView from "@/users/CourseView.vue";
 import MyCoursesView from "@/users/MyCoursesView.vue";
+import JapaneseAiResult from "@/components/staff/JapaneseAiResult.vue";
 
 const routes = [
   // 🔥 layout chính
@@ -64,6 +65,11 @@ const routes = [
         name: 'user-exercise-history',
         component: () =>
           import('@/users/HistoryExercise.vue')
+      },
+      {
+        path: '/japanese-ai',
+        name: 'JapaneseAi',
+        component: JapaneseAiResult
       }
     ]
   },
