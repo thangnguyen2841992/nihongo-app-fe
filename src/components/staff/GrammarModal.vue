@@ -8,7 +8,7 @@ import {
 
 import axios from "axios"
 
-import {gatewayUrl} from "@/api/authApi"
+import { gatewayUrl } from "@/api/authApi"
 
 interface Grammar {
   grammarId: number
@@ -36,17 +36,44 @@ const imageFile =
 const imagePreview =
   ref("")
 
+const isHoveringUpload =
+  ref(false)
+
+/**
+ * Loading state
+ */
+const isSaving =
+  ref(false)
+
 const grammarForm = ref({
   title: "",
   description: "",
   imageUrl: ""
 })
-const isHoveringUpload =
-  ref(false)
 
+/**
+ * Cleanup object URL
+ */
+const revokePreviewUrl = () => {
+
+  if (
+    imagePreview.value &&
+    imagePreview.value.startsWith("blob:")
+  ) {
+    URL.revokeObjectURL(
+      imagePreview.value
+    )
+  }
+}
+
+/**
+ * Load grammar data when editing
+ */
 watch(
   () => props.grammar,
   grammar => {
+
+    revokePreviewUrl()
 
     if (grammar) {
 
@@ -60,6 +87,8 @@ watch(
 
       imagePreview.value =
         grammar.imageUrl || ""
+
+      imageFile.value = null
 
     } else {
 
@@ -78,13 +107,29 @@ watch(
     immediate: true
   }
 )
+
+/**
+ * Open file picker
+ */
 const openFilePicker = () => {
+
+  if (isSaving.value) {
+    return
+  }
+
   fileInputRef.value?.click()
 }
 
+/**
+ * Handle file selection
+ */
 const handleFile = (
   e: Event
 ) => {
+
+  if (isSaving.value) {
+    return
+  }
 
   const target =
     e.target as HTMLInputElement
@@ -96,11 +141,17 @@ const handleFile = (
     return
   }
 
+  revokePreviewUrl()
+
   imageFile.value = file
 
   imagePreview.value =
     URL.createObjectURL(file)
 }
+
+/**
+ * Upload image to Cloudinary
+ */
 const uploadImage = async (
   file: File
 ) => {
@@ -127,14 +178,29 @@ const uploadImage = async (
   return res.data.secure_url
 }
 
+/**
+ * Save grammar
+ */
 const saveGrammar =
   async () => {
 
+    /**
+     * Prevent double click
+     */
+    if (isSaving.value) {
+      return
+    }
+
     try {
+
+      isSaving.value = true
 
       let imageUrl =
         grammarForm.value.imageUrl
 
+      /**
+       * Upload new image if selected
+       */
       if (imageFile.value) {
 
         imageUrl =
@@ -157,53 +223,77 @@ const saveGrammar =
         props.lessonId
       }
 
+      /**
+       * Update grammar
+       */
       if (props.grammar) {
 
-        const res =  await gatewayUrl.put(
-          "/api/staff/grammars",
-          {
-            grammarId:
-            props.grammar
-              .grammarId,
+        const res =
+          await gatewayUrl.put(
+            "/api/staff/grammars",
+            {
+              grammarId:
+              props.grammar
+                .grammarId,
 
-            ...payload
-          }
-        )
+              ...payload
+            }
+          )
 
         emit(
           "saved",
           res.data.grammarId
         )
 
-      } else {
+      }
 
-        const res =  await gatewayUrl.post(
-          "/api/staff/grammars",
-          payload
-        )
+      /**
+       * Create grammar
+       */
+      else {
+
+        const res =
+          await gatewayUrl.post(
+            "/api/staff/grammars",
+            payload
+          )
+
         emit(
           "saved",
           res.data.grammarId
         )
       }
 
-
-
     } catch (e) {
 
-      console.error(e)
+      console.error(
+        "Save grammar error:",
+        e
+      )
 
       alert(
         "Lưu grammar thất bại"
       )
+
+    } finally {
+
+      /**
+       * Always unlock button
+       * even when API/upload fails
+       */
+      isSaving.value = false
     }
   }
 
+/**
+ * Handle paste image
+ */
 const handlePaste = (
   e: ClipboardEvent
 ) => {
 
   if (
+    isSaving.value ||
     !isHoveringUpload.value
   ) {
     return
@@ -216,7 +306,9 @@ const handlePaste = (
     return
   }
 
-  for (const item of items) {
+  for (
+    const item of items
+    ) {
 
     if (
       item.type.startsWith(
@@ -231,7 +323,10 @@ const handlePaste = (
         continue
       }
 
-      imageFile.value = file
+      revokePreviewUrl()
+
+      imageFile.value =
+        file
 
       imagePreview.value =
         URL.createObjectURL(
@@ -245,13 +340,24 @@ const handlePaste = (
   }
 }
 
+/**
+ * Prevent closing while saving
+ */
+const closeModal = () => {
+
+  if (isSaving.value) {
+    return
+  }
+
+  emit("close")
+}
+
 onMounted(() => {
 
   window.addEventListener(
     "paste",
     handlePaste
   )
-
 })
 
 onBeforeUnmount(() => {
@@ -261,6 +367,7 @@ onBeforeUnmount(() => {
     handlePaste
   )
 
+  revokePreviewUrl()
 })
 </script>
 
@@ -269,6 +376,22 @@ onBeforeUnmount(() => {
   <div class="modal-backdrop">
 
     <div class="grammar-modal">
+
+      <!-- ================================= -->
+      <!-- LOADING BAR -->
+      <!-- ================================= -->
+
+      <div
+        v-if="isSaving"
+        class="loading-bar"
+      >
+        <div class="loading-bar-progress"></div>
+      </div>
+
+
+      <!-- ================================= -->
+      <!-- HEADER -->
+      <!-- ================================= -->
 
       <div class="modal-header">
 
@@ -282,18 +405,30 @@ onBeforeUnmount(() => {
 
         <button
           class="close-btn"
-          @click="emit('close')"
+          :disabled="isSaving"
+          @click="closeModal"
         >
           ✕
         </button>
 
       </div>
 
+
+      <!-- ================================= -->
+      <!-- TITLE -->
+      <!-- ================================= -->
+
       <input
         v-model="grammarForm.title"
         class="form-control mb-3"
         placeholder="Tiêu đề grammar"
+        :disabled="isSaving"
       >
+
+
+      <!-- ================================= -->
+      <!-- IMAGE UPLOAD -->
+      <!-- ================================= -->
 
       <div class="image-upload-section">
 
@@ -306,21 +441,29 @@ onBeforeUnmount(() => {
           type="file"
           accept="image/*"
           hidden
+          :disabled="isSaving"
           @change="handleFile"
         >
 
         <div
           class="upload-card"
+          :class="{
+            'upload-disabled':
+              isSaving
+          }"
           @mouseenter="
-    isHoveringUpload = true
-  "
+            isHoveringUpload = true
+          "
           @mouseleave="
-    isHoveringUpload = false
-  "
+            isHoveringUpload = false
+          "
           @click="openFilePicker"
         >
 
-          <template v-if="!imagePreview">
+          <!-- Empty -->
+          <template
+            v-if="!imagePreview"
+          >
 
             <div class="upload-placeholder">
 
@@ -340,6 +483,8 @@ onBeforeUnmount(() => {
 
           </template>
 
+
+          <!-- Preview -->
           <template v-else>
 
             <img
@@ -351,6 +496,7 @@ onBeforeUnmount(() => {
             <button
               type="button"
               class="change-image-btn"
+              :disabled="isSaving"
               @click.stop="openFilePicker"
             >
               ✏️
@@ -362,6 +508,11 @@ onBeforeUnmount(() => {
 
       </div>
 
+
+      <!-- ================================= -->
+      <!-- DESCRIPTION -->
+      <!-- ================================= -->
+
       <textarea
         v-model="
           grammarForm.description
@@ -369,22 +520,48 @@ onBeforeUnmount(() => {
         rows="4"
         class="form-control mt-3"
         placeholder="Mô tả"
+        :disabled="isSaving"
       />
+
+
+      <!-- ================================= -->
+      <!-- ACTIONS -->
+      <!-- ================================= -->
 
       <div class="modal-actions">
 
         <button
           class="cancel-btn"
-          @click="emit('close')"
+          :disabled="isSaving"
+          @click="closeModal"
         >
           Hủy
         </button>
 
+
         <button
           class="save-btn"
+          :class="{
+            'save-loading':
+              isSaving
+          }"
+          :disabled="isSaving"
           @click="saveGrammar"
         >
-          Lưu
+
+          <span
+            v-if="isSaving"
+            class="spinner"
+          ></span>
+
+          <span>
+            {{
+              isSaving
+                ? "Đang lưu..."
+                : "Lưu"
+            }}
+          </span>
+
         </button>
 
       </div>
@@ -394,66 +571,151 @@ onBeforeUnmount(() => {
   </div>
 
 </template>
+
 <style>
-.toolbar {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 14px;
-}
 
-.jp-formula pre {
-
-  margin: 0;
-
-  font-size: 62px;
-
-  line-height: 1.5;
-
-  white-space: pre;
-
-  font-family: "Noto Sans JP",
-  monospace;
-
-  color: #1d3896;
-}
+/* =========================================
+   MODAL
+========================================= */
 
 .modal-backdrop {
+
   padding: 16px;
+
   position: fixed;
+
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+
+  background:
+    rgba(
+      15,
+      23,
+      42,
+      0.45
+    );
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 
   z-index: 9999;
 
-  backdrop-filter: blur(6px);
+  backdrop-filter:
+    blur(6px);
 }
 
 .grammar-modal {
+
+  position: relative;
+
   display: flex;
+
   flex-direction: column;
 
-  width: min(900px, calc(100vw - 32px));
-  max-height: calc(100vh - 32px);
+  width:
+    min(
+      900px,
+      calc(100vw - 32px)
+    );
+
+  max-height:
+    calc(100vh - 32px);
 
   background: white;
+
   border-radius: 24px;
 
   padding: 24px;
+
+  overflow: hidden;
 }
 
+
+/* =========================================
+   LOADING BAR
+========================================= */
+
+.loading-bar {
+
+  position: absolute;
+
+  top: 0;
+
+  left: 0;
+
+  right: 0;
+
+  height: 4px;
+
+  overflow: hidden;
+
+  background:
+    #e2e8f0;
+
+  z-index: 100;
+}
+
+.loading-bar-progress {
+
+  width: 40%;
+
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      #4f8cff,
+      #7b61ff,
+      #4f8cff
+    );
+
+  animation:
+    loadingProgress
+    1.2s
+    ease-in-out
+    infinite;
+}
+
+@keyframes loadingProgress {
+
+  0% {
+    transform:
+      translateX(-120%);
+  }
+
+  50% {
+    transform:
+      translateX(120%);
+  }
+
+  100% {
+    transform:
+      translateX(300%);
+  }
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
 .modal-header {
+
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+
+  justify-content:
+    space-between;
+
+  align-items:
+    center;
 
   margin-bottom: 24px;
 }
 
 .modal-header h4 {
+
   margin: 0;
 
   font-size: 24px;
@@ -464,194 +726,95 @@ onBeforeUnmount(() => {
 }
 
 .close-btn {
+
   width: 42px;
+
   height: 42px;
 
   border: none;
 
   border-radius: 12px;
 
-  background: #f1f5f9;
+  background:
+    #f1f5f9;
 
-  color: #475569;
+  color:
+    #475569;
 
   font-size: 18px;
 
-  transition: all 0.2s ease;
+  transition:
+    all 0.2s ease;
 }
 
-.close-btn:hover {
-  background: #e2e8f0;
+.close-btn:hover:not(:disabled) {
+
+  background:
+    #e2e8f0;
 }
+
+.close-btn:disabled {
+
+  opacity: 0.5;
+
+  cursor:
+    not-allowed;
+}
+
+
+/* =========================================
+   FORM
+========================================= */
 
 .form-control {
+
   border-radius: 16px;
 
-  border: 1px solid #dbe3ee;
+  border:
+    1px solid
+    #dbe3ee;
 
-  padding: 12px 16px;
+  padding:
+    12px 16px;
+
+  transition:
+    all 0.2s ease;
 }
 
 .form-control:focus {
-  box-shadow: 0 0 0 4px rgba(
-    79,
-    140,
-    255,
-    0.1
-  );
 
-  border-color: #4f8cff;
+  box-shadow:
+    0 0 0 4px
+    rgba(
+      79,
+      140,
+      255,
+      0.1
+    );
+
+  border-color:
+    #4f8cff;
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
+.form-control:disabled {
 
-  gap: 12px;
+  background:
+    #f8fafc;
 
-  margin-top: 24px;
+  cursor:
+    not-allowed;
+
+  opacity:
+    0.7;
 }
 
-.cancel-btn {
-  border: none;
 
-  padding: 12px 22px;
-
-  border-radius: 14px;
-
-  background: #eef2f7;
-
-  color: #475569;
-
-  font-weight: 700;
-}
-
-.cancel-btn:hover {
-  background: #e2e8f0;
-}
-
-.save-btn {
-  border: none;
-
-  padding: 12px 22px;
-
-  border-radius: 14px;
-
-  background: linear-gradient(
-    135deg,
-    #4f8cff,
-    #7b61ff
-  );
-
-  color: white;
-
-  font-weight: 700;
-
-  box-shadow: 0 10px 24px rgba(
-    79,
-    140,
-    255,
-    0.25
-  );
-}
-
-.save-btn:hover {
-  transform: translateY(-1px);
-}
-
-@media (max-width: 768px) {
-  .grammar-modal {
-    width: 96vw;
-
-    padding: 18px;
-  }
-
-  .modal-actions {
-    flex-direction: column;
-  }
-
-  .save-btn,
-  .cancel-btn {
-    width: 100%;
-  }
-}
+/* =========================================
+   IMAGE UPLOAD
+========================================= */
 
 .image-upload-section {
-  margin-bottom: 24px;
-}
 
-.upload-label {
-
-  display: block;
-
-  margin-bottom: 12px;
-
-  font-size: 15px;
-
-  font-weight: 600;
-
-  color: #334155;
-}
-
-.upload-card:hover {
-
-  border-color: #4f8cff;
-
-  background: #f8fbff;
-}
-
-.upload-placeholder {
-
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: center;
-
-  justify-content: center;
-
-  height: 260px;
-
-  text-align: center;
-}
-
-.upload-icon {
-
-  font-size: 56px;
-
-  margin-bottom: 12px;
-}
-
-.upload-title {
-
-  font-size: 18px;
-
-  font-weight: 700;
-
-  color: #1e293b;
-}
-
-.upload-subtitle {
-
-  margin-top: 6px;
-
-  color: #94a3b8;
-
-  font-size: 14px;
-}
-
-.preview-image {
-
-  max-height: 160px;
-
-  width: auto;
-
-  max-width: 100%;
-
-  object-fit: contain;
-}
-
-.image-upload-section {
   margin-bottom: 24px;
 }
 
@@ -676,27 +839,50 @@ onBeforeUnmount(() => {
 
   min-height: 180px;
 
-  border: 2px dashed #dbe3ee;
+  border:
+    2px dashed
+    #dbe3ee;
 
   border-radius: 18px;
 
-  background: #fafcff;
+  background:
+    #fafcff;
 
   cursor: pointer;
 
-  transition: all .2s ease;
+  transition:
+    all .2s ease;
 
   overflow: hidden;
 
   outline: none;
 
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
 }
 
 .upload-card:hover {
 
-  border-color: #4f8cff;
+  border-color:
+    #4f8cff;
 
-  background: #f8fbff;
+  background:
+    #f8fbff;
+}
+
+.upload-card.upload-disabled {
+
+  cursor:
+    not-allowed;
+
+  opacity:
+    0.65;
+
+  pointer-events:
+    none;
 }
 
 .upload-placeholder {
@@ -712,6 +898,8 @@ onBeforeUnmount(() => {
   min-height: 220px;
 
   width: 100%;
+
+  text-align: center;
 }
 
 .upload-icon {
@@ -727,25 +915,35 @@ onBeforeUnmount(() => {
 
   font-weight: 700;
 
-  color: #1e293b;
+  color:
+    #1e293b;
 }
 
 .upload-subtitle {
 
   margin-top: 6px;
 
-  color: #94a3b8;
+  color:
+    #94a3b8;
 
   font-size: 13px;
 }
 
+
+/* =========================================
+   IMAGE PREVIEW
+========================================= */
+
 .preview-image {
+
   display: block;
 
   width: auto;
+
   height: auto;
 
   max-width: 100%;
+
   max-height: 40vh;
 
   margin: auto;
@@ -753,45 +951,10 @@ onBeforeUnmount(() => {
   object-fit: contain;
 }
 
-.change-image-btn {
 
-  position: absolute;
-
-  top: 10px;
-
-  right: 10px;
-
-  border: none;
-
-  border-radius: 10px;
-
-  padding: 8px 12px;
-
-  background: rgba(
-    255,
-    255,
-    255,
-    0.96
-  );
-
-  font-size: 13px;
-
-  font-weight: 600;
-
-  color: #334155;
-
-  box-shadow:
-    0 4px 12px rgba(
-      0,
-      0,
-      0,
-      0.12
-    );
-
-  transition: all .2s ease;
-
-  z-index: 10;
-}
+/* =========================================
+   CHANGE IMAGE
+========================================= */
 
 .change-image-btn {
 
@@ -809,7 +972,8 @@ onBeforeUnmount(() => {
 
   border-radius: 50%;
 
-  background: #2563eb;
+  background:
+    #2563eb;
 
   color: white;
 
@@ -822,24 +986,229 @@ onBeforeUnmount(() => {
   justify-content: center;
 
   box-shadow:
-    0 8px 20px rgba(
+    0 8px 20px
+    rgba(
       37,
       99,
       235,
       0.35
     );
 
+  transition:
+    all .2s ease;
+
   z-index: 20;
 }
 
-.upload-card:focus {
-  border-color: #4f8cff;
-  box-shadow: 0 0 0 4px rgba(
-    79,
-    140,
-    255,
-    0.15
-  );
+.change-image-btn:hover:not(:disabled) {
+
+  transform:
+    scale(1.05);
+}
+
+.change-image-btn:disabled {
+
+  cursor:
+    not-allowed;
+
+  opacity:
+    0.5;
+}
+
+
+/* =========================================
+   ACTIONS
+========================================= */
+
+.modal-actions {
+
+  display: flex;
+
+  justify-content:
+    flex-end;
+
+  gap: 12px;
+
+  margin-top: 24px;
+}
+
+.cancel-btn {
+
+  border: none;
+
+  padding:
+    12px 22px;
+
+  border-radius:
+    14px;
+
+  background:
+    #eef2f7;
+
+  color:
+    #475569;
+
+  font-weight: 700;
+
+  transition:
+    all .2s ease;
+}
+
+.cancel-btn:hover:not(:disabled) {
+
+  background:
+    #e2e8f0;
+}
+
+.cancel-btn:disabled {
+
+  opacity:
+    0.5;
+
+  cursor:
+    not-allowed;
+}
+
+
+/* =========================================
+   SAVE BUTTON
+========================================= */
+
+.save-btn {
+
+  border: none;
+
+  padding:
+    12px 22px;
+
+  border-radius:
+    14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #4f8cff,
+      #7b61ff
+    );
+
+  color: white;
+
+  font-weight: 700;
+
+  box-shadow:
+    0 10px 24px
+    rgba(
+      79,
+      140,
+      255,
+      0.25
+    );
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 9px;
+
+  min-width: 110px;
+
+  transition:
+    all .2s ease;
+}
+
+.save-btn:hover:not(:disabled) {
+
+  transform:
+    translateY(-1px);
+}
+
+.save-btn:disabled {
+
+  cursor:
+    not-allowed;
+
+  opacity:
+    0.75;
+
+  transform:
+    none;
+}
+
+.save-btn.save-loading {
+
+  cursor:
+    wait;
+}
+
+
+/* =========================================
+   SPINNER
+========================================= */
+
+.spinner {
+
+  width: 16px;
+
+  height: 16px;
+
+  border:
+    2px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.4
+    );
+
+  border-top-color:
+    white;
+
+  border-radius:
+    50%;
+
+  animation:
+    spinnerRotate
+    .7s
+    linear
+    infinite;
+}
+
+@keyframes spinnerRotate {
+
+  to {
+
+    transform:
+      rotate(360deg);
+  }
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 768px) {
+
+  .grammar-modal {
+
+    width: 96vw;
+
+    padding: 18px;
+  }
+
+  .modal-actions {
+
+    flex-direction:
+      column;
+  }
+
+  .save-btn,
+  .cancel-btn {
+
+    width: 100%;
+  }
 }
 
 </style>
