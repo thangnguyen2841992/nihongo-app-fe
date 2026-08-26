@@ -317,7 +317,31 @@ const isBooksLoading = (
         </div>
 
       </button>
+      <!-- MONITORING -->
+      <button
+        class="menu-item"
+        :class="{
+    active: isActive('/staff/monitoring')
+  }"
+        @click="
+    go('/staff/monitoring')
+  "
+      >
 
+        <div>
+
+          <i
+            class="
+        bi bi-speedometer2
+        me-2
+      "
+          ></i>
+
+          Monitoring Server
+
+        </div>
+
+      </button>
       <!-- CREATE BOOK -->
       <button
         class="menu-item"

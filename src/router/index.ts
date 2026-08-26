@@ -19,6 +19,7 @@ import StaffHome from "@/components/staff/StaffHome.vue";
 import CourseView from "@/users/CourseView.vue";
 import MyCoursesView from "@/users/MyCoursesView.vue";
 import JapaneseAiResult from "@/components/staff/JapaneseAiResult.vue";
+import ServerMonitoring from "@/components/staff/ServerMonitoring.vue";
 
 const routes = [
   // 🔥 layout chính
@@ -139,6 +140,11 @@ const routes = [
         name: 'lesson-exercises',
         component: () =>
           import('@/components/staff/LessonExerciseView.vue')
+      },
+      {
+        path: 'monitoring',
+        name: 'staff-monitoring',
+        component: ServerMonitoring
       }
     ]
   }
