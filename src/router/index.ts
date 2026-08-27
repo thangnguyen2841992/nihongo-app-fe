@@ -20,6 +20,7 @@ import CourseView from "@/users/CourseView.vue";
 import MyCoursesView from "@/users/MyCoursesView.vue";
 import JapaneseAiResult from "@/components/staff/JapaneseAiResult.vue";
 import ServerMonitoring from "@/components/staff/ServerMonitoring.vue";
+import RegisterVps from "@/components/staff/monitor/RegisterVps.vue";
 
 const routes = [
   // 🔥 layout chính
@@ -145,6 +146,13 @@ const routes = [
         path: 'monitoring',
         name: 'staff-monitoring',
         component: ServerMonitoring
+      },
+
+      // 🔥 Đăng ký VPS
+      {
+        path: 'monitoring/vps/register',
+        name: 'monitor-vps-register',
+        component: RegisterVps
       }
     ]
   }

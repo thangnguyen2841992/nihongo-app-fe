@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue"
 import { useRouter, useRoute } from "vue-router"
-import {gatewayUrl} from "@/api/authApi.ts"
+import { gatewayUrl } from "@/api/authApi.ts"
 
 /* =========================
    ROUTER
 ========================= */
 
 const router = useRouter()
-
 const route = useRoute()
+
 
 /* =========================
    INTERFACES
@@ -36,6 +36,7 @@ interface Level {
   levelName: string
 }
 
+
 /* =========================
    STATE
 ========================= */
@@ -49,29 +50,49 @@ const levels = ref<Level[]>([])
 const types = ref<Type[]>([])
 
 /*
-  expand level
-*/
+ * Monitoring menu
+ *
+ * Tự mở nếu URL hiện tại thuộc:
+ *
+ * /staff/monitoring
+ * /staff/monitoring/...
+ */
+const showMonitoring = ref(
+  route.path.startsWith(
+    "/staff/monitoring"
+  )
+)
+
+
+/*
+ * expand level
+ */
 const expandedLevels =
   ref<Record<number, boolean>>({})
 
+
 /*
-  expand type
-  key = levelId-typeId
-*/
+ * expand type
+ *
+ * key = levelId-typeId
+ */
 const expandedTypes =
   ref<Record<string, boolean>>({})
 
+
 /*
-  cache books
-*/
+ * cache books
+ */
 const booksMap =
   ref<Record<string, Book[]>>({})
 
+
 /*
-  loading books
-*/
+ * loading books
+ */
 const loadingBooks =
   ref<Record<string, boolean>>({})
+
 
 /* =========================
    FETCH INITIAL DATA
@@ -95,6 +116,7 @@ onMounted(async () => {
       gatewayUrl.get(
         "/api/staff/types"
       )
+
     ])
 
     levels.value =
@@ -109,17 +131,24 @@ onMounted(async () => {
       expandedLevels.value[
         level.levelId
         ] = false
+
     })
 
   } catch (e) {
 
-    console.error(e)
+    console.error(
+      "Load sidebar data error:",
+      e
+    )
 
   } finally {
 
     loading.value = false
+
   }
+
 })
+
 
 /* =========================
    NAVIGATION
@@ -130,14 +159,48 @@ const go = (
 ) => {
 
   router.push(path)
+
 }
+
 
 const isActive = (
   path: string
 ) => {
 
   return route.path === path
+
 }
+
+
+/* =========================
+   MONITORING
+========================= */
+
+const toggleMonitoring = () => {
+
+  showMonitoring.value =
+    !showMonitoring.value
+
+}
+
+
+/*
+ * Monitoring menu active
+ *
+ * true khi đang ở:
+ *
+ * /staff/monitoring
+ * /staff/monitoring/vps/register
+ * /staff/monitoring/...
+ */
+const isMonitoringActive = () => {
+
+  return route.path.startsWith(
+    "/staff/monitoring"
+  )
+
+}
+
 
 /* =========================
    TREE
@@ -147,7 +210,9 @@ const toggleTree = () => {
 
   showTree.value =
     !showTree.value
+
 }
+
 
 /* =========================
    LEVEL
@@ -159,10 +224,13 @@ const toggleLevel = (
 
   expandedLevels.value[
     levelId
-    ] = !expandedLevels.value[
-    levelId
-    ]
+    ] =
+    !expandedLevels.value[
+      levelId
+      ]
+
 }
+
 
 const isLevelExpanded = (
   levelId: number
@@ -171,7 +239,9 @@ const isLevelExpanded = (
   return !!expandedLevels.value[
     levelId
     ]
+
 }
+
 
 /* =========================
    TYPE + LOAD BOOKS
@@ -185,9 +255,10 @@ const toggleType = async (
   const key =
     `${levelId}-${typeId}`
 
+
   /*
-    đã load books
-  */
+   * Đã load books
+   */
   if (
     booksMap.value[key]
   ) {
@@ -196,12 +267,15 @@ const toggleType = async (
       !expandedTypes.value[key]
 
     return
+
   }
+
 
   try {
 
     loadingBooks.value[key] =
       true
+
 
     const response =
       await gatewayUrl.get(
@@ -214,22 +288,30 @@ const toggleType = async (
         }
       )
 
+
     booksMap.value[key] =
       response.data || []
+
 
     expandedTypes.value[key] =
       true
 
   } catch (e) {
 
-    console.error(e)
+    console.error(
+      "Load books error:",
+      e
+    )
 
   } finally {
 
     loadingBooks.value[key] =
       false
+
   }
+
 }
+
 
 const isTypeExpanded = (
   levelId: number,
@@ -239,7 +321,9 @@ const isTypeExpanded = (
   return !!expandedTypes.value[
     `${levelId}-${typeId}`
     ]
+
 }
+
 
 /* =========================
    HELPERS
@@ -253,7 +337,9 @@ const getBooks = (
   return booksMap.value[
     `${levelId}-${typeId}`
     ] || []
+
 }
+
 
 const isBooksLoading = (
   levelId: number,
@@ -263,14 +349,20 @@ const isBooksLoading = (
   return !!loadingBooks.value[
     `${levelId}-${typeId}`
     ]
+
 }
+
 </script>
+
 
 <template>
 
   <div class="sidebar">
 
-    <!-- HEADER -->
+    <!-- =========================
+         HEADER
+    ========================= -->
+
     <div class="sidebar-header">
 
       <h4 class="sidebar-title">
@@ -288,15 +380,23 @@ const isBooksLoading = (
 
     </div>
 
-    <!-- MENU -->
+
+    <!-- =========================
+         MENU
+    ========================= -->
+
     <div class="sidebar-menu">
 
-      <!-- DASHBOARD -->
+
+      <!-- =========================
+           DASHBOARD
+      ========================= -->
+
       <button
         class="menu-item"
         :class="{
           active:
-          isActive('/staff')
+            isActive('/staff')
         }"
         @click="
           go('/staff')
@@ -317,39 +417,156 @@ const isBooksLoading = (
         </div>
 
       </button>
-      <!-- MONITORING -->
-      <button
-        class="menu-item"
-        :class="{
-    active: isActive('/staff/monitoring')
-  }"
-        @click="
-    go('/staff/monitoring')
-  "
+
+
+      <!-- =========================
+           MONITORING
+      ========================= -->
+
+      <div
+        class="monitoring-menu"
       >
 
-        <div>
+        <!-- MENU CHA -->
+
+        <button
+          class="
+            menu-item
+            tree-header
+          "
+          :class="{
+            active:
+              isMonitoringActive()
+          }"
+          @click="
+            toggleMonitoring
+          "
+        >
+
+          <div>
+
+            <i
+              class="
+                bi bi-speedometer2
+                me-2
+              "
+            ></i>
+
+            Monitoring Server
+
+          </div>
+
 
           <i
-            class="
-        bi bi-speedometer2
-        me-2
-      "
+            class="bi"
+            :class="
+              showMonitoring
+                ? 'bi-chevron-down'
+                : 'bi-chevron-right'
+            "
           ></i>
 
-          Monitoring Server
+        </button>
 
-        </div>
 
-      </button>
-      <!-- CREATE BOOK -->
+        <!-- MENU CON -->
+
+        <Transition
+          name="fade"
+        >
+
+          <div
+            v-if="
+              showMonitoring
+            "
+            class="
+              monitoring-submenu
+            "
+          >
+
+            <!-- =================
+                 MONITORING DASHBOARD
+            ================== -->
+
+            <button
+              class="
+                monitoring-item
+              "
+              :class="{
+                active:
+                  isActive(
+                    '/staff/monitoring'
+                  )
+              }"
+              @click="
+                go(
+                  '/staff/monitoring'
+                )
+              "
+            >
+
+              <i
+                class="
+                  bi bi-speedometer2
+                  me-2
+                "
+              ></i>
+
+              Tổng quan
+
+            </button>
+
+
+            <!-- =================
+                 REGISTER VPS
+            ================== -->
+
+            <button
+              class="
+                monitoring-item
+              "
+              :class="{
+                active:
+                  isActive(
+                    '/staff/monitoring/vps/register'
+                  )
+              }"
+              @click="
+                go(
+                  '/staff/monitoring/vps/register'
+                )
+              "
+            >
+
+              <i
+                class="
+                  bi bi-server
+                  me-2
+                "
+              ></i>
+
+              Đăng ký VPS
+
+            </button>
+
+          </div>
+
+        </Transition>
+
+      </div>
+
+
+      <!-- =========================
+           CREATE BOOK
+      ========================= -->
+
       <button
         class="menu-item"
         :class="{
           active:
-          isActive(
-            '/staff/create-book'
-          )
+            isActive(
+              '/staff/create-book'
+            )
         }"
         @click="
           go(
@@ -373,10 +590,17 @@ const isBooksLoading = (
 
       </button>
 
-      <!-- TREE -->
-      <div class="tree-wrapper">
+
+      <!-- =========================
+           CONTENT MANAGEMENT
+      ========================= -->
+
+      <div
+        class="tree-wrapper"
+      >
 
         <!-- TREE HEADER -->
+
         <button
           class="
             menu-item
@@ -400,6 +624,7 @@ const isBooksLoading = (
 
           </div>
 
+
           <i
             class="bi"
             :class="
@@ -411,13 +636,19 @@ const isBooksLoading = (
 
         </button>
 
+
         <!-- TREE BODY -->
+
         <div
           v-if="showTree"
           class="tree-body"
         >
 
-          <!-- LOADING -->
+
+          <!-- =================
+               LOADING
+          ================== -->
+
           <div
             v-if="loading"
             class="loading-box"
@@ -436,18 +667,30 @@ const isBooksLoading = (
 
           </div>
 
-          <!-- LEVEL -->
+
+          <!-- =================
+               LEVEL
+          ================== -->
+
           <div
-            v-for="level in levels"
+            v-for="
+              level in levels
+            "
             :key="
               level.levelId
             "
-            class="level-group"
+            class="
+              level-group
+            "
           >
 
+
             <!-- LEVEL HEADER -->
+
             <button
-              class="level-item"
+              class="
+                level-item
+              "
               @click="
                 toggleLevel(
                   level.levelId
@@ -456,13 +699,14 @@ const isBooksLoading = (
             >
 
               <div
-                class="level-left"
+                class="
+                  level-left
+                "
               >
 
                 <i
                   class="
-                    bi
-                    bi-mortarboard
+                    bi bi-mortarboard
                     me-2
                   "
                 ></i>
@@ -472,6 +716,7 @@ const isBooksLoading = (
                 }}
 
               </div>
+
 
               <i
                 class="bi"
@@ -486,7 +731,11 @@ const isBooksLoading = (
 
             </button>
 
-            <!-- TYPE -->
+
+            <!-- =================
+                 TYPE
+            ================== -->
+
             <Transition
               name="fade"
             >
@@ -497,20 +746,30 @@ const isBooksLoading = (
                     level.levelId
                   )
                 "
-                class="type-list"
+                class="
+                  type-list
+                "
               >
 
                 <div
-                  v-for="type in types"
+                  v-for="
+                    type in types
+                  "
                   :key="
                     type.typeId
                   "
-                  class="type-group"
+                  class="
+                    type-group
+                  "
                 >
 
+
                   <!-- TYPE -->
+
                   <button
-                    class="type-item"
+                    class="
+                      type-item
+                    "
                     @click="
                       toggleType(
                         level.levelId,
@@ -538,6 +797,7 @@ const isBooksLoading = (
 
                     </div>
 
+
                     <i
                       class="bi"
                       :class="
@@ -552,7 +812,11 @@ const isBooksLoading = (
 
                   </button>
 
-                  <!-- BOOK -->
+
+                  <!-- =================
+                       BOOK
+                  ================== -->
+
                   <Transition
                     name="fade"
                   >
@@ -569,7 +833,9 @@ const isBooksLoading = (
                       "
                     >
 
-                      <!-- LOADING -->
+
+                      <!-- LOADING BOOKS -->
+
                       <div
                         v-if="
                           isBooksLoading(
@@ -595,7 +861,9 @@ const isBooksLoading = (
 
                       </div>
 
+
                       <!-- BOOK -->
+
                       <div
                         v-for="
                           book in getBooks(
@@ -611,7 +879,9 @@ const isBooksLoading = (
                         "
                       >
 
+
                         <!-- BOOK -->
+
                         <div
                           class="
                             book-item
@@ -631,7 +901,9 @@ const isBooksLoading = (
 
                         </div>
 
+
                         <!-- LESSON -->
+
                         <div
                           class="
                             lesson-list
@@ -669,7 +941,9 @@ const isBooksLoading = (
 
                       </div>
 
+
                       <!-- EMPTY -->
+
                       <div
                         v-if="
                           !isBooksLoading(
@@ -712,6 +986,7 @@ const isBooksLoading = (
 
 </template>
 
+
 <style scoped>
 
 /* =========================
@@ -719,14 +994,18 @@ const isBooksLoading = (
 ========================= */
 
 .sidebar {
+
   position: fixed;
 
   top: 0;
   left: 0;
+
   width: 300px;
 
   height: 100vh;
+
   z-index: 1000;
+
   overflow-y: auto;
 
   background:
@@ -739,8 +1018,16 @@ const isBooksLoading = (
   color: white;
 
   border-right:
-    1px solid rgba(255,255,255,0.08);
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
 }
+
 
 /* =========================
    SCROLLBAR
@@ -749,15 +1036,24 @@ const isBooksLoading = (
 .sidebar::-webkit-scrollbar {
 
   width: 6px;
+
 }
+
 
 .sidebar::-webkit-scrollbar-thumb {
 
   background:
-    rgba(255,255,255,0.15);
+    rgba(
+      255,
+      255,
+      255,
+      0.15
+    );
 
   border-radius: 20px;
+
 }
+
 
 /* =========================
    HEADER
@@ -768,8 +1064,16 @@ const isBooksLoading = (
   padding: 24px 20px;
 
   border-bottom:
-    1px solid rgba(255,255,255,0.08);
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
 }
+
 
 .sidebar-title {
 
@@ -778,7 +1082,9 @@ const isBooksLoading = (
   font-size: 22px;
 
   font-weight: 700;
+
 }
+
 
 /* =========================
    MENU
@@ -787,7 +1093,9 @@ const isBooksLoading = (
 .sidebar-menu {
 
   padding: 16px;
+
 }
+
 
 /* =========================
    MENU ITEM
@@ -822,22 +1130,131 @@ const isBooksLoading = (
   font-size: 15px;
 
   font-weight: 500;
+
 }
+
 
 .menu-item:hover {
 
   background:
-    rgba(255,255,255,0.08);
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
 
   color: white;
+
 }
+
 
 .menu-item.active {
 
   background: #2563eb;
 
   color: white;
+
 }
+
+
+/* =========================
+   MONITORING
+========================= */
+
+.monitoring-menu {
+
+  margin-bottom: 8px;
+
+}
+
+
+/* =========================
+   MONITORING SUB MENU
+========================= */
+
+.monitoring-submenu {
+
+  margin-left: 14px;
+
+  padding-left: 10px;
+
+  border-left:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.12
+    );
+
+  margin-bottom: 10px;
+
+}
+
+
+.monitoring-item {
+
+  width: 100%;
+
+  border: none;
+
+  background: transparent;
+
+  color: #cbd5e1;
+
+  padding: 10px 12px;
+
+  border-radius: 9px;
+
+  display: flex;
+
+  align-items: center;
+
+  text-align: left;
+
+  margin-bottom: 4px;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+
+  font-size: 14px;
+
+  font-weight: 500;
+
+}
+
+
+.monitoring-item:hover {
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
+  color: white;
+
+}
+
+
+.monitoring-item.active {
+
+  background:
+    rgba(
+      37,
+      99,
+      235,
+      0.85
+    );
+
+  color: white;
+
+}
+
 
 /* =========================
    TREE
@@ -846,12 +1263,16 @@ const isBooksLoading = (
 .tree-wrapper {
 
   margin-top: 10px;
+
 }
+
 
 .tree-body {
 
   margin-top: 10px;
+
 }
+
 
 /* =========================
    LOADING
@@ -869,7 +1290,9 @@ const isBooksLoading = (
   padding: 12px;
 
   color: #cbd5e1;
+
 }
+
 
 /* =========================
    LEVEL
@@ -878,7 +1301,9 @@ const isBooksLoading = (
 .level-group {
 
   margin-bottom: 16px;
+
 }
+
 
 .level-item {
 
@@ -891,7 +1316,12 @@ const isBooksLoading = (
   border-radius: 10px;
 
   background:
-    rgba(59,130,246,0.15);
+    rgba(
+      59,
+      130,
+      246,
+      0.15
+    );
 
   color: #93c5fd;
 
@@ -906,20 +1336,31 @@ const isBooksLoading = (
   cursor: pointer;
 
   transition: 0.2s ease;
+
 }
+
 
 .level-item:hover {
 
   background:
-    rgba(59,130,246,0.22);
+    rgba(
+      59,
+      130,
+      246,
+      0.22
+    );
+
 }
+
 
 .level-left {
 
   display: flex;
 
   align-items: center;
+
 }
+
 
 /* =========================
    TYPE
@@ -930,12 +1371,16 @@ const isBooksLoading = (
   margin-top: 8px;
 
   padding-left: 14px;
+
 }
+
 
 .type-group {
 
   margin-bottom: 10px;
+
 }
+
 
 .type-item {
 
@@ -948,7 +1393,12 @@ const isBooksLoading = (
   border-radius: 8px;
 
   background:
-    rgba(255,255,255,0.05);
+    rgba(
+      255,
+      255,
+      255,
+      0.05
+    );
 
   color: #facc15;
 
@@ -963,20 +1413,31 @@ const isBooksLoading = (
   cursor: pointer;
 
   transition: 0.2s ease;
+
 }
+
 
 .type-item:hover {
 
   background:
-    rgba(255,255,255,0.08);
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
 }
+
 
 .type-left {
 
   display: flex;
 
   align-items: center;
+
 }
+
 
 /* =========================
    BOOK
@@ -987,12 +1448,16 @@ const isBooksLoading = (
   margin-top: 6px;
 
   padding-left: 14px;
+
 }
+
 
 .book-group {
 
   margin-bottom: 8px;
+
 }
+
 
 .book-item {
 
@@ -1001,7 +1466,12 @@ const isBooksLoading = (
   border-radius: 8px;
 
   background:
-    rgba(255,255,255,0.04);
+    rgba(
+      255,
+      255,
+      255,
+      0.04
+    );
 
   color: #f8fafc;
 
@@ -1012,7 +1482,9 @@ const isBooksLoading = (
   font-size: 14px;
 
   font-weight: 500;
+
 }
+
 
 /* =========================
    LESSON
@@ -1029,7 +1501,9 @@ const isBooksLoading = (
   flex-direction: column;
 
   gap: 4px;
+
 }
+
 
 .lesson-item {
 
@@ -1052,15 +1526,24 @@ const isBooksLoading = (
   transition: 0.2s ease;
 
   font-size: 13px;
+
 }
+
 
 .lesson-item:hover {
 
   background:
-    rgba(255,255,255,0.08);
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
 
   color: white;
+
 }
+
 
 /* =========================
    EMPTY
@@ -1073,7 +1556,9 @@ const isBooksLoading = (
   color: #94a3b8;
 
   font-size: 13px;
+
 }
+
 
 /* =========================
    ANIMATION
@@ -1082,15 +1567,20 @@ const isBooksLoading = (
 .fade-enter-active,
 .fade-leave-active {
 
-  transition: all 0.2s ease;
+  transition:
+    all 0.2s ease;
+
 }
+
 
 .fade-enter-from,
 .fade-leave-to {
 
   opacity: 0;
 
-  transform: translateY(-4px);
+  transform:
+    translateY(-4px);
+
 }
 
 </style>
