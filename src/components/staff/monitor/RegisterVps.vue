@@ -1,12 +1,11 @@
 <script setup lang="ts">
-
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import {
   discoveryVps,
   registerVps,
   type NodeExporterDiscoveryResult,
   type MonitorVps
-} from "@/monitor/monitorVpsService.ts"
+} from '@/monitor/monitorVpsService.ts'
 
 const ipAddress = ref('')
 const agentPort = ref(9100)
@@ -20,12 +19,16 @@ const success = ref('')
 const discoveryResult = ref<NodeExporterDiscoveryResult | null>(null)
 const registeredVps = ref<MonitorVps | null>(null)
 
+watch([ipAddress, agentPort], () => {
+  discoveryResult.value = null
+  registeredVps.value = null
+  success.value = ''
+  error.value = ''
+})
 
 const discovery = async () => {
-
   error.value = ''
   success.value = ''
-
   discoveryResult.value = null
   registeredVps.value = null
 
@@ -42,92 +45,70 @@ const discovery = async () => {
   loadingDiscovery.value = true
 
   try {
-
     const result = await discoveryVps({
       ipAddress: ipAddress.value.trim(),
       agentPort: agentPort.value
     })
 
-    discoveryResult.value = result
-
     if (!result.installed) {
-
       error.value =
         result.message ||
         'Không tìm thấy Node Exporter'
-
-      discoveryResult.value = null
-
       return
     }
 
-    success.value =
-      'Discovery thành công. Đã tìm thấy Node Exporter.'
-
+    discoveryResult.value = result
+    success.value = 'Discovery thành công. Đã tìm thấy Node Exporter.'
   } catch (e: any) {
-
     error.value =
       e.response?.data?.message ||
       'Không thể kết nối tới VPS'
-
   } finally {
-
     loadingDiscovery.value = false
   }
 }
 
-
 const register = async () => {
+  const result = discoveryResult.value
 
-  if (!discoveryResult.value?.installed) {
-    error.value =
-      'Vui lòng Discovery VPS thành công trước'
-
+  if (!result?.installed) {
+    error.value = 'Vui lòng Discovery VPS thành công trước'
     return
   }
 
   error.value = ''
   success.value = ''
-
   loadingRegister.value = true
 
   try {
-
     const vps = await registerVps({
-      ipAddress: ipAddress.value.trim(),
-      agentPort: agentPort.value
+      ipAddress: result.ipAddress,
+      agentPort: result.port,
+      hostname: result.hostname,
+      osType: result.osType,
+      osVersion: result.osVersion,
+      architecture: result.architecture
     })
 
     registeredVps.value = vps
-
-    success.value =
-      `Đăng ký VPS thành công: ${vps.hostname}`
-
+    success.value = `Đăng ký VPS thành công: ${vps.hostname}`
   } catch (e: any) {
-
     error.value =
       e.response?.data?.message ||
       'Không thể đăng ký VPS'
-
   } finally {
-
     loadingRegister.value = false
   }
 }
-
 </script>
 
-
 <template>
-
   <div class="container mt-4">
-
     <h4 class="mb-4">
       Đăng ký VPS Monitor
     </h4>
 
     <div class="mb-3">
-
       <label class="form-label">
         IP Address
       </label>
@@ -137,13 +118,10 @@ const register = async () => {
         class="form-control"
         placeholder="180.93.115.154"
         :disabled="loadingDiscovery || loadingRegister"
-      />
-
+      >
     </div>
 
-
     <div class="mb-3">
-
       <label class="form-label">
         Node Exporter Port
       </label>
@@ -153,8 +131,7 @@ const register = async () => {
         type="number"
         class="form-control"
         :disabled="loadingDiscovery || loadingRegister"
-      />
-
+      >
     </div>
 
     <button
@@ -162,12 +139,7 @@ const register = async () => {
       :disabled="loadingDiscovery || loadingRegister"
       @click="discovery"
     >
-
-      {{ loadingDiscovery
-      ? 'Đang Discovery...'
-      : 'Discovery'
-      }}
-
+      {{ loadingDiscovery ? 'Đang Discovery...' : 'Discovery' }}
     </button>
 
     <button
@@ -179,33 +151,19 @@ const register = async () => {
       "
       @click="register"
     >
-
-      {{ loadingRegister
-      ? 'Đang đăng ký...'
-      : 'Đăng ký VPS'
-      }}
-
+      {{ loadingRegister ? 'Đang đăng ký...' : 'Đăng ký VPS' }}
     </button>
-
 
     <div
       v-if="discoveryResult"
       class="card mt-4"
     >
-
       <div class="card-header">
-
-        <strong>
-          VPS Discovery Result
-        </strong>
-
+        <strong>VPS Discovery Result</strong>
       </div>
 
-
       <div class="card-body">
-
         <div class="row">
-
           <div class="col-md-6 mb-2">
             <strong>IP:</strong>
             {{ discoveryResult.ipAddress }}
@@ -242,21 +200,15 @@ const register = async () => {
           </div>
 
           <div class="col-md-6 mb-2">
-
             <strong>Status:</strong>
 
             <span class="badge bg-success ms-2">
               Detected
             </span>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
-
 
     <div
       v-if="success"
@@ -265,14 +217,11 @@ const register = async () => {
       {{ success }}
     </div>
 
-
     <div
       v-if="error"
       class="alert alert-danger mt-3"
     >
       {{ error }}
     </div>
-
   </div>
-
 </template>

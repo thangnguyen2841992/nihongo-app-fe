@@ -1,8 +1,17 @@
 import { gatewayUrl } from "@/api/authApi.ts";
 
+
+export interface DiscoveryVpsRequest {
+  ipAddress: string
+  agentPort: number
+}
 export interface RegisterVpsRequest {
   ipAddress: string
   agentPort: number
+  hostname?: string | null
+  osType?: string | null
+  osVersion?: string | null
+  architecture?: string | null
 }
 
 export interface NodeExporterDiscoveryResult {
@@ -30,7 +39,7 @@ export interface MonitorVps {
 }
 
 export const discoveryVps = async (
-  request: RegisterVpsRequest
+  request: DiscoveryVpsRequest
 ): Promise<NodeExporterDiscoveryResult> => {
 
   const response = await gatewayUrl.post(
