@@ -1,9 +1,20 @@
-import axios from 'axios'
-import {gatewayUrl} from "@/api/authApi.ts";
+import { gatewayUrl } from "@/api/authApi.ts";
 
 export interface RegisterVpsRequest {
   ipAddress: string
   agentPort: number
+}
+
+export interface NodeExporterDiscoveryResult {
+  installed: boolean
+  ipAddress: string
+  port: number
+  hostname: string | null
+  osType: string | null
+  osVersion: string | null
+  architecture: string | null
+  nodeExporterVersion: string | null
+  message: string
 }
 
 export interface MonitorVps {
@@ -18,7 +29,26 @@ export interface MonitorVps {
   lastSeenAt: string
 }
 
-export const registerVps = async (request: RegisterVpsRequest): Promise<MonitorVps> => {
-  const response = await gatewayUrl.post('/api/staff/vps', request)
+export const discoveryVps = async (
+  request: RegisterVpsRequest
+): Promise<NodeExporterDiscoveryResult> => {
+
+  const response = await gatewayUrl.post(
+    '/api/staff/vps/discovery',
+    request
+  )
+
+  return response.data
+}
+
+export const registerVps = async (
+  request: RegisterVpsRequest
+): Promise<MonitorVps> => {
+
+  const response = await gatewayUrl.post(
+    '/api/staff/vps/register',
+    request
+  )
+
   return response.data
 }
