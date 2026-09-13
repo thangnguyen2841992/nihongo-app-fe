@@ -21,6 +21,7 @@ import MyCoursesView from "@/users/MyCoursesView.vue";
 import JapaneseAiResult from "@/components/staff/JapaneseAiResult.vue";
 import ServerMonitoring from "@/components/staff/ServerMonitoring.vue";
 import RegisterVps from "@/components/staff/monitor/RegisterVps.vue";
+import GoogleSetupPassword from "@/components/auth/GoogleSetupPassword.vue";
 
 const routes = [
   // 🔥 layout chính
@@ -106,6 +107,11 @@ const routes = [
   {
     path: '/active-failed',
     component: ActiveFailed
+  },
+  {
+    path: '/google/setup-password',
+    name: 'GoogleSetupPassword',
+    component: GoogleSetupPassword
   },
   //admin
   {

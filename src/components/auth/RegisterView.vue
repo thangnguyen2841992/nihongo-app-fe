@@ -24,6 +24,11 @@ const message = ref('')
 const emailRef = ref<HTMLInputElement | null>(null)
 
 const loginGoogle = () => {
+  if (googleLoading.value) return
+
+  googleLoading.value = true
+
+  window.location.href = `${gatewayUrl.defaults.baseURL}/api/auth/google`
 }
 
 const register = async () => {
