@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import {onMounted} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
 import {gatewayUrl} from '@/api/authApi'
 
 const route = useRoute()
 const router = useRouter()
 
 onMounted(async () => {
-  const userId = Number(route.query.userId)
+  const userId = route.query.userId as string
   const activeCode = route.query.activeCode as string
   const email = route.query.email as string
 
@@ -18,16 +18,13 @@ onMounted(async () => {
 
   try {
     const res = await gatewayUrl.get('/api/active-user/active', {
-      params: { userId, activeCode, email }
+      params: {userId, activeCode, email}
     })
 
     const data = res.data
 
     if (data.status === 'SUCCESS') {
-      await router.push({
-        path: '/reset-password',
-        query: {email: data.email}
-      })
+      await router.push({path: '/login', query: {email: data.email}})
     } else if (data.status === 'EXPIRED') {
       await router.push({
         path: '/active-expired',

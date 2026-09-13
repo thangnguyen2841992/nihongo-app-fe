@@ -2,6 +2,16 @@ import axios from 'axios'
 import router from '@/router'
 
 /* =========================
+   AXIOS RETRY TYPE
+========================= */
+
+declare module 'axios' {
+  export interface InternalAxiosRequestConfig {
+    _retry?: boolean
+  }
+}
+
+/* =========================
    AXIOS INSTANCES
 ========================= */
 
@@ -23,30 +33,40 @@ let isRefreshing = false
 
 let pendingRequests: Array<{
   resolve: () => void
-  reject: (err: any) => void
+  reject: (error: any) => void
 }> = []
 
 /* =========================
    PROCESS QUEUE
 ========================= */
 
-const processQueue = (
-  error: any = null
-) => {
+const processQueue = (error: any = null) => {
 
-  pendingRequests.forEach(p => {
+  pendingRequests.forEach(({resolve, reject}) => {
 
     if (error) {
-
-      p.reject(error)
-
+      reject(error)
     } else {
-
-      p.resolve()
+      resolve()
     }
+
   })
 
   pendingRequests = []
+}
+
+/* =========================
+   LOGOUT
+========================= */
+
+const logout = async () => {
+
+  localStorage.clear()
+  sessionStorage.clear()
+
+  if (router.currentRoute.value.path !== '/login') {
+    await router.replace('/login')
+  }
 }
 
 /* =========================
@@ -54,7 +74,17 @@ const processQueue = (
 ========================= */
 
 gatewayUrl.interceptors.response.use(
-  response => response,
+  /* =========================
+     SUCCESS
+  ========================= */
+
+  response => {
+    return response
+  },
+
+  /* =========================
+     ERROR
+  ========================= */
 
   async error => {
 
@@ -65,135 +95,136 @@ gatewayUrl.interceptors.response.use(
     ========================= */
 
     if (!error.response) {
-
       return Promise.reject(error)
     }
 
     const status = error.response.status
 
-    const url =
-      originalRequest?.url || ''
+    const url = originalRequest?.url || ''
 
     /* =========================
-       IGNORE LOGIN API
+       LOGIN API
+       Không refresh khi login
     ========================= */
 
     if (
       url.includes('/api/auth/login')
     ) {
-
       return Promise.reject(error)
     }
 
     /* =========================
-       REFRESH TOKEN FAILED
+       REFRESH API
+       Refresh thất bại => logout
     ========================= */
 
     if (
       url.includes('/api/auth/refresh')
     ) {
 
-      localStorage.clear()
-      sessionStorage.clear()
-
-      if (
-        router.currentRoute.value.path
-        !== '/login'
-      ) {
-
-        await router.replace('/login')
-      }
+      await logout()
 
       return Promise.reject(error)
     }
 
     /* =========================
-       HANDLE 401
+       CHỈ XỬ LÝ 401
     ========================= */
 
     if (
-      status === 401 &&
-      !originalRequest._retry
+      status !== 401 ||
+      originalRequest?._retry
     ) {
-
-      /* =========================
-         WAIT REFRESH
-      ========================= */
-
-      if (isRefreshing) {
-
-        return new Promise(
-          (resolve, reject) => {
-
-            pendingRequests.push({
-
-              resolve: () => {
-
-                resolve(
-                  gatewayUrl(
-                    originalRequest
-                  )
-                )
-              },
-
-              reject
-            })
-          }
-        )
-      }
-
-      originalRequest._retry = true
-
-      isRefreshing = true
-
-      try {
-
-        /* =========================
-           REFRESH TOKEN
-        ========================= */
-
-        await publicClient.post(
-          '/api/auth/refresh'
-        )
-
-        processQueue()
-
-        /* =========================
-           RETRY ORIGINAL REQUEST
-        ========================= */
-
-        return gatewayUrl(
-          originalRequest
-        )
-
-      } catch (refreshError) {
-
-        processQueue(refreshError)
-
-        localStorage.clear()
-        sessionStorage.clear()
-
-        if (
-          router.currentRoute.value.path
-          !== '/login'
-        ) {
-
-          await router.replace('/login')
-        }
-
-        return Promise.reject(
-          refreshError
-        )
-
-      } finally {
-
-        isRefreshing = false
-      }
+      return Promise.reject(error)
     }
 
-    return Promise.reject(error)
+    /* =========================
+       ĐANG REFRESH
+       Request này chờ request
+       refresh hiện tại hoàn thành
+    ========================= */
+
+    if (isRefreshing) {
+      originalRequest._retry = true
+      return new Promise<void>((resolve, reject) => {
+
+        pendingRequests.push({
+          resolve,
+          reject
+        })
+
+      }).then(() => {
+
+
+        return gatewayUrl(originalRequest)
+
+      }).catch(refreshError => {
+
+        return Promise.reject(refreshError)
+
+      })
+    }
+
+    /* =========================
+       ĐÁNH DẤU REQUEST ĐÃ RETRY
+    ========================= */
+
+    originalRequest._retry = true
+
+    /* =========================
+       BẮT ĐẦU REFRESH
+    ========================= */
+
+    isRefreshing = true
+
+    try {
+
+      /* =========================
+         REFRESH TOKEN
+      ========================= */
+
+      await publicClient.post(
+        '/api/auth/refresh'
+      )
+
+      /* =========================
+         REFRESH THÀNH CÔNG
+      ========================= */
+
+      processQueue()
+
+      /* =========================
+         RETRY REQUEST BAN ĐẦU
+      ========================= */
+
+      return gatewayUrl(originalRequest)
+
+    } catch (refreshError) {
+
+      /* =========================
+         REFRESH THẤT BẠI
+      ========================= */
+
+      processQueue(refreshError)
+
+      await logout()
+
+      return Promise.reject(refreshError)
+
+    } finally {
+
+      /* =========================
+         RESET REFRESH STATE
+      ========================= */
+
+      isRefreshing = false
+    }
   }
 )
+
+/* =========================
+   EXPORT
+========================= */
 
 export {
   gatewayUrl,

@@ -1,36 +1,33 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import {gatewayUrl} from "@/api/authApi.ts";
+import { gatewayUrl } from "@/api/authApi.ts"
 
 const router = useRouter()
-const googleLoading = ref(false)
 
-// state
+const googleLoading = ref(false)
+const loading = ref(false)
+
 const email = ref('')
+const password = ref('')
+const confirmPassword = ref('')
+
 const firstName = ref('')
 const lastName = ref('')
 const birthday = ref('')
 const address = ref('')
+const phoneNumber = ref('')
 
 const error = ref('')
 const message = ref('')
-const loading = ref(false)
+
 const emailRef = ref<HTMLInputElement | null>(null)
 
 const loginGoogle = () => {
-  if (googleLoading.value) return
-
-  googleLoading.value = true
-
-  window.location.href = `http://localhost:8180/realms/nihongo/protocol/openid-connect/auth
-?client_id=japanese_app
-&response_type=code
-&scope=openid%20email%20profile
-&redirect_uri=http://localhost:8082/api/auth/callbackGoogle
-&kc_idp_hint=google`
 }
+
 const register = async () => {
+
   if (loading.value) return
 
   error.value = ''
@@ -38,28 +35,41 @@ const register = async () => {
   loading.value = true
 
   try {
+
     const res = await gatewayUrl.post('/api/auth/register', {
       email: email.value,
+      password: password.value,
+      confirmPassword: confirmPassword.value,
       firstName: firstName.value,
       lastName: lastName.value,
       dateOfBirth: birthday.value,
       address: address.value,
-      roleName: 'USER'
+      phoneNumber: phoneNumber.value
     })
 
-    sessionStorage.setItem('email-register', res.data.email)
-    sessionStorage.setItem('userId-register', res.data.userId)
-
+    sessionStorage.setItem(
+      'email-register',
+      res.data.email
+    )
+    sessionStorage.setItem( 'userId-register', res.data.userId )
     await router.push({
-      path: '/check-email',
+      path: '/check-email'
     })
 
   } catch (e: any) {
-    error.value = e.response?.data || 'Đăng ký thất bại'
+
+    error.value =
+      e.response?.data?.message ||
+      e.response?.data ||
+      'Đăng ký thất bại'
+
   } finally {
+
     loading.value = false
+
   }
 }
+
 onMounted(async () => {
   await nextTick()
   emailRef.value?.focus()
@@ -84,7 +94,37 @@ onMounted(async () => {
           <span class="input-group-text"><i class="bi bi-envelope"></i></span>
           <input v-model="email" type="email" class="form-control" placeholder="Email" required ref="emailRef">
         </div>
+        <!-- Password -->
+        <div class="mb-3 input-group">
+  <span class="input-group-text">
+    <i class="bi bi-lock"></i>
+  </span>
 
+          <input
+            v-model="password"
+            type="password"
+            class="form-control"
+            placeholder="Mật khẩu"
+            required
+            minlength="8"
+          >
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="mb-3 input-group">
+  <span class="input-group-text">
+    <i class="bi bi-lock-fill"></i>
+  </span>
+
+          <input
+            v-model="confirmPassword"
+            type="password"
+            class="form-control"
+            placeholder="Nhập lại mật khẩu"
+            required
+            minlength="8"
+          >
+        </div>
         <!-- Name -->
         <div class="row">
           <div class="col-6 mb-3 input-group">

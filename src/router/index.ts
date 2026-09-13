@@ -114,12 +114,19 @@ const routes = [
     children: [
       {
         path: '',
-        component: AdminHome
+        redirect: '/admin/dashboard'
       },
       {
-        path: 'admin-home',
-        component: () => import('@/components/admin/Admin-home.vue')
+        path: 'dashboard',
+        name: 'AdminDashboard',
+        component: AdminHome
       }
+      // {
+      //   path: 'users',
+      //   name: 'AdminUsers',
+      //   component: () =>
+      //     import('@/components/admin/AdminUsers.vue')
+      // }
     ]
   },
   // STAFF
