@@ -5,29 +5,16 @@ import {gatewayUrl} from '@/api/authApi'
 import {setAuth} from '@/services/authState.ts'
 
 type LoginType = 'LOCAL' | 'GOOGLE' | null
-
 const router = useRouter()
-
-// =========================
-// STATE
-// =========================
-
 const email = ref('')
 const password = ref('')
-
 const loginType = ref<LoginType>(null)
-
 const loading = ref(false)
 const error = ref('')
-
 const showPassword = ref(false)
-
 const emailRef = ref<HTMLInputElement | null>(null)
 const passwordRef = ref<HTMLInputElement | null>(null)
 
-// =========================
-// SESSION
-// =========================
 
 const getSessionId = (): string => {
   let sessionId = sessionStorage.getItem('sessionId')
@@ -39,10 +26,6 @@ const getSessionId = (): string => {
 
   return sessionId
 }
-
-// =========================
-// RESET
-// =========================
 
 const resetLogin = async () => {
   password.value = ''
@@ -59,17 +42,9 @@ const resetError = () => {
   error.value = ''
 }
 
-// =========================
-// PASSWORD
-// =========================
-
 const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
-
-// =========================
-// CHECK EMAIL
-// =========================
 
 const checkEmail = async () => {
   if (loading.value) {
@@ -97,33 +72,35 @@ const checkEmail = async () => {
       }
     )
 
-    const type = response.data?.type
+    console.log('checkEmail response:', response.data)
 
-    if (type === 'LOCAL') {
+    // Email tồn tại thì luôn cho đăng nhập bằng password
+    if (response.data?.type === 'LOCAL' ||
+      response.data?.type === 'GOOGLE') {
+
       loginType.value = 'LOCAL'
 
       await nextTick()
 
       passwordRef.value?.focus()
 
-    } else if (type === 'GOOGLE') {
-      loginType.value = 'GOOGLE'
-
     } else {
       loginType.value = null
       error.value = 'Email chưa tồn tại'
     }
 
-  } catch (e: any) {
+  } catch (e: any) {UserWallet
 
     console.error('Check email error:', e)
 
     if (e.response?.status === 404) {
       error.value = 'Email chưa tồn tại'
+
     } else if (e.response?.status === 400) {
       error.value =
         e.response?.data?.message ||
         'Email không hợp lệ'
+
     } else {
       error.value = 'Không thể kiểm tra email'
     }
@@ -133,43 +110,23 @@ const checkEmail = async () => {
   }
 }
 
-// =========================
-// LOGIN LOCAL
-// =========================
-
 const login = async () => {
   if (loading.value) {
     return
   }
-
   resetError()
-
   const emailValue = email.value.trim()
-
   if (!emailValue) {
     error.value = 'Vui lòng nhập email'
     return
   }
-
   if (!password.value) {
     error.value = 'Vui lòng nhập mật khẩu'
     return
   }
-
   loading.value = true
-
   try {
-
-    // =========================
-    // SESSION ID
-    // =========================
-
     const sessionId = getSessionId()
-
-    // =========================
-    // LOGIN
-    // =========================
-
     const loginResponse = await gatewayUrl.post(
       '/api/auth/login',
       {
@@ -179,30 +136,12 @@ const login = async () => {
       }
     )
 
-    /*
-     * Backend hiện tại trả:
-     *
-     * {
-     *   access_token: "...",
-     *   refresh_token: "..."
-     * }
-     *
-     * Không lưu JWT vào localStorage.
-     *
-     * Nếu backend đã chuyển JWT sang HttpOnly Cookie
-     * thì phần này vẫn không cần lưu token.
-     */
-
     const tokenResponse = loginResponse.data
 
     if (!tokenResponse) {
       error.value = 'Không nhận được thông tin đăng nhập'
       return
     }
-
-    // =========================
-    // CHECK LOGIN
-    // =========================
 
     const response =
       await gatewayUrl.get('/api/auth/checkLogin')
@@ -211,17 +150,7 @@ const login = async () => {
       error.value = 'Không xác thực được tài khoản'
       return
     }
-
-    // =========================
-    // AUTH STATE
-    // =========================
-
-    setAuth()
-
-    // =========================
-    // REDIRECT
-    // =========================
-
+    await setAuth()
     await redirectByRole(
       response.data.role
     )
@@ -260,31 +189,15 @@ const login = async () => {
   }
 }
 
-// =========================
-// GOOGLE LOGIN
-// =========================
 
 const loginGoogle = () => {
 
   if (loading.value) {
     return
   }
-
   resetError()
-
-  /*
-   * Không gọi Google trực tiếp từ FE.
-   *
-   * FE -> Gateway
-   * Gateway -> Google OAuth
-   *
-   * Backend xử lý callback Google,
-   * tạo session + JWT rồi redirect
-   * về frontend.
-   */
-
   window.location.href =
-    `${window.location.origin}/api/auth/google`
+    `${gatewayUrl.defaults.baseURL}/api/auth/google`
 }
 
 // =========================
