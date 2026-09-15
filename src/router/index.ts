@@ -73,6 +73,14 @@ const routes = [
         path: '/japanese-ai',
         name: 'JapaneseAi',
         component: JapaneseAiResult
+      },
+      {
+        path: '/wallet',
+        name: 'Wallet',
+        component: () => import('@/users/Wallet.vue'),
+        meta: {
+          requiresAuth: true
+        }
       }
     ]
   },

@@ -1,8 +1,9 @@
 <script setup lang="ts">
+
 import {ref} from "vue"
 import {useRouter} from "vue-router"
 import {logout} from "@/services/authState.ts"
-import {analyzeJapanese} from "@/services/japaneseAiService.ts";
+import {analyzeJapanese} from "@/services/japaneseAiService.ts"
 
 const props = defineProps<{
   isLoggedIn: boolean
@@ -10,70 +11,75 @@ const props = defineProps<{
   email?: string
 }>()
 
-const emit =
-  defineEmits(["toggle"])
+const emit = defineEmits(["toggle"])
 
-const router =
-  useRouter()
+const router = useRouter()
 
-const notificationCount =
-  ref(3)
+const notificationCount = ref(3)
 
-const showNotification =
-  ref(false)
+const showNotification = ref(false)
 
-const notifications =
-  ref([
-    {
-      id: 1,
-      message:
-        "Bạn có 5 từ vựng cần ôn tập"
-    },
-    {
-      id: 2,
-      message:
-        "Bài kiểm tra N3 đã sẵn sàng"
-    },
-    {
-      id: 3,
-      message:
-        "Có 1 bình luận mới"
-    }
-  ])
-
-const toggleNotification =
-  () => {
-    showNotification.value =
-      !showNotification.value
+const notifications = ref([
+  {
+    id: 1,
+    message: "Bạn có 5 từ vựng cần ôn tập"
+  },
+  {
+    id: 2,
+    message: "Bài kiểm tra N3 đã sẵn sàng"
+  },
+  {
+    id: 3,
+    message: "Có 1 bình luận mới"
   }
+])
 
-const handleLogout =
-  async () => {
+const toggleNotification = () => {
+  showNotification.value =
+    !showNotification.value
+}
 
-    try {
 
-      await logout()
+/* =========================
+   LOGOUT
+========================= */
 
-      await router.replace(
-        "/login"
-      )
+const handleLogout = async () => {
 
-    } catch (e) {
+  try {
 
-      console.error(
-        "Logout error",
-        e
-      )
-    }
+    await logout()
+
+    await router.replace("/login")
+
+  } catch (e) {
+
+    console.error(
+      "Logout error",
+      e
+    )
+
   }
-const searchKeyword = ref('')
+}
+
+
+/* =========================
+   AI SEARCH
+========================= */
+
+const searchKeyword = ref("")
+
 const searchLoading = ref(false)
 
 const handleSearch = async () => {
 
-  const keyword = searchKeyword.value.trim()
+  const keyword =
+    searchKeyword.value.trim()
 
-  if (!keyword || searchLoading.value) {
+  if (
+    !keyword ||
+    searchLoading.value
+  ) {
     return
   }
 
@@ -81,20 +87,22 @@ const handleSearch = async () => {
 
     searchLoading.value = true
 
-    const result = await analyzeJapanese(keyword)
+    const result =
+      await analyzeJapanese(keyword)
 
-    // Lưu kết quả để JapaneseAiResult.vue đọc
     sessionStorage.setItem(
-      'japaneseAiResult',
+      "japaneseAiResult",
       JSON.stringify(result)
     )
 
-    await router.push('/japanese-ai')
+    await router.push(
+      "/japanese-ai"
+    )
 
   } catch (e) {
 
     console.error(
-      'Japanese AI search error:',
+      "Japanese AI search error:",
       e
     )
 
@@ -104,10 +112,26 @@ const handleSearch = async () => {
 
   }
 }
+
+
+/* =========================
+   WALLET
+========================= */
+
+const goToWallet = () => {
+
+  router.push("/wallet")
+
+}
+
 </script>
+
+
 <template>
 
   <nav class="navbar-custom">
+
+    <!-- MOBILE SIDEBAR -->
 
     <button
       class="btn btn-light me-2 d-md-none"
@@ -116,19 +140,27 @@ const handleSearch = async () => {
       ☰
     </button>
 
+
+    <!-- BRAND -->
+
     <div
       class="brand"
       @click="router.push('/')"
     >
       🇯🇵 NihongoApp
     </div>
+
+
+    <!-- AI SEARCH -->
+
     <form
       class="ai-search"
       @submit.prevent="handleSearch"
     >
-  <span class="search-icon">
-    🔍
-  </span>
+
+      <span class="search-icon">
+        🔍
+      </span>
 
       <input
         v-model="searchKeyword"
@@ -149,20 +181,40 @@ const handleSearch = async () => {
       <button
         type="submit"
         class="search-ai-btn"
-        :disabled="searchLoading || !searchKeyword.trim()"
+        :disabled="
+          searchLoading ||
+          !searchKeyword.trim()
+        "
       >
-        <span v-if="searchLoading">...</span>
-        <span v-else>AI</span>
+
+        <span
+          v-if="searchLoading"
+        >
+          ...
+        </span>
+
+        <span v-else>
+          AI
+        </span>
+
       </button>
+
     </form>
+
+
+    <!-- RIGHT -->
+
     <div class="ms-auto">
+
+      <!-- LOGGED IN -->
 
       <div
         v-if="isLoggedIn"
         class="navbar-right"
       >
 
-        <!-- Notification -->
+
+        <!-- NOTIFICATION -->
 
         <div
           class="notification-wrapper"
@@ -170,19 +222,16 @@ const handleSearch = async () => {
 
           <button
             class="notification-btn"
-            @click="
-              toggleNotification
-            "
+            @click="toggleNotification"
           >
+
             🔔
 
             <span
               v-if="
                 notificationCount > 0
               "
-              class="
-                notification-badge
-              "
+              class="notification-badge"
             >
               {{
                 notificationCount
@@ -191,19 +240,14 @@ const handleSearch = async () => {
 
           </button>
 
+
           <div
-            v-if="
-              showNotification
-            "
-            class="
-              notification-dropdown
-            "
+            v-if="showNotification"
+            class="notification-dropdown"
           >
 
             <div
-              class="
-                notification-title
-              "
+              class="notification-title"
             >
               Thông báo
             </div>
@@ -213,9 +257,7 @@ const handleSearch = async () => {
                 item in notifications
               "
               :key="item.id"
-              class="
-                notification-item
-              "
+              class="notification-item"
             >
               {{ item.message }}
             </div>
@@ -224,7 +266,34 @@ const handleSearch = async () => {
 
         </div>
 
-        <!-- User -->
+
+        <!-- WALLET -->
+
+        <button
+          class="wallet-btn"
+          @click="goToWallet"
+        >
+
+          <span class="wallet-icon">
+            💰
+          </span>
+
+          <div class="wallet-info">
+
+            <span class="wallet-label">
+              Ví của tôi
+            </span>
+
+            <span class="wallet-balance">
+              Xem số dư
+            </span>
+
+          </div>
+
+        </button>
+
+
+        <!-- USER -->
 
         <div class="user-info">
 
@@ -236,29 +305,24 @@ const handleSearch = async () => {
             }}
           </div>
 
-          <div
-            class="user-detail"
-          >
+          <div class="user-detail">
 
-            <div
-              class="user-name"
-            >
+            <div class="user-name">
               {{ name }}
             </div>
 
-            <div
-              class="user-email"
-            >
+            <div class="user-email">
               {{ email }}
             </div>
 
           </div>
 
+
+          <!-- LOGOUT -->
+
           <button
             class="logout-btn"
-            @click="
-              handleLogout
-            "
+            @click="handleLogout"
           >
             Logout
           </button>
@@ -267,13 +331,14 @@ const handleSearch = async () => {
 
       </div>
 
+
+      <!-- NOT LOGGED IN -->
+
       <div v-else>
 
         <button
           @click="
-            router.push(
-              '/login'
-            )
+            router.push('/login')
           "
           class="
             btn
@@ -287,9 +352,7 @@ const handleSearch = async () => {
 
         <button
           @click="
-            router.push(
-              '/register'
-            )
+            router.push('/register')
           "
           class="
             btn
@@ -307,6 +370,7 @@ const handleSearch = async () => {
   </nav>
 
 </template>
+
 
 <style scoped>
 
@@ -334,6 +398,7 @@ const handleSearch = async () => {
   box-shadow: 0 2px 12px rgba(0, 0, 0, .04);
 }
 
+
 .brand {
 
   font-size: 22px;
@@ -343,7 +408,10 @@ const handleSearch = async () => {
   color: #2563eb;
 
   cursor: pointer;
+
+  white-space: nowrap;
 }
+
 
 .navbar-right {
 
@@ -351,14 +419,19 @@ const handleSearch = async () => {
 
   align-items: center;
 
-  gap: 20px;
+  gap: 18px;
 }
 
-/* Notification */
+
+/* =========================
+   NOTIFICATION
+========================= */
 
 .notification-wrapper {
+
   position: relative;
 }
+
 
 .notification-btn {
 
@@ -380,9 +453,13 @@ const handleSearch = async () => {
   transition: .2s;
 }
 
+
 .notification-btn:hover {
+
   background: #e2e8f0;
+
 }
+
 
 .notification-badge {
 
@@ -405,9 +482,12 @@ const handleSearch = async () => {
   font-weight: 700;
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 }
+
 
 .notification-dropdown {
 
@@ -427,6 +507,7 @@ const handleSearch = async () => {
   box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
 }
 
+
 .notification-title {
 
   padding: 14px 16px;
@@ -436,6 +517,7 @@ const handleSearch = async () => {
   border-bottom: 1px solid #eee;
 }
 
+
 .notification-item {
 
   padding: 14px 16px;
@@ -443,11 +525,102 @@ const handleSearch = async () => {
   cursor: pointer;
 }
 
+
 .notification-item:hover {
+
   background: #f8fafc;
+
 }
 
-/* User */
+
+/* =========================
+   WALLET
+========================= */
+
+.wallet-btn {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  border: 1px solid #e2e8f0;
+
+  background: #f8fafc;
+
+  border-radius: 12px;
+
+  padding: 6px 12px;
+
+  cursor: pointer;
+
+  transition: .2s;
+
+  text-align: left;
+}
+
+
+.wallet-btn:hover {
+
+  background: #eff6ff;
+
+  border-color: #bfdbfe;
+
+}
+
+
+.wallet-icon {
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: #dbeafe;
+
+  font-size: 18px;
+}
+
+
+.wallet-info {
+
+  display: flex;
+
+  flex-direction: column;
+
+  line-height: 1.15;
+}
+
+
+.wallet-label {
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  color: #1e293b;
+}
+
+
+.wallet-balance {
+
+  font-size: 11px;
+
+  color: #64748b;
+
+}
+
+
+/* =========================
+   USER
+========================= */
 
 .user-info {
 
@@ -457,6 +630,7 @@ const handleSearch = async () => {
 
   gap: 12px;
 }
+
 
 .avatar {
 
@@ -476,17 +650,25 @@ const handleSearch = async () => {
   font-weight: 700;
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 }
 
+
 .user-detail {
+
   line-height: 1.2;
 }
 
+
 .user-name {
+
   font-weight: 700;
+
 }
+
 
 .user-email {
 
@@ -494,6 +676,7 @@ const handleSearch = async () => {
 
   color: #64748b;
 }
+
 
 .logout-btn {
 
@@ -512,31 +695,24 @@ const handleSearch = async () => {
   transition: .2s;
 }
 
+
 .logout-btn:hover {
+
   background: #fecaca;
+
 }
 
-@media (
-max-width: 768px
-) {
-
-  .user-email {
-    display: none;
-  }
-
-  .logout-btn {
-    display: none;
-  }
-}
 
 /* =========================
    AI SEARCH
 ========================= */
 
 .ai-search {
+
   position: relative;
 
   display: flex;
+
   align-items: center;
 
   width: 360px;
@@ -544,13 +720,17 @@ max-width: 768px
   margin-left: 40px;
 }
 
+
 .ai-search input {
+
   width: 100%;
+
   height: 42px;
 
   padding: 0 75px 0 40px;
 
   border: 1px solid #e5e7eb;
+
   border-radius: 12px;
 
   background: #f8fafc;
@@ -562,7 +742,9 @@ max-width: 768px
   transition: .2s;
 }
 
+
 .ai-search input:focus {
+
   background: white;
 
   border-color: #86b7fe;
@@ -570,7 +752,9 @@ max-width: 768px
   box-shadow: 0 0 0 3px rgba(13, 110, 253, .1);
 }
 
+
 .search-icon {
+
   position: absolute;
 
   left: 14px;
@@ -580,7 +764,9 @@ max-width: 768px
   font-size: 15px;
 }
 
+
 .search-clear {
+
   position: absolute;
 
   right: 48px;
@@ -589,6 +775,7 @@ max-width: 768px
   height: 25px;
 
   border: none;
+
   border-radius: 50%;
 
   background: transparent;
@@ -598,7 +785,9 @@ max-width: 768px
   cursor: pointer;
 }
 
+
 .search-ai-btn {
+
   position: absolute;
 
   right: 5px;
@@ -608,6 +797,7 @@ max-width: 768px
   padding: 0 10px;
 
   border: none;
+
   border-radius: 8px;
 
   background: #2563eb;
@@ -621,8 +811,72 @@ max-width: 768px
   cursor: pointer;
 }
 
+
 .search-ai-btn:disabled {
+
   opacity: .5;
+
   cursor: not-allowed;
+
 }
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 1000px) {
+
+  .ai-search {
+
+    width: 280px;
+
+    margin-left: 20px;
+  }
+
+  .user-detail {
+
+    display: none;
+  }
+
+}
+
+
+@media (max-width: 768px) {
+
+  .ai-search {
+
+    display: none;
+  }
+
+  .wallet-info {
+
+    display: none;
+  }
+
+  .wallet-btn {
+
+    width: 42px;
+    height: 42px;
+
+    padding: 0;
+
+    justify-content: center;
+
+    border-radius: 50%;
+  }
+
+  .user-email {
+
+    display: none;
+  }
+
+  .logout-btn {
+
+    display: none;
+  }
+
+}
+
 </style>
+
