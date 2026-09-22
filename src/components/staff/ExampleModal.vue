@@ -306,7 +306,6 @@ const save = async () => {
           'editor-disabled':
             isSaving
         }"
-        contenteditable="true"
         :contenteditable="
           !isSaving
         "
@@ -340,7 +339,6 @@ const save = async () => {
           'editor-disabled':
             isSaving
         }"
-        contenteditable="true"
         :contenteditable="
           !isSaving
         "

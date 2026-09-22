@@ -1,19 +1,11 @@
 import axios from 'axios'
 import router from '@/router'
 
-/* =========================
-   AXIOS RETRY TYPE
-========================= */
-
 declare module 'axios' {
   export interface InternalAxiosRequestConfig {
     _retry?: boolean
   }
 }
-
-/* =========================
-   AXIOS INSTANCES
-========================= */
 
 const gatewayUrl = axios.create({
   baseURL: 'http://localhost:8082',
@@ -25,10 +17,6 @@ const publicClient = axios.create({
   withCredentials: true
 })
 
-/* =========================
-   REFRESH STATE
-========================= */
-
 let isRefreshing = false
 
 let pendingRequests: Array<{
@@ -36,31 +24,19 @@ let pendingRequests: Array<{
   reject: (error: any) => void
 }> = []
 
-/* =========================
-   PROCESS QUEUE
-========================= */
-
 const processQueue = (error: any = null) => {
-
-  pendingRequests.forEach(({resolve, reject}) => {
-
+  pendingRequests.forEach(({ resolve, reject }) => {
     if (error) {
       reject(error)
     } else {
       resolve()
     }
-
   })
 
   pendingRequests = []
 }
 
-/* =========================
-   LOGOUT
-========================= */
-
 const logout = async () => {
-
   localStorage.clear()
   sessionStorage.clear()
 
@@ -69,162 +45,138 @@ const logout = async () => {
   }
 }
 
-/* =========================
-   RESPONSE INTERCEPTOR
-========================= */
-
 gatewayUrl.interceptors.response.use(
-  /* =========================
-     SUCCESS
-  ========================= */
-
-  response => {
-    return response
-  },
-
-  /* =========================
-     ERROR
-  ========================= */
+  response => response,
 
   async error => {
 
-    const originalRequest = error.config
+    const originalRequest =
+      error.config
 
-    /* =========================
-       NETWORK ERROR
-    ========================= */
+    const status =
+      error.response?.status
 
+    const url =
+      originalRequest?.url || ''
+
+    console.log(
+      '[AUTH] API ERROR:',
+      status,
+      url
+    )
+
+    // Không có response
     if (!error.response) {
       return Promise.reject(error)
     }
 
-    const status = error.response.status
-
-    const url = originalRequest?.url || ''
-
-    /* =========================
-       LOGIN API
-       Không refresh khi login
-    ========================= */
-
+    // Login thất bại -> không refresh
     if (
       url.includes('/api/auth/login')
     ) {
       return Promise.reject(error)
     }
 
-    /* =========================
-       REFRESH API
-       Refresh thất bại => logout
-    ========================= */
-
+    // Refresh thất bại -> logout
     if (
       url.includes('/api/auth/refresh')
     ) {
-
       await logout()
 
       return Promise.reject(error)
     }
 
-    /* =========================
-       CHỈ XỬ LÝ 401
-    ========================= */
-
-    if (
-      status !== 401 ||
-      originalRequest?._retry
-    ) {
+    // Không phải 401 -> không refresh
+    if (status !== 401) {
       return Promise.reject(error)
     }
 
-    /* =========================
-       ĐANG REFRESH
-       Request này chờ request
-       refresh hiện tại hoàn thành
-    ========================= */
-
-    if (isRefreshing) {
-      originalRequest._retry = true
-      return new Promise<void>((resolve, reject) => {
-
-        pendingRequests.push({
-          resolve,
-          reject
-        })
-
-      }).then(() => {
-
-
-        return gatewayUrl(originalRequest)
-
-      }).catch(refreshError => {
-
-        return Promise.reject(refreshError)
-
-      })
+    // Request này đã retry rồi -> không retry tiếp
+    if (originalRequest?._retry) {
+      return Promise.reject(error)
     }
 
-    /* =========================
-       ĐÁNH DẤU REQUEST ĐÃ RETRY
-    ========================= */
+    // Đang có request refresh khác
+    if (isRefreshing) {
 
+      originalRequest._retry = true
+
+      return new Promise<void>(
+        (resolve, reject) => {
+
+          pendingRequests.push({
+            resolve,
+            reject
+          })
+
+        }
+      )
+        .then(() => {
+
+          return gatewayUrl(
+            originalRequest
+          )
+
+        })
+    }
+
+    // Đánh dấu request đang refresh
     originalRequest._retry = true
-
-    /* =========================
-       BẮT ĐẦU REFRESH
-    ========================= */
 
     isRefreshing = true
 
     try {
 
-      /* =========================
-         REFRESH TOKEN
-      ========================= */
+      console.log(
+        '[AUTH] AccessToken hết hạn'
+      )
 
+      console.log(
+        '[AUTH] Gọi /api/auth/refresh'
+      )
+
+      // Chỉ dùng publicClient cho refresh
       await publicClient.post(
         '/api/auth/refresh'
       )
 
-      /* =========================
-         REFRESH THÀNH CÔNG
-      ========================= */
+      console.log(
+        '[AUTH] Refresh thành công'
+      )
 
       processQueue()
 
-      /* =========================
-         RETRY REQUEST BAN ĐẦU
-      ========================= */
+      // AccessToken mới đã được backend
+      // set-cookie vào browser
 
-      return gatewayUrl(originalRequest)
+      return gatewayUrl(
+        originalRequest
+      )
 
     } catch (refreshError) {
 
-      /* =========================
-         REFRESH THẤT BẠI
-      ========================= */
+      console.error(
+        '[AUTH] Refresh thất bại',
+        refreshError
+      )
 
-      processQueue(refreshError)
+      processQueue(
+        refreshError
+      )
 
       await logout()
 
-      return Promise.reject(refreshError)
+      return Promise.reject(
+        refreshError
+      )
 
     } finally {
 
-      /* =========================
-         RESET REFRESH STATE
-      ========================= */
-
       isRefreshing = false
+
     }
   }
 )
-
-/* =========================
-   EXPORT
-========================= */
 
 export {
   gatewayUrl,

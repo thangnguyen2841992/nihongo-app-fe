@@ -134,6 +134,12 @@ const routes = [
         path: 'dashboard',
         name: 'AdminDashboard',
         component: AdminHome
+      },
+      {
+        path: 'wallet-deposits',
+        name: 'AdminWalletDeposits',
+        component: () => import('@/components/admin/WalletDeposits.vue'),
+        meta: { requiresAuth: true }
       }
       // {
       //   path: 'users',

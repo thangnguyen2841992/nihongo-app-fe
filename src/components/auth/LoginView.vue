@@ -89,7 +89,7 @@ const checkEmail = async () => {
       error.value = 'Email chưa tồn tại'
     }
 
-  } catch (e: any) {UserWallet
+  } catch (e: any) {
 
     console.error('Check email error:', e)
 

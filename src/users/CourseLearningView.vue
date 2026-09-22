@@ -95,7 +95,7 @@ onMounted(() => {
 
           <img
             v-if="book.imageUrls?.length"
-            :src="book.imageUrls[0].imgUrl"
+            :src="book.imageUrls[0]?.imgUrl"
             class="card-img-top"
             alt="book"
           >

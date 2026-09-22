@@ -1,5 +1,8 @@
 <template>
   <aside class="col-md-2 sidebar d-flex flex-column p-3">
+    <router-link to="/admin/wallet-deposits" class="nav-item">
+      <i class="bi bi-wallet2"></i> Đối soát nạp tiền
+    </router-link>
 
     <h6 class="text-uppercase text-secondary small mb-3">
       <i class="bi bi-grid"></i> Menu
