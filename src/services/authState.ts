@@ -15,6 +15,7 @@ import { wsService }
 const isAuthenticated =
   ref(false)
 
+const isAuthReady = ref(false)
 const userName = ref('')
 const userEmail = ref('')
 const userRole = ref('')
@@ -235,6 +236,8 @@ export const initAuth =
 
       isAuthenticated.value =
         false
+    } finally {
+      isAuthReady.value = true
     }
   }
 
@@ -298,6 +301,7 @@ export const useAuthState =
   () => ({
 
     isAuthenticated,
+    isAuthReady,
 
     userName,
 

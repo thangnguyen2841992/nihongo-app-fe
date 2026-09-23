@@ -1,6 +1,14 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue"
-import {gatewayUrl} from "@/api/authApi"
+import {onMounted, ref, watch} from "vue"
+import { useRouter } from "vue-router"
+import { useAuthState } from "@/services/authState"
+import {gatewayUrl, publicClient} from "@/api/authApi"
+
+const router = useRouter()
+const { isAuthenticated } = useAuthState()
+const loading = ref(true)
+const loadError = ref("")
+const goToLogin = () => router.push({ path: "/login", query: { redirect: "/courses" } })
 
 interface CoursePackage {
   packageId: number
@@ -31,12 +39,14 @@ const selectedCourse = ref<Course | null>(null)
 const myCourses = ref<MyCourse[]>([])
 
 const openPackageModal = (course: Course, renew = false) => {
+  if (!isAuthenticated.value) { void goToLogin(); return }
   selectedCourse.value = course
   isRenewMode.value = renew
   showPackageModal.value = true
 }
 
 const subscribe = async (packageId: number) => {
+  if (!isAuthenticated.value) { void goToLogin(); return }
   if (!selectedCourse.value) return
 
   try {
@@ -63,11 +73,18 @@ const subscribe = async (packageId: number) => {
 }
 
 const loadCourses = async () => {
-  const res = await gatewayUrl.get("/api/nihongo-user/courses")
-  courses.value = res.data
+  loading.value = true
+  loadError.value = ""
+  try {
+    const res = await publicClient.get("/api/nihongo-user/courses", { withCredentials: false })
+    courses.value = res.data
+  } catch {
+    loadError.value = "Không thể tải danh sách khóa học. Vui lòng thử lại."
+  } finally { loading.value = false }
 }
 
 const loadMyCourses = async () => {
+  if (!isAuthenticated.value) return
   const res = await gatewayUrl.get("/api/nihongo-user/my-courses-dto")
 
   myCourses.value = res.data
@@ -95,6 +112,7 @@ const isRegistered = (id: number) =>
   registeredCourseIds.value.includes(id);
 const renewSubscription = async (packageId: number) => {
 
+  if (!isAuthenticated.value) { void goToLogin(); return }
   if (!selectedCourse.value) return
 
   try {
@@ -145,18 +163,33 @@ const continueLearning = (courseId: number) => {
   alert('Học tiếp nào ' + courseId)
 }
 
-onMounted(() => {
-  loadCourses()
-  loadMyCourses()
-})
+onMounted(() => { void loadCourses() })
+watch(isAuthenticated, async authenticated => {
+  registeredCourseIds.value = []
+  myCourses.value = []
+  showPackageModal.value = false
+  if (authenticated) {
+    try { await loadMyCourses() }
+    catch { loadError.value = "Không thể tải trạng thái đăng ký khóa học. Vui lòng thử lại." }
+  }
+}, { immediate: true })
 </script>
 
 <template>
   <div class="page">
 
+    <div v-if="!isAuthenticated" class="guest-intro">
+      <span class="intro-label">HỌC TIẾNG NHẬT CÙNG NIHONGO</span>
+      <h1>Bắt đầu hành trình tiếng Nhật của bạn</h1>
+      <p>Khám phá khóa học và chọn gói học phù hợp. Đăng nhập khi bạn sẵn sàng đăng ký.</p>
+    </div>
     <h2 class="title">📚 Khóa học tiếng Nhật</h2>
+    <p v-if="loading" role="status" class="empty">Đang tải khóa học...</p>
+    <div v-else-if="loadError" role="alert" class="alert alert-warning">
+      {{ loadError }} <button type="button" class="btn btn-link" @click="loadCourses">Thử lại</button>
+    </div>
 
-    <div v-if="courses.length" class="grid">
+    <div v-if="!loading && !loadError && courses.length" class="grid">
 
       <div
         v-for="course in courses"
@@ -246,7 +279,7 @@ onMounted(() => {
             </span>
 
             <span v-else>
-              🚀 Mua khóa học
+              {{ isAuthenticated ? "🚀 Mua khóa học" : "Đăng nhập để đăng ký" }}
             </span>
           </button>
 
@@ -255,7 +288,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <div v-else class="empty">
+    <div v-else-if="!loading && !loadError" class="empty">
       Chưa có khóa học nào
     </div>
 
@@ -323,8 +356,14 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.guest-intro { padding: 36px 0 30px; max-width: 760px; }
+.intro-label { color: #2563eb; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; }
+.guest-intro h1 { color: #172554; font-size: clamp(28px, 4vw, 42px); font-weight: 750; margin: 14px 0; line-height: 1.25; }
+.guest-intro p { color: #64748b; font-size: 16px; line-height: 1.7; }
 .page {
-  padding: 20px;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 24px;
   background: #f6f7fb;
   min-height: 100vh;
 }
@@ -522,5 +561,11 @@ onMounted(() => {
 .btn.warning{
   background:#fa8c16;
   color:white;
+}
+@media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .grid, .package-grid { grid-template-columns: 1fr; }
+  .page { padding: 20px; }
+  .modal-box { width: calc(100% - 32px); max-height: 85vh; overflow-y: auto; }
 }
 </style>

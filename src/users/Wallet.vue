@@ -4,6 +4,8 @@ import axios from 'axios'
 import { getWallet, depositWallet, getDeposits, getBankInfo, walletError, formatMoney, depositStatus,
   type WalletResponse, type WalletDeposit, type BankInfo, type DepositWalletRequest } from '@/services/walletApi'
 
+import { useWalletRealtime, type WalletNotice } from '@/services/walletRealtime'
+
 const wallet = ref<WalletResponse | null>(null)
 const deposits = ref<WalletDeposit[]>([])
 const bank = ref<BankInfo | null>(null)
@@ -16,10 +18,22 @@ const description = ref('')
 const retryRequest = ref<DepositWalletRequest | null>(null)
 const storageKey = () => `wallet-deposit-retry:${wallet.value?.userId}`
 
-async function load() {
-  if (loading.value || submitting.value) return
+let reloadPending = false
+const liveStatus = useWalletRealtime(false, (event?: WalletNotice) => {
+  if (event?.type === 'APPROVED') {
+    error.value = ''
+    success.value = `Nạp tiền thành công – NAP${event.depositId}. Email xác nhận đang được gửi.`
+  } else if (event?.type === 'REJECTED') {
+    success.value = ''
+    error.value = `Nạp tiền không thành công – NAP${event.depositId}. Xem lý do trong lịch sử nạp tiền; thông báo cũng sẽ được gửi qua email.`
+  }
+  void load(true)
+})
+
+async function load(background = false) {
+  if (loading.value || submitting.value) { reloadPending = true; return }
   loading.value = true
-  error.value = ''
+  if (!background) error.value = ''
   try {
     wallet.value = await getWallet()
     const [history, info] = await Promise.all([getDeposits(), getBankInfo()])
@@ -37,7 +51,10 @@ async function load() {
       } catch { sessionStorage.removeItem(storageKey()) }
     }
   } catch (e) { error.value = walletError(e, 'Không thể tải ví. Vui lòng đăng nhập và thử lại.') }
-  finally { loading.value = false }
+  finally {
+    loading.value = false
+    if (reloadPending) { reloadPending = false; void load(true) }
+  }
 }
 
 async function submit() {
@@ -68,17 +85,21 @@ async function submit() {
       retryRequest.value = null
     }
     error.value = walletError(e, 'Chưa xác định được kết quả. Bấm gửi lại để kiểm tra cùng yêu cầu, không chuyển khoản thêm.')
-  } finally { submitting.value = false }
+  } finally {
+    submitting.value = false
+    if (reloadPending) { reloadPending = false; void load(true) }
+  }
 }
-onMounted(load)
+onMounted(() => { void load() })
 </script>
 
 <template>
   <div class="container py-4" style="max-width: 900px">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>Ví của tôi</h2>
-      <button class="btn btn-outline-primary" :disabled="loading || submitting" @click="load">{{ loading ? 'Đang tải...' : 'Cập nhật' }}</button>
+      <button class="btn btn-outline-primary" :disabled="loading || submitting" @click="load()">{{ loading ? 'Đang tải...' : 'Cập nhật' }}</button>
     </div>
+    <p role="status" class="small text-muted">{{ liveStatus === 'live' ? 'Đang cập nhật theo thời gian thực' : liveStatus === 'connecting' ? 'Đang kết nối cập nhật trực tiếp...' : 'Mất kết nối trực tiếp. Đang kết nối lại; bạn có thể bấm Cập nhật.' }}</p>
     <div v-if="error" role="alert" class="alert alert-danger">{{ error }}</div>
     <div v-if="success" role="status" class="alert alert-success">{{ success }}</div>
     <div class="card p-4 mb-4">
@@ -109,7 +130,7 @@ onMounted(load)
     </div>
     <div class="card p-4">
       <h4>Lịch sử yêu cầu nạp</h4>
-      <p class="text-muted">Tối đa 100 yêu cầu gần nhất. Bấm Cập nhật để xem kết quả đối soát.</p>
+      <p class="text-muted">Tối đa 100 yêu cầu gần nhất. Kết quả đối soát và số dư tự động cập nhật khi có kết nối trực tiếp.</p>
       <p v-if="!deposits.length">Chưa có yêu cầu nạp tiền.</p>
       <div v-for="item in deposits" :key="item.id" class="border-top py-3">
         <div class="d-flex justify-content-between flex-wrap gap-2">

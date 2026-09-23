@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import Wallet from '../Wallet.vue'
 import * as api from '@/services/walletApi'
+import type { WalletNotice } from '@/services/walletRealtime'
+const realtime = vi.hoisted(() => ({ change: undefined as undefined | ((event?: WalletNotice) => void) }))
+vi.mock('@/services/walletRealtime', () => ({ useWalletRealtime: (_admin: boolean, change: (event?: WalletNotice) => void) => { realtime.change = change; return 'live' } }))
 vi.mock('@/services/walletApi', () => ({
   getWallet: vi.fn(), getDeposits: vi.fn(), getBankInfo: vi.fn(), depositWallet: vi.fn(),
   walletError: (_e: unknown, fallback: string) => fallback,
@@ -63,5 +66,32 @@ describe('manual wallet deposits', () => {
     await wrapper.get('form').trigger('submit')
     expect(api.depositWallet).toHaveBeenCalledTimes(1)
     resolve(request); await flushPromises()
+  })
+})
+
+describe('wallet realtime outcomes', () => {
+  it.each(['APPROVED', 'REJECTED'] as const)('refreshes the authoritative state after %s', async type => {
+    const wrapper = mount(Wallet); await flushPromises()
+    vi.mocked(api.getWallet).mockResolvedValue({ walletId: 1, userId: 'uuid-owner', balance: type === 'APPROVED' ? 10000 : 0 })
+    vi.mocked(api.getDeposits).mockResolvedValue([{ ...request, status: type === 'APPROVED' ? 'SUCCESS' : 'CANCELLED', reviewNote: 'Đã đối soát' }])
+    realtime.change?.({ eventId: 'event-1', depositId: 10, type })
+    await flushPromises()
+    expect(wrapper.text()).toContain(type === 'APPROVED' ? 'Nạp tiền thành công' : 'Nạp tiền không thành công')
+    expect(wrapper.text()).toContain(type === 'APPROVED' ? '10000đ' : 'CANCELLED')
+    expect(wrapper.text()).toContain('Đã đối soát')
+    wrapper.unmount()
+  })
+  it('does not lose a notice received while deposit submission is in flight', async () => {
+    let resolve!: (value: typeof request) => void
+    vi.mocked(api.depositWallet).mockImplementationOnce(() => new Promise(done => { resolve = done }))
+    const wrapper = mount(Wallet); await flushPromises()
+    await wrapper.get('#amount').setValue(10000)
+    await wrapper.get('form').trigger('submit')
+    realtime.change?.({ eventId: 'event-2', depositId: 10, type: 'APPROVED' })
+    vi.mocked(api.getDeposits).mockResolvedValue([{ ...request, status: 'SUCCESS' }])
+    resolve(request); await flushPromises()
+    expect(wrapper.text()).toContain('SUCCESS')
+    expect(api.getWallet).toHaveBeenCalledTimes(2)
+    wrapper.unmount()
   })
 })

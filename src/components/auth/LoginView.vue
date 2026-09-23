@@ -226,7 +226,7 @@ const redirectByRole = async (
 
     default:
 
-      await router.push('/')
+      await router.push(router.currentRoute.value.query.redirect === '/courses' ? '/courses' : '/')
 
       break
   }
