@@ -1,4 +1,5 @@
 import {Client} from '@stomp/stompjs'
+import { authSocketUrl } from './endpoints'
 // @ts-ignore
 import SockJS from 'sockjs-client/dist/sockjs'
 
@@ -7,24 +8,28 @@ type LogoutCallback = () => void
 class WebSocketService {
   private client: Client | null = null
   private logoutCallback: LogoutCallback | null = null
+  private sessionId: string | null = null
 
   connect(
     sessionId: string,
     onLogout: LogoutCallback
   ) {
 
-    if (this.client?.active) return
+    if (this.client?.active && this.sessionId === sessionId) return
+    this.disconnect()
+    this.sessionId = sessionId
 
     this.logoutCallback = onLogout
 
     this.client = new Client({
 
       webSocketFactory: () =>
-        new SockJS('http://localhost:8081/ws'),
+        new SockJS(authSocketUrl),
 
       reconnectDelay: 5000,
 
       onConnect: () => {
+        if (this.sessionId !== sessionId) return
 
         console.log('✅ WS connected')
 
@@ -42,6 +47,7 @@ class WebSocketService {
               // ✅ chỉ logout đúng session/tab
               if (
                 data.type === 'FORCE_LOGOUT' &&
+                this.sessionId === sessionId &&
                 data.sessionId === sessionId
               ) {
 
@@ -81,11 +87,10 @@ class WebSocketService {
   }
 
   disconnect() {
-    if (this.client?.active) {
-      this.client.deactivate().then(() =>
-        this.client = null
-      )
-    }
+    const old = this.client
+    this.client = null
+    this.sessionId = null
+    if (old) void old.deactivate()
   }
 }
 

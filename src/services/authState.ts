@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import axios from 'axios'
 
 import {
   gatewayUrl,
@@ -48,60 +49,27 @@ const stopPolling = () => {
    LOGOUT
 ========================= */
 
+const clearAuth = () => {
+  isAuthenticated.value = false
+  userName.value = ''; userEmail.value = ''; userRole.value = ''
+  stopPolling()
+  wsService.disconnect()
+}
+window.addEventListener('auth:expired', clearAuth)
+
 export const logout = async () => {
-
   if (isLoggingOut) return
-
   isLoggingOut = true
-
   try {
-
-    const sessionId =
-      sessionStorage.getItem(
-        'sessionId'
-      )
-
-    await publicClient.post(
-      '/api/auth/logout',
-      {
-        sessionId
-      }
-    )
-
-  } catch (e) {
-
-    console.log(e)
-
-  } finally {
-
-    isAuthenticated.value = false
-
-    userName.value = ''
-    userEmail.value = ''
-    userRole.value = ''
-
-    stopPolling()
-
-    wsService.disconnect()
-
+    await publicClient.post('/api/auth/logout')
+    clearAuth()
     localStorage.clear()
-
     sessionStorage.clear()
-
+    if (window.location.pathname !== '/login') window.location.replace('/login')
+  } finally {
     isLoggingOut = false
-
-    if (
-      window.location.pathname
-      !== '/login'
-    ) {
-
-      window.location.replace(
-        '/login'
-      )
-    }
   }
 }
-
 /* =========================
    START POLLING
 ========================= */
@@ -172,10 +140,13 @@ export const initAuth =
 
     try {
 
-      const res =
-        await gatewayUrl.get(
-          '/api/auth/checkLogin'
-        )
+      // An anonymous visitor can stay on public pages. Only an established
+      // session uses the global interceptor's redirect-on-expiration behavior.
+      const res = await publicClient.get('/api/auth/checkLogin').catch(async error => {
+        if (!axios.isAxiosError(error) || error.response?.status !== 401) throw error
+        await publicClient.post('/api/auth/refresh')
+        return publicClient.get('/api/auth/checkLogin')
+      })
 
       if (
         !res.data.isLoggedIn
@@ -199,21 +170,8 @@ export const initAuth =
       userRole.value =
         res.data.role
 
-      let sessionId =
-        sessionStorage.getItem(
-          'sessionId'
-        )
-
-      if (!sessionId) {
-
-        sessionId =
-          crypto.randomUUID()
-
-        sessionStorage.setItem(
-          'sessionId',
-          sessionId
-        )
-      }
+      const sessionId = res.data.sessionId
+      sessionStorage.setItem('sessionId', sessionId)
 
       wsService.connect(
         sessionId,
@@ -224,7 +182,9 @@ export const initAuth =
             '🔥 Force logout received'
           )
 
-          await logout()
+          // The server already replaced this session; do not revoke newer shared cookies.
+          clearAuth()
+          window.location.replace('/login')
         }
       )
 
@@ -269,10 +229,8 @@ export const setAuth =
     userRole.value =
       res.data.role
 
-    const sessionId =
-      sessionStorage.getItem(
-        'sessionId'
-      )
+    const sessionId = res.data.sessionId
+    sessionStorage.setItem('sessionId', sessionId)
 
     if (sessionId) {
 
@@ -285,7 +243,9 @@ export const setAuth =
             '🔥 Force logout received'
           )
 
-          await logout()
+          // The server already replaced this session; do not revoke newer shared cookies.
+          clearAuth()
+          window.location.replace('/login')
         }
       )
     }

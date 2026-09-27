@@ -7,6 +7,8 @@ const route = useRoute()
 const router = useRouter()
 const started = ref(false)
 const submitted = ref(false)
+const submitting = ref(false)
+const submitFailed = ref(false)
 const remainSeconds = ref(0)
 let timer: number | null = null
 const showResult = ref(false)
@@ -122,7 +124,7 @@ const formattedTime = computed(() => {
 })
 const startExercise = () => {
 
-  if (started.value) {
+  if (started.value || submitted.value || submitting.value || submitFailed.value || !exercises.value.length) {
     return
   }
 
@@ -162,6 +164,7 @@ const restartExercise = () => {
 
   started.value = false
   submitted.value = false
+  submitFailed.value = false
 
   showResult.value = false
   showTimeUp.value = false
@@ -188,11 +191,11 @@ const restartExercise = () => {
 }
 const submitExercise = async (isTimeUp = false) => {
 
-  if (submitted.value) {
+  if (submitted.value || submitting.value) {
     return
   }
 
-  submitted.value = true
+  submitting.value = true
   started.value = false
 
   if (timer !== null) {
@@ -200,40 +203,21 @@ const submitExercise = async (isTimeUp = false) => {
     timer = null
   }
 
-  let correct = 0
-  let wrong = 0
-
-  exercises.value.forEach(e => {
-
-    const answer = selectedAnswers.value[e.exerciseKeywordId]
-
-    if (!answer) {
-      return
-    }
-
-    if (answer === e.correctAnswer) {
-      correct++
-    } else {
-      wrong++
-    }
-
-  })
-
-  score.value = {
-    total: exercises.value.length,
-    correct,
-    wrong
+  try {
+    const { data } = await gatewayUrl.post("/api/nihongo-user/userExerciseAttempt", {
+      lessonId: lessonId.value, answers: selectedAnswers.value
+    })
+    score.value = { total: data.totalQuestion, correct: data.correctCount, wrong: data.wrongCount }
+    exercises.value.forEach(e => { e.correctAnswer = data.correctAnswers[e.exerciseKeywordId] })
+    submitted.value = true
+    submitFailed.value = false
+  } catch {
+    submitFailed.value = true
+    alert("Chưa lưu được bài làm. Vui lòng thử nộp lại.")
+    return
+  } finally {
+    submitting.value = false
   }
-
-  await gatewayUrl.post(
-    "/api/nihongo-user/userExerciseAttempt",
-    {
-      lessonId: lessonId.value,
-      totalQuestion: exercises.value.length,
-      correctCount: correct,
-      wrongCount: wrong
-    }
-  )
 
   if (isTimeUp) {
 
@@ -428,6 +412,7 @@ onMounted(async () => {
 
 })
 onUnmounted(() => {
+  if (timer !== null) clearInterval(timer)
 
   window.removeEventListener(
     "scroll",
@@ -628,7 +613,7 @@ const scrollToGroup =
         <button
           class="start-btn"
           @click="startExercise"
-          :disabled="started || submitted">
+          :disabled="started || submitted || submitting || submitFailed || !exercises.length">
 
           {{
             submitted
@@ -643,9 +628,9 @@ const scrollToGroup =
         <button
           class="submit-btn"
           @click="submitExercise()"
-          :disabled="!started || submitted"
+          :disabled="(!started && !submitFailed) || submitted || submitting"
         >
-          {{ submitted ? "Đã nộp" : "Nộp bài" }}
+          {{ submitting ? "Đang nộp..." : submitted ? "Đã nộp" : submitFailed ? "Nộp lại" : "Nộp bài" }}
         </button>
 
       </div>

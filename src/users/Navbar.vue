@@ -1,9 +1,12 @@
 <script setup lang="ts">
 
-import {ref} from "vue"
-import {useRouter} from "vue-router"
+import {ref, watch, onMounted, onUnmounted} from "vue"
+import { getWallet, formatMoney } from '@/services/walletApi'
+import NotificationBell from '@/components/common/NotificationBell.vue'
+import BrandLogo from '@/components/common/BrandLogo.vue'
+import {useRouter, useRoute} from "vue-router"
 import {logout} from "@/services/authState.ts"
-import {analyzeJapanese} from "@/services/japaneseAiService.ts"
+
 
 const props = defineProps<{
   isLoggedIn: boolean
@@ -14,31 +17,40 @@ const props = defineProps<{
 const emit = defineEmits(["toggle"])
 
 const router = useRouter()
-
-const notificationCount = ref(3)
-
-const showNotification = ref(false)
-
-const notifications = ref([
-  {
-    id: 1,
-    message: "Bạn có 5 từ vựng cần ôn tập"
-  },
-  {
-    id: 2,
-    message: "Bài kiểm tra N3 đã sẵn sàng"
-  },
-  {
-    id: 3,
-    message: "Có 1 bình luận mới"
+const route = useRoute()
+const balance = ref<number | null>(null)
+const balanceLoading = ref(false)
+let balanceRequest = 0
+let disposed = false
+async function refreshBalance() {
+  const request = ++balanceRequest
+  if (!props.isLoggedIn || !props.email || disposed) return
+  balanceLoading.value = true
+  try {
+    const wallet = await getWallet()
+    if (request === balanceRequest && !disposed) balance.value = wallet.balance
+  } catch {
+    if (request === balanceRequest && !disposed) balance.value = null
+  } finally {
+    if (request === balanceRequest && !disposed) balanceLoading.value = false
   }
-])
-
-const toggleNotification = () => {
-  showNotification.value =
-    !showNotification.value
 }
-
+watch(() => [props.isLoggedIn, props.email], () => {
+  balance.value = null
+  balanceLoading.value = false
+  void refreshBalance()
+}, { immediate: true })
+watch(() => route.fullPath, () => { void refreshBalance() })
+onMounted(() => {
+  window.addEventListener('wallet:changed', refreshBalance)
+  window.addEventListener('focus', refreshBalance)
+})
+onUnmounted(() => {
+  disposed = true
+  ++balanceRequest
+  window.removeEventListener('wallet:changed', refreshBalance)
+  window.removeEventListener('focus', refreshBalance)
+})
 
 /* =========================
    LOGOUT
@@ -87,17 +99,7 @@ const handleSearch = async () => {
 
     searchLoading.value = true
 
-    const result =
-      await analyzeJapanese(keyword)
-
-    sessionStorage.setItem(
-      "japaneseAiResult",
-      JSON.stringify(result)
-    )
-
-    await router.push(
-      "/japanese-ai"
-    )
+    await router.push({ path: '/japanese-ai', query: { q: keyword } })
 
   } catch (e) {
 
@@ -143,12 +145,13 @@ const goToWallet = () => {
 
     <!-- BRAND -->
 
-    <div
+    <RouterLink
       class="brand"
-      @click="router.push('/')"
+      to="/"
+      aria-label="NihongoApp — Trang chủ"
     >
-      🇯🇵 NihongoApp
-    </div>
+      <BrandLogo />
+    </RouterLink>
 
 
     <!-- AI SEARCH -->
@@ -214,58 +217,7 @@ const goToWallet = () => {
       >
 
 
-        <!-- NOTIFICATION -->
-
-        <div
-          class="notification-wrapper"
-        >
-
-          <button
-            class="notification-btn"
-            @click="toggleNotification"
-          >
-
-            🔔
-
-            <span
-              v-if="
-                notificationCount > 0
-              "
-              class="notification-badge"
-            >
-              {{
-                notificationCount
-              }}
-            </span>
-
-          </button>
-
-
-          <div
-            v-if="showNotification"
-            class="notification-dropdown"
-          >
-
-            <div
-              class="notification-title"
-            >
-              Thông báo
-            </div>
-
-            <div
-              v-for="
-                item in notifications
-              "
-              :key="item.id"
-              class="notification-item"
-            >
-              {{ item.message }}
-            </div>
-
-          </div>
-
-        </div>
-
+        <NotificationBell />
 
         <!-- WALLET -->
 
@@ -284,8 +236,8 @@ const goToWallet = () => {
               Ví của tôi
             </span>
 
-            <span class="wallet-balance">
-              Xem số dư
+            <span class="wallet-balance" aria-live="polite">
+              {{ balance !== null ? formatMoney(balance) : balanceLoading ? 'Đang tải…' : 'Chưa tải được số dư' }}
             </span>
 
           </div>
@@ -400,6 +352,8 @@ const goToWallet = () => {
 
 
 .brand {
+  text-decoration: none;
+  flex-shrink: 0;
 
   font-size: 22px;
 
@@ -879,4 +833,3 @@ const goToWallet = () => {
 }
 
 </style>
-

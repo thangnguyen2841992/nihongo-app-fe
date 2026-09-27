@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import {onMounted, ref, watch} from "vue"
 import { useRouter } from "vue-router"
+import { purchaseCourse } from "@/services/coursePurchase"
 import { useAuthState } from "@/services/authState"
 import {gatewayUrl, publicClient} from "@/api/authApi"
 
 const router = useRouter()
-const { isAuthenticated } = useAuthState()
+const { isAuthenticated, userEmail } = useAuthState()
 const loading = ref(true)
 const loadError = ref("")
 const goToLogin = () => router.push({ path: "/login", query: { redirect: "/courses" } })
@@ -47,26 +48,21 @@ const openPackageModal = (course: Course, renew = false) => {
 
 const subscribe = async (packageId: number) => {
   if (!isAuthenticated.value) { void goToLogin(); return }
-  if (!selectedCourse.value) return
+  if (!selectedCourse.value || registering.value !== null) return
 
   try {
     registering.value = selectedCourse.value.courseId
 
-    await gatewayUrl.post("/api/nihongo-user/subscriptions", null, {
-      params: {
-        courseId: selectedCourse.value.courseId,
-        packageId
-      }
-    })
+    await purchaseCourse(userEmail?.value || "current", selectedCourse.value.courseId, packageId, false)
 
     await loadMyCourses();
 
     showPackageModal.value = false
     selectedCourse.value = null
 
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
-    alert("Đăng ký thất bại")
+    alert(e.response?.data?.message || "Đăng ký thất bại. Có thể thử lại cùng yêu cầu.")
   } finally {
     registering.value = null
   }
@@ -113,22 +109,13 @@ const isRegistered = (id: number) =>
 const renewSubscription = async (packageId: number) => {
 
   if (!isAuthenticated.value) { void goToLogin(); return }
-  if (!selectedCourse.value) return
+  if (!selectedCourse.value || registering.value !== null) return
 
   try {
 
     registering.value = selectedCourse.value.courseId
 
-    await gatewayUrl.post(
-      "/api/nihongo-user/subscriptions/renew",
-      null,
-      {
-        params: {
-          courseId: selectedCourse.value.courseId,
-          packageId
-        }
-      }
-    )
+    await purchaseCourse(userEmail?.value || "current", selectedCourse.value.courseId, packageId, true)
 
     alert("Gia hạn thành công!")
 
@@ -137,10 +124,10 @@ const renewSubscription = async (packageId: number) => {
 
     await loadMyCourses()
 
-  } catch (e) {
+  } catch (e: any) {
 
     console.error(e)
-    alert("Gia hạn thất bại")
+    alert(e.response?.data?.message || "Gia hạn thất bại. Có thể thử lại cùng yêu cầu.")
 
   } finally {
 
@@ -160,7 +147,7 @@ const renewCourse = (courseId: number) => {
 }
 
 const continueLearning = (courseId: number) => {
-  alert('Học tiếp nào ' + courseId)
+  router.push(`/course/${courseId}/books`)
 }
 
 onMounted(() => { void loadCourses() })
@@ -309,6 +296,7 @@ watch(isAuthenticated, async authenticated => {
           }}
         </p>
 
+        <p class="sub">Thanh toán bằng số dư ví. Số tiền của gói sẽ được trừ khi đăng ký hoặc gia hạn thành công.</p>
         <div class="package-grid">
 
           <div
@@ -338,7 +326,7 @@ watch(isAuthenticated, async authenticated => {
         : subscribe(p.packageId)
   "
             >
-              {{ isRenewMode ? 'Gia hạn gói' : 'Chọn gói' }}
+              {{ isRenewMode ? 'Thanh toán gia hạn' : 'Thanh toán từ ví' }}
             </button>
 
           </div>

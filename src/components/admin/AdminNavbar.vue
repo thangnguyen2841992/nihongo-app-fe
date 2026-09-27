@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import NotificationBell from '@/components/common/NotificationBell.vue'
 import { ref, onMounted } from "vue"
 import { logout } from "@/services/authState.ts"
 import router from "@/router"
@@ -83,20 +84,7 @@ const handleLogout = async () => {
 
       <!-- RIGHT -->
       <div class="ms-auto d-flex align-items-center">
-        <!-- NOTIFICATION -->
-        <button
-          class="btn btn-dark position-relative me-3 notification-btn"
-        >
-
-          <i class="bi bi-bell-fill text-warning"></i>
-
-          <span
-            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-          >
-      3
-    </span>
-
-        </button>
+        <NotificationBell class="text-warning me-3" />
         <!-- USER -->
         <div
           v-if="isLoggedIn"

@@ -1,5 +1,6 @@
 import axios from 'axios'
 import router from '@/router'
+import { gatewayBaseUrl } from '@/services/endpoints'
 
 declare module 'axios' {
   export interface InternalAxiosRequestConfig {
@@ -8,12 +9,12 @@ declare module 'axios' {
 }
 
 const gatewayUrl = axios.create({
-  baseURL: 'http://localhost:8082',
+  baseURL: gatewayBaseUrl,
   withCredentials: true
 })
 
 const publicClient = axios.create({
-  baseURL: 'http://localhost:8082',
+  baseURL: gatewayBaseUrl,
   withCredentials: true
 })
 
@@ -37,6 +38,7 @@ const processQueue = (error: any = null) => {
 }
 
 const logout = async () => {
+  window.dispatchEvent(new Event('auth:expired'))
   localStorage.clear()
   sessionStorage.clear()
 
@@ -81,7 +83,7 @@ gatewayUrl.interceptors.response.use(
     if (
       url.includes('/api/auth/refresh')
     ) {
-      await logout()
+      if (status === 401) await logout()
 
       return Promise.reject(error)
     }
@@ -164,7 +166,9 @@ gatewayUrl.interceptors.response.use(
         refreshError
       )
 
-      await logout()
+      if (axios.isAxiosError(refreshError) && refreshError.response?.status === 401) {
+        await logout()
+      }
 
       return Promise.reject(
         refreshError

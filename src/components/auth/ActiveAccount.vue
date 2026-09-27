@@ -24,7 +24,8 @@ onMounted(async () => {
     const data = res.data
 
     if (data.status === 'SUCCESS') {
-      await router.push({path: '/login', query: {email: data.email}})
+      sessionStorage.setItem('passwordSetup', JSON.stringify({ userId: data.userId, token: data.setupToken, email: data.email }))
+      await router.replace('/reset-password')
     } else if (data.status === 'EXPIRED') {
       await router.push({
         path: '/active-expired',

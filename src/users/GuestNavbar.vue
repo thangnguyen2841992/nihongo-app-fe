@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BrandLogo from '@/components/common/BrandLogo.vue'
 defineProps<{ isOpen: boolean }>()
 const emit = defineEmits<{ toggle: [] }>()
 </script>
@@ -7,8 +8,7 @@ const emit = defineEmits<{ toggle: [] }>()
   <header class="guest-navbar">
     <nav class="guest-navbar-inner" aria-label="Điều hướng chính">
       <RouterLink to="/courses" class="guest-brand" aria-label="NihongoApp — Trang chủ">
-        <span class="brand-mark" aria-hidden="true">日<span></span></span>
-        <span class="brand-name">Nihongo<span>App</span></span>
+        <BrandLogo />
       </RouterLink>
       <span class="nav-caption">Mỗi ngày một bước, gần hơn với Nhật Bản.</span>
       <div class="guest-actions">

@@ -163,7 +163,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import axios from 'axios'
+import { publicClient } from '@/api/authApi'
 
 const router = useRouter()
 const route = useRoute()
@@ -220,8 +220,8 @@ const setupPassword = async (): Promise<void> => {
   loading.value = true
 
   try {
-    await axios.post(
-      'http://localhost:8082/api/auth/google/setup-password',
+    await publicClient.post(
+      '/api/auth/google/setup-password',
       {
         setupToken: setupToken.value,
         password: password.value,

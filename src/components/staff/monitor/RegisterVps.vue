@@ -116,7 +116,7 @@ const register = async () => {
       <input
         v-model="ipAddress"
         class="form-control"
-        placeholder="180.93.115.154"
+        placeholder="160.22.107.232"
         :disabled="loadingDiscovery || loadingRegister"
       >
     </div>

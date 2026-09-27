@@ -1704,22 +1704,19 @@ const goToExercisePage =
 }
 
 .grammar-structure-image {
-
-  width: auto;
-
-  max-width: 500px;
-
-  max-height: 120px;
-
-  margin: 0 auto;
-
   display: block;
+  width: 100%;
+  max-width: 650px;
+  height: auto;
+  aspect-ratio: 4 / 1;
+  object-fit: contain;
+  margin: 0 auto;
+  border-radius: 12px;
+  background: #fff;
+  cursor: zoom-in;
 }
 
-.grammar-structure-image:hover {
-
-  transform: scale(1.02);
-}
+.grammar-structure-image:hover { box-shadow: 0 0 0 2px #dce5f5; }
 
 .grammar-header {
   display: flex;

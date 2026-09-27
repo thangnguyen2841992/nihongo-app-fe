@@ -6,7 +6,9 @@ import {gatewayUrl} from '@/api/authApi'
 const route = useRoute()
 const router = useRouter()
 
-const email = ref(route.query.email || '')
+let setup: { userId?: string; token?: string; email?: string } = {}
+try { setup = JSON.parse(sessionStorage.getItem('passwordSetup') || '{}') } catch { /* invalid local state */ }
+const email = ref(setup.email || '')
 const password = ref('')
 const confirmPassword = ref('')
 const error = ref('')
@@ -59,12 +61,14 @@ const submit = async () => {
     error.value = ''
 
     await gatewayUrl.post('/api/active-user/updatePassword', {
-      email: email.value,
+      userId: setup.userId,
+      token: setup.token,
       password: password.value,
       confirmPassword: confirmPassword.value
     })
 
-    await router.push('/login')
+    sessionStorage.removeItem('passwordSetup')
+    await router.replace('/login')
   } catch {
     error.value = 'Có lỗi xảy ra'
   } finally {
@@ -82,6 +86,7 @@ const handleEnterConfirm = () => {
 }
 
 onMounted(async () => {
+  if (!setup.userId || !setup.token) { await router.replace('/login'); return }
   await nextTick()
   passwordRef.value?.focus()
 })

@@ -13,6 +13,8 @@ vi.mock('@/services/walletApi', () => ({
 }))
 const request = { id: 10, userId: 'uuid-owner', amount: 10000, description: '', requestKey: 'key', status: 'PENDING' as const, createdAt: '2026-09-22T12:00:00', bankReference: null, reviewNote: null, reviewedAt: null }
 beforeEach(() => {
+  // jsdom does not implement the browser's modal top layer.
+  Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function (this: HTMLDialogElement) { this.open = true } })
   vi.clearAllMocks(); sessionStorage.clear()
   vi.mocked(api.getWallet).mockResolvedValue({ walletId: 1, userId: 'uuid-owner', balance: 0 })
   vi.mocked(api.getDeposits).mockResolvedValue([])
@@ -20,6 +22,25 @@ beforeEach(() => {
   vi.mocked(api.depositWallet).mockResolvedValue(request)
 })
 describe('manual wallet deposits', () => {
+  it('keeps history hidden until requested and allows closing it', async () => {
+    vi.mocked(api.getDeposits).mockResolvedValue([request])
+    const wrapper = mount(Wallet); await flushPromises()
+    expect(wrapper.find('#wallet-history').exists()).toBe(false)
+    await wrapper.get('.history-toggle').trigger('click')
+    expect(wrapper.find('#wallet-history').exists()).toBe(true)
+    expect(wrapper.get('#wallet-history').text()).toContain('NAP10')
+    await wrapper.get('.history-close').trigger('click')
+    expect(wrapper.find('#wallet-history').exists()).toBe(false)
+    await wrapper.get('.history-toggle').trigger('click'); await flushPromises()
+    expect(document.body.style.overflow).toBe('hidden')
+    await wrapper.get('#wallet-history').trigger('cancel')
+    expect(wrapper.find('#wallet-history').exists()).toBe(false)
+    expect(document.body.style.overflow).not.toBe('hidden')
+    await wrapper.get('.history-toggle').trigger('click'); await flushPromises()
+    await wrapper.get('#wallet-history').trigger('click')
+    expect(wrapper.find('#wallet-history').exists()).toBe(false)
+    wrapper.unmount()
+  })
   it('loads without a sessionStorage userId and does not claim money was credited', async () => {
     const wrapper = mount(Wallet); await flushPromises()
     expect(api.getWallet).toHaveBeenCalledWith()
@@ -77,6 +98,7 @@ describe('wallet realtime outcomes', () => {
     realtime.change?.({ eventId: 'event-1', depositId: 10, type })
     await flushPromises()
     expect(wrapper.text()).toContain(type === 'APPROVED' ? 'Nạp tiền thành công' : 'Nạp tiền không thành công')
+    await wrapper.get('.history-toggle').trigger('click')
     expect(wrapper.text()).toContain(type === 'APPROVED' ? '10000đ' : 'CANCELLED')
     expect(wrapper.text()).toContain('Đã đối soát')
     wrapper.unmount()
@@ -90,6 +112,7 @@ describe('wallet realtime outcomes', () => {
     realtime.change?.({ eventId: 'event-2', depositId: 10, type: 'APPROVED' })
     vi.mocked(api.getDeposits).mockResolvedValue([{ ...request, status: 'SUCCESS' }])
     resolve(request); await flushPromises()
+    await wrapper.get('.history-toggle').trigger('click')
     expect(wrapper.text()).toContain('SUCCESS')
     expect(api.getWallet).toHaveBeenCalledTimes(2)
     wrapper.unmount()
