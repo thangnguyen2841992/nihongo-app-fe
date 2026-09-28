@@ -4,7 +4,7 @@ withDefaults(defineProps<{ light?: boolean }>(), { light: false })
 
 <template>
   <span class="nihongo-logo" :class="{ 'on-dark': light }" aria-label="NihongoApp">
-    <img src="/nihongo-mark.svg" class="logo-mark" alt="" width="42" height="42" />
+    <img :src="'/nihongo-mark.svg'" class="logo-mark" alt="" width="42" height="42" />
     <span class="logo-type" aria-hidden="true">
       <span class="logo-name">nihongo<span class="logo-period">.</span></span>
       <span class="logo-tagline">HỌC TIẾNG NHẬT MỖI NGÀY</span>

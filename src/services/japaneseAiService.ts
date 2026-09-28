@@ -23,7 +23,8 @@ export interface JapaneseAiResponse {
 }
 
 export const analyzeJapanese = async (
-  text: string
+  text: string,
+  signal?: AbortSignal
 ): Promise<JapaneseAiResponse> => {
 
   const response = await gatewayUrl.post<JapaneseAiResponse>(
@@ -32,7 +33,9 @@ export const analyzeJapanese = async (
       text: text.trim()
     },
     {
-      withCredentials: true
+      withCredentials: true,
+      signal,
+      timeout: 70000
     }
   )
 

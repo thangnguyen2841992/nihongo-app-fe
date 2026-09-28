@@ -548,6 +548,7 @@ const isBooksLoading = (
               Đăng ký VPS
 
             </button>
+            <button class="monitoring-item" :class="{ active: isActive('/staff/monitoring/vps/performance') }" @click="go('/staff/monitoring/vps/performance')"><i class="bi bi-graph-up me-2"></i> Hiệu năng VPS</button>
 
           </div>
 

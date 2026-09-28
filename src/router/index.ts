@@ -177,6 +177,11 @@ const routes = [
 
       // 🔥 Đăng ký VPS
       {
+        path: 'monitoring/vps/performance',
+        name: 'monitor-vps-performance',
+        component: () => import('@/components/staff/monitor/VpsPerformance.vue')
+      },
+      {
         path: 'monitoring/vps/register',
         name: 'monitor-vps-register',
         component: RegisterVps

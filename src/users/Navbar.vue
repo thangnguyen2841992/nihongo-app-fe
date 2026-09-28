@@ -168,7 +168,9 @@ const goToWallet = () => {
       <input
         v-model="searchKeyword"
         type="text"
-        placeholder="Tìm kiếm tiếng Nhật..."
+        placeholder="Tra cứu tiếng Nhật / tiếng Việt..."
+        maxlength="2000"
+        aria-label="Tìm kiếm AI"
         :disabled="searchLoading"
       />
 
@@ -833,3 +835,4 @@ const goToWallet = () => {
 }
 
 </style>
+<style scoped src="./userNavbarTheme.css"></style>

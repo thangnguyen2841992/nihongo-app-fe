@@ -1,50 +1,40 @@
 <script setup lang="ts">
 import BrandLogo from '@/components/common/BrandLogo.vue'
+
 defineProps<{ isOpen: boolean }>()
 const emit = defineEmits<{ toggle: [] }>()
 </script>
 
 <template>
-  <header class="guest-navbar">
-    <nav class="guest-navbar-inner" aria-label="Điều hướng chính">
-      <RouterLink to="/courses" class="guest-brand" aria-label="NihongoApp — Trang chủ">
-        <BrandLogo />
-      </RouterLink>
-      <span class="nav-caption">Mỗi ngày một bước, gần hơn với Nhật Bản.</span>
-      <div class="guest-actions">
-        <RouterLink to="/login" class="login-link">Đăng nhập</RouterLink>
-        <RouterLink to="/register" class="register-link">Bắt đầu miễn phí <i class="bi bi-arrow-up-right" aria-hidden="true"></i></RouterLink>
-      </div>
-      <button class="menu-toggle" type="button" aria-label="Mở hoặc đóng menu"
-        aria-controls="guest-sidebar" :aria-expanded="isOpen" @click="emit('toggle')">
-        <i class="bi" :class="isOpen ? 'bi-x-lg' : 'bi-list'" aria-hidden="true"></i>
-      </button>
-    </nav>
-  </header>
+  <nav class="guest-navbar" aria-label="Điều hướng chính">
+    <button class="menu-toggle" type="button" aria-label="Mở hoặc đóng menu"
+      aria-controls="guest-sidebar" :aria-expanded="isOpen" @click="emit('toggle')">
+      <i class="bi" :class="isOpen ? 'bi-x-lg' : 'bi-list'" aria-hidden="true"></i>
+    </button>
+    <RouterLink to="/courses" class="brand" aria-label="NihongoApp — Trang chủ">
+      <BrandLogo />
+    </RouterLink>
+    <div class="guest-actions">
+      <RouterLink to="/login" class="login-link">Đăng nhập</RouterLink>
+      <RouterLink to="/register" class="register-link">Đăng ký</RouterLink>
+    </div>
+  </nav>
 </template>
 
 <style scoped>
-.guest-navbar { position: sticky; top: 0; z-index: 1000; background: #fff; border-bottom: 1px solid #e8edf4; }
-.guest-navbar-inner { height: 76px; padding: 0 32px 0 24px; display: flex; align-items: center; gap: 32px; }
-.guest-brand { width: 204px; flex-shrink: 0; display: flex; align-items: center; gap: 11px; text-decoration: none; }
-.brand-mark { position: relative; display: grid; place-items: center; width: 36px; height: 38px; border-radius: 11px; background: #243e86; color: white; font-size: 25px; font-weight: 600; }
-.brand-mark span { position: absolute; width: 8px; height: 8px; border: 2px solid #fff; background: #f08080; border-radius: 50%; right: -3px; top: -2px; }
-.brand-name { font-size: 20px; font-weight: 750; letter-spacing: -.7px; color: #1e293b; }
-.brand-name > span { color: #64748b; font-weight: 450; }
-.nav-caption { color: #7a879b; font-size: 13px; }
-.guest-actions { margin-left: auto; display: flex; align-items: center; gap: 24px; white-space: nowrap; }
-.login-link { font-size: 13px; color: #475569; font-weight: 600; text-decoration: none; }
-.login-link:hover { color: #2457c5; }
-.register-link { display: flex; align-items: center; gap: 16px; padding: 11px 17px; border-radius: 9px; background: #243e86; color: #fff; font-size: 13px; font-weight: 600; text-decoration: none; transition: background .2s; }
-.register-link:hover { background: #1e326b; }
-.menu-toggle { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; background: #f3f6fa; color: #334155; border: 1px solid #e8edf4; border-radius: 9px; font-size: 24px; }
-a:focus-visible, button:focus-visible { outline: 3px solid #93c5fd; outline-offset: 4px; }
-@media (max-width: 1100px) { .nav-caption { display: none; } }
-@media (max-width: 768px) {
-  .guest-navbar-inner { height: 68px; padding: 0 20px; gap: 12px; }
-  .guest-brand { width: auto; margin-right: auto; }
-  .brand-name { font-size: 19px; }
-  .guest-actions { display: none; }
-  .menu-toggle { display: flex; }
-}
+.guest-navbar { position: fixed; top: 0; left: 0; width: 100%; height: 64px; display: flex; align-items: center; padding: 0 24px; background: white; border-bottom: 1px solid #e5e7eb; z-index: 1000; box-shadow: 0 2px 12px rgb(0 0 0 / 4%); }
+.brand { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; white-space: nowrap; }
+.guest-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.guest-actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 7px 14px; border: 1px solid #2563eb; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: background .15s, color .15s; }
+.login-link { color: #2563eb; background: white; }
+.login-link:hover { background: #eff6ff; }
+.register-link { background: #2563eb; color: white; }
+.register-link:hover { background: #1d4ed8; }
+.menu-toggle { display: none; align-items: center; justify-content: center; flex-shrink: 0; width: 36px; height: 36px; margin-right: 8px; border: 1px solid #f8f9fa; border-radius: 6px; background: #f8f9fa; color: #253b68; font-size: 22px; }
+a:focus-visible, button:focus-visible { outline: 2px solid #e99484; outline-offset: 3px; }
+@media (max-width: 768px) { .menu-toggle { display: flex; } }
+@media (max-width: 480px) { .guest-navbar { padding: 0 12px; } .guest-actions { gap: 6px; } .guest-actions a { padding: 7px 9px; font-size: 11px; } }
+@media (max-width: 360px) { .guest-navbar { padding: 0 8px; } .guest-actions .login-link { display: none; } }
+@media (prefers-reduced-motion: reduce) { .guest-actions a { transition: none; } }
 </style>
+<style scoped src="./userNavbarTheme.css"></style>

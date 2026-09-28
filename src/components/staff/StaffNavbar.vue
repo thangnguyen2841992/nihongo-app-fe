@@ -2,7 +2,6 @@
 import {ref} from "vue"
 import {logout, useAuthState} from "@/services/authState.ts"
 import router from "@/router"
-import {analyzeJapanese} from "@/services/japaneseAiService"
 /* =========================
    AUTH STATE
 ========================= */
@@ -98,7 +97,9 @@ const handleLogout = async () => {
           v-model="searchKeyword"
           type="text"
           class="form-control search-input"
-          placeholder="Tìm kiếm..."
+          placeholder="Tra cứu tiếng Nhật / tiếng Việt..."
+          maxlength="2000"
+          aria-label="Tìm kiếm AI"
         />
 
         <button

@@ -2,36 +2,6 @@
   <div class="japanese-ai-page">
 
     <!-- =====================================================
-         LOADING OVERLAY
-    ====================================================== -->
-
-    <div
-      v-if="loading"
-      class="loading-overlay"
-    >
-      <div class="loading-box">
-
-        <div class="loading-icon">
-          🇯🇵
-        </div>
-
-        <div class="loading-text">
-          日本語を解析しています...
-        </div>
-
-        <div class="loading-subtext">
-          AI đang phân tích, vui lòng chờ trong giây lát
-        </div>
-
-        <div class="loading-bar">
-          <div class="loading-bar-progress"></div>
-        </div>
-
-      </div>
-    </div>
-
-
-    <!-- =====================================================
          HEADER
     ====================================================== -->
 
@@ -42,7 +12,7 @@
       </h1>
 
       <p>
-        Tra cứu và phân tích từ vựng, ngữ pháp tiếng Nhật
+        Nhập tiếng Nhật để phân tích, hoặc tiếng Việt để dịch và học cách diễn đạt.
       </p>
 
     </div>
@@ -52,7 +22,7 @@
          SEARCH
     ====================================================== -->
 
-    <div class="search-card">
+    <div class="search-card"><p id="ai-input-limit" class="input-limit">Tối đa 2.000 ký tự · {{ searchText.length }}/{{ maxInputLength }}</p>
 
       <div class="search-box">
 
@@ -60,19 +30,19 @@
           v-model="searchText"
           type="text"
           class="form-control"
-          placeholder="Nhập từ hoặc câu tiếng Nhật..."
-          :disabled="loading"
-          @keyup.enter="search"
+          placeholder="Nhập từ hoặc câu tiếng Nhật / tiếng Việt..." aria-label="Nội dung phân tích" :maxlength="maxInputLength" aria-describedby="ai-input-limit"
+
+          @keydown.enter="onSearchEnter"
         />
 
         <button
           type="button"
           class="btn btn-primary"
-          :disabled="loading || !searchText.trim()"
+          :disabled="!searchText.trim()"
           @click="search"
         >
           <span v-if="loading">
-            Đang phân tích...
+            Phân tích từ khóa mới
           </span>
 
           <span v-else>
@@ -85,13 +55,23 @@
     </div>
 
 
+    <section v-if="loading" class="loading-panel" role="status" aria-live="polite">
+      <div class="loading-box">
+        <div class="loading-icon" aria-hidden="true">🇯🇵</div>
+        <div class="loading-text">AI đang phân tích...</div>
+        <p class="loading-subtext">Bạn có thể nhập từ khóa khác hoặc hủy tìm kiếm.</p>
+        <div class="loading-bar" aria-hidden="true"><div class="loading-bar-progress"></div></div>
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-3" @click="cancelSearch">Hủy tìm kiếm</button>
+      </div>
+    </section>
+
     <!-- =====================================================
          ERROR
     ====================================================== -->
 
     <div
       v-if="error"
-      class="alert alert-danger mt-3"
+      class="alert alert-danger mt-3" role="alert"
     >
       {{ error }}
     </div>
@@ -426,166 +406,103 @@
 
 
 <script setup lang="ts">
-
-import {ref, watch} from 'vue'
-import {useRoute} from 'vue-router'
-import {analyzeJapanese} from '@/services/japaneseAiService'
-
-
-/* =========================================================
-   Types
-========================================================= */
-
-interface Vocabulary {
-
-  word: string
-
-  reading: string
-
-  /**
-   * Âm Hán / phiên âm Hán-Việt
-   *
-   * Ví dụ:
-   * 日本 -> にほん -> Nhật Bản
-   * 学校 -> がっこう -> Học hiệu
-   */
-  kanjiReading: string
-
-  meaning: string
-
-}
-
-
-interface Grammar {
-
-  pattern: string
-
-  explanation: string
-
-}
-
-
-interface JapaneseAiResponse {
-
-  originalText: string
-
-  translation: string
-
-  reading: string
-
-  vocabulary: Vocabulary[]
-
-  grammar: Grammar[]
-
-  sentenceStructure: string
-
-  examples: string[]
-
-}
-
-
-/* =========================================================
-   Router
-========================================================= */
+import { ref, watch, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
+import { analyzeJapanese, type JapaneseAiResponse } from '@/services/japaneseAiService'
 
 const route = useRoute()
-
-
-/* =========================================================
-   State
-========================================================= */
-
+const router = useRouter()
+const maxInputLength = 2000
 const searchText = ref('')
-
 const result = ref<JapaneseAiResponse | null>(null)
-
 const loading = ref(false)
-
 const error = ref('')
+let activeRequest: AbortController | undefined
+let requestId = 0
 
-
-/* =========================================================
-   Search
-========================================================= */
-
-const search = async () => {
-
-  const text = searchText.value.trim()
-
-  // Không cho search rỗng hoặc request trùng
-  if (!text || loading.value) {
-    return
-  }
-
-
-  // Xóa kết quả cũ
-  result.value = null
-
-  error.value = ''
-
-  loading.value = true
-
-
-  try {
-
-    result.value = await analyzeJapanese(text)
-
-  } catch (e: any) {
-
-    console.error(
-      'Japanese AI search error:',
-      e
-    )
-
-    error.value =
-      e?.response?.data?.message ||
-      e?.response?.data?.error ||
-      'Không thể phân tích tiếng Nhật. Vui lòng thử lại.'
-
-  } finally {
-
-    loading.value = false
-
-  }
-
+function cancelSearch() {
+  ++requestId
+  activeRequest?.abort()
+  activeRequest = undefined
+  loading.value = false
 }
 
-
-/* =========================================================
-   Watch route query
-========================================================= */
-
-watch(
-  () => route.query.q,
-
-  async (newKeyword) => {
-
-    if (typeof newKeyword !== 'string') {
-      return
-    }
-
-    const keyword = newKeyword.trim()
-
-    if (!keyword) {
-      return
-    }
-
-    searchText.value = keyword
-
-    await search()
-
-  },
-
-  {
-    immediate: true
+function validInput(text: string) {
+  if (!text.trim()) {
+    error.value = 'Hãy nhập từ hoặc câu tiếng Nhật / tiếng Việt.'
+    return false
   }
-)
+  if (text.length > maxInputLength) {
+    error.value = 'Nội dung phân tích không được vượt quá 2.000 ký tự.'
+    return false
+  }
+  return true
+}
 
+async function runSearch(text: string) {
+  cancelSearch()
+  result.value = null
+  error.value = ''
+  if (!validInput(text)) return
+  const id = requestId
+  const controller = new AbortController()
+  activeRequest = controller
+  loading.value = true
+  try {
+    const response = await analyzeJapanese(text, controller.signal)
+    if (id === requestId) result.value = response
+  } catch (cause: unknown) {
+    if (id !== requestId || axios.isCancel(cause)) return
+    const data = axios.isAxiosError(cause) ? cause.response?.data : undefined
+    const message = data?.message
+    const status = axios.isAxiosError(cause) ? cause.response?.status : undefined
+    error.value = typeof message === 'string' ? message
+      : status === 429 ? 'Bạn đã đạt giới hạn tìm kiếm AI. Vui lòng thử lại sau.'
+      : status === 401 ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
+      : status === 403 ? 'Bạn chưa có quyền sử dụng chức năng này.'
+      : axios.isAxiosError(cause) && cause.code === 'ECONNABORTED' ? 'AI phản hồi quá lâu. Vui lòng thử lại.'
+      : 'Không thể phân tích lúc này. Kiểm tra kết nối hoặc thử lại sau.'
+  } finally {
+    if (id === requestId) {
+      loading.value = false
+      activeRequest = undefined
+    }
+  }
+}
 
-/* =========================================================
-   Text To Speech
-========================================================= */
+async function search() {
+  if (!validInput(searchText.value)) return
+  const keyword = searchText.value.trim()
+  if (loading.value && route.query.q === keyword) return
+  if (route.query.q === keyword) {
+    await runSearch(keyword)
+  } else {
+    await router.push({ path: route.path, query: { ...route.query, q: keyword } })
+  }
+}
 
+function onSearchEnter(event: KeyboardEvent) {
+  if (event.isComposing) return
+  event.preventDefault()
+  void search()
+}
+
+watch(() => route.query.q, keyword => {
+  searchText.value = typeof keyword === 'string' ? keyword : ''
+  if (searchText.value.trim()) {
+    void runSearch(searchText.value)
+  } else {
+    cancelSearch()
+    result.value = null
+    error.value = ''
+  }
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  cancelSearch()
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel()
+})
 const speakJapanese = (text: string) => {
 
   if (!text) {
@@ -628,6 +545,8 @@ const speakJapanese = (text: string) => {
 
 
 <style scoped>
+.input-limit { color: #786c82; font-size: 12px; margin-bottom: 12px; }
+@media (prefers-reduced-motion: reduce) { .loading-icon, .loading-bar-progress { animation: none !important; } }
 
 /* =========================================================
    PAGE
@@ -1210,17 +1129,17 @@ const speakJapanese = (text: string) => {
    LOADING OVERLAY
 ========================================================= */
 
-.loading-overlay {
+.loading-panel {
 
-  position: fixed;
+  position: relative;
 
-  inset: 0;
+  margin-top: 24px;
 
-  z-index: 99999;
+  min-height: 250px; border-radius: 16px;
 
   background: rgba(255, 255, 255, 0.75);
 
-  backdrop-filter: blur(2px);
+
 
   display: flex;
 
@@ -1228,7 +1147,7 @@ const speakJapanese = (text: string) => {
 
   justify-content: center;
 
-  cursor: wait;
+
 
 }
 

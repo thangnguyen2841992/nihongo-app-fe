@@ -38,6 +38,11 @@ export interface MonitorVps {
   lastSeenAt: string
 }
 
+export const listVps = async (): Promise<MonitorVps[]> => {
+  const response = await gatewayUrl.get('/api/staff/vps')
+  return response.data
+}
+
 export const discoveryVps = async (
   request: DiscoveryVpsRequest
 ): Promise<NodeExporterDiscoveryResult> => {

@@ -1,0 +1,17 @@
+.navbar-custom, .guest-navbar { background: linear-gradient(105deg, #fcf9f5, #f6eef0 65%, #eeeaf3); border-bottom: 1px solid #e2d7df; box-shadow: 0 3px 18px #73627b12; }
+.navbar-custom::after, .guest-navbar::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 220px; height: 2px; background: linear-gradient(90deg, #c49aa7, #e7cbd0, transparent); pointer-events: none; }
+.menu-toggle, .navbar-custom > .btn { background: #ffffff90; border-color: #e2d7df; color: #665b73; }
+.menu-toggle:hover, .navbar-custom > .btn:hover { background: #eee7ee; color: #53495f; }
+.guest-actions a { border-radius: 10px; border-color: #d9cbd6; }
+.guest-actions .login-link { background: #ffffff80; color: #65556f; }
+.guest-actions .login-link:hover { background: #f0e7ee; }
+.guest-actions .register-link { background: linear-gradient(110deg, #8e7999, #a1849d); border-color: #8e7999; color: #fff; box-shadow: 0 3px 12px #73627b15; }
+.guest-actions .register-link:hover { background: #806b8c; }
+.navbar-custom .user-name { color: #53495f; }
+.navbar-custom .user-email { color: #786c82; }
+.navbar-custom .avatar { background: linear-gradient(135deg, #c59aaa, #9d87ae); box-shadow: 0 0 0 3px #e7dce9; }
+.navbar-custom .wallet-btn { border-color: #e2d7df; background: #fcf9f5; }
+.navbar-custom .wallet-icon { background: #f1e2e5; }
+.navbar-custom .search-ai-btn { background: #8e7999; }
+.navbar-custom .logout-btn { background: #f2e5e9; color: #8c586d; border: 1px solid #e8d4dd; }
+.navbar-custom .logout-btn:hover { background: #e8d4dd; color: #71445b; }
