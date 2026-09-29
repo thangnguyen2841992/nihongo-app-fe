@@ -191,6 +191,18 @@ const routes = [
         redirect: (to: RouteLocation) => ({ path: '/staff/monitoring/vps/performance', query: { ...to.query, schedules: '1' } })
       },
       {
+        path: 'monitoring/vps/events/realtime',
+        name: 'monitor-vps-events-realtime',
+        component: () => import('@/components/staff/monitor/VpsEventViewer.vue'),
+        props: { realtime: true }
+      },
+      {
+        path: 'monitoring/vps/events/history',
+        name: 'monitor-vps-events-history',
+        component: () => import('@/components/staff/monitor/VpsEventViewer.vue'),
+        props: { realtime: false }
+      },
+      {
         path: 'monitoring/vps/events',
         name: 'monitor-vps-events',
         component: () => import('@/components/staff/monitor/VpsEvents.vue')

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue"
-import { useRouter, useRoute } from "vue-router"
-import { gatewayUrl } from "@/api/authApi.ts"
+import { onMounted, ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { gatewayUrl } from '@/api/authApi.ts'
 
 /* =========================
    ROUTER
@@ -9,7 +9,6 @@ import { gatewayUrl } from "@/api/authApi.ts"
 
 const router = useRouter()
 const route = useRoute()
-
 
 /* =========================
    INTERFACES
@@ -36,7 +35,6 @@ interface Level {
   levelName: string
 }
 
-
 /* =========================
    STATE
 ========================= */
@@ -57,135 +55,83 @@ const types = ref<Type[]>([])
  * /staff/monitoring
  * /staff/monitoring/...
  */
-const showMonitoring = ref(
-  route.path.startsWith(
-    "/staff/monitoring"
-  )
+const showMonitoring = ref(route.path.startsWith('/staff/monitoring'))
+watch(
+  () => route.path,
+  (path) => {
+    if (path.startsWith('/staff/monitoring')) showMonitoring.value = true
+  },
 )
-watch(() => route.path, path => {
-  if (path.startsWith('/staff/monitoring')) showMonitoring.value = true
-})
-
 
 /*
  * expand level
  */
-const expandedLevels =
-  ref<Record<number, boolean>>({})
-
+const expandedLevels = ref<Record<number, boolean>>({})
 
 /*
  * expand type
  *
  * key = levelId-typeId
  */
-const expandedTypes =
-  ref<Record<string, boolean>>({})
-
+const expandedTypes = ref<Record<string, boolean>>({})
 
 /*
  * cache books
  */
-const booksMap =
-  ref<Record<string, Book[]>>({})
-
+const booksMap = ref<Record<string, Book[]>>({})
 
 /*
  * loading books
  */
-const loadingBooks =
-  ref<Record<string, boolean>>({})
-
+const loadingBooks = ref<Record<string, boolean>>({})
 
 /* =========================
    FETCH INITIAL DATA
 ========================= */
 
 onMounted(async () => {
-
   loading.value = true
 
   try {
+    const [levelRes, typeRes] = await Promise.all([
+      gatewayUrl.get('/api/staff/levels'),
 
-    const [
-      levelRes,
-      typeRes
-    ] = await Promise.all([
-
-      gatewayUrl.get(
-        "/api/staff/levels"
-      ),
-
-      gatewayUrl.get(
-        "/api/staff/types"
-      )
-
+      gatewayUrl.get('/api/staff/types'),
     ])
 
-    levels.value =
-      levelRes.data || []
+    levels.value = levelRes.data || []
 
-    types.value =
-      typeRes.data || []
+    types.value = typeRes.data || []
 
-
-    levels.value.forEach(level => {
-
-      expandedLevels.value[
-        level.levelId
-        ] = false
-
+    levels.value.forEach((level) => {
+      expandedLevels.value[level.levelId] = false
     })
-
   } catch (e) {
-
-    console.error(
-      "Load sidebar data error:",
-      e
-    )
-
+    console.error('Load sidebar data error:', e)
   } finally {
-
     loading.value = false
-
   }
-
 })
-
 
 /* =========================
    NAVIGATION
 ========================= */
 
-const go = (
-  path: string
-) => {
-
+const go = (path: string) => {
   router.push(path)
-
 }
 
-
-const isActive = (
-  path: string
-) => {
-
+const isActive = (path: string) => {
   return route.path === path
-
 }
-
 
 /* =========================
    MONITORING
 ========================= */
 
 const toggleMonitoring = () => {
-
-  showMonitoring.value =
-    !showMonitoring.value
-
+  showMonitoring.value = !showMonitoring.value
 }
-
 
 /*
  * Monitoring menu active
@@ -197,200 +143,101 @@ const toggleMonitoring = () => {
  * /staff/monitoring/...
  */
 const isMonitoringActive = () => {
-
-  return route.path.startsWith(
-    "/staff/monitoring"
-  )
-
+  return route.path.startsWith('/staff/monitoring')
 }
-
 
 /* =========================
    TREE
 ========================= */
 
 const toggleTree = () => {
-
-  showTree.value =
-    !showTree.value
-
+  showTree.value = !showTree.value
 }
-
 
 /* =========================
    LEVEL
 ========================= */
 
-const toggleLevel = (
-  levelId: number
-) => {
-
-  expandedLevels.value[
-    levelId
-    ] =
-    !expandedLevels.value[
-      levelId
-      ]
-
+const toggleLevel = (levelId: number) => {
+  expandedLevels.value[levelId] = !expandedLevels.value[levelId]
 }
 
-
-const isLevelExpanded = (
-  levelId: number
-) => {
-
-  return !!expandedLevels.value[
-    levelId
-    ]
-
+const isLevelExpanded = (levelId: number) => {
+  return !!expandedLevels.value[levelId]
 }
-
 
 /* =========================
    TYPE + LOAD BOOKS
 ========================= */
 
-const toggleType = async (
-  levelId: number,
-  typeId: number
-) => {
-
-  const key =
-    `${levelId}-${typeId}`
-
+const toggleType = async (levelId: number, typeId: number) => {
+  const key = `${levelId}-${typeId}`
 
   /*
    * Đã load books
    */
-  if (
-    booksMap.value[key]
-  ) {
-
-    expandedTypes.value[key] =
-      !expandedTypes.value[key]
+  if (booksMap.value[key]) {
+    expandedTypes.value[key] = !expandedTypes.value[key]
 
     return
-
   }
-
 
   try {
+    loadingBooks.value[key] = true
 
-    loadingBooks.value[key] =
-      true
+    const response = await gatewayUrl.get('/api/staff/getBooksByLevelAndType', {
+      params: {
+        levelId,
+        typeId,
+      },
+    })
 
+    booksMap.value[key] = response.data || []
 
-    const response =
-      await gatewayUrl.get(
-        "/api/staff/getBooksByLevelAndType",
-        {
-          params: {
-            levelId,
-            typeId
-          }
-        }
-      )
-
-
-    booksMap.value[key] =
-      response.data || []
-
-
-    expandedTypes.value[key] =
-      true
-
+    expandedTypes.value[key] = true
   } catch (e) {
-
-    console.error(
-      "Load books error:",
-      e
-    )
-
+    console.error('Load books error:', e)
   } finally {
-
-    loadingBooks.value[key] =
-      false
-
+    loadingBooks.value[key] = false
   }
-
 }
 
-
-const isTypeExpanded = (
-  levelId: number,
-  typeId: number
-) => {
-
-  return !!expandedTypes.value[
-    `${levelId}-${typeId}`
-    ]
-
+const isTypeExpanded = (levelId: number, typeId: number) => {
+  return !!expandedTypes.value[`${levelId}-${typeId}`]
 }
-
 
 /* =========================
    HELPERS
 ========================= */
 
-const getBooks = (
-  levelId: number,
-  typeId: number
-) => {
-
-  return booksMap.value[
-    `${levelId}-${typeId}`
-    ] || []
-
+const getBooks = (levelId: number, typeId: number) => {
+  return booksMap.value[`${levelId}-${typeId}`] || []
 }
 
-
-const isBooksLoading = (
-  levelId: number,
-  typeId: number
-) => {
-
-  return !!loadingBooks.value[
-    `${levelId}-${typeId}`
-    ]
-
+const isBooksLoading = (levelId: number, typeId: number) => {
+  return !!loadingBooks.value[`${levelId}-${typeId}`]
 }
-
 </script>
 
-
 <template>
-
   <div class="sidebar">
-
     <!-- =========================
          HEADER
     ========================= -->
 
     <div class="sidebar-header">
-
       <h4 class="sidebar-title">
-
-        <i
-          class="
-            bi bi-person-badge
-            me-2
-          "
-        ></i>
+        <i class="bi bi-person-badge me-2"></i>
 
         Nhân viên
-
       </h4>
-
     </div>
-
 
     <!-- =========================
          MENU
     ========================= -->
 
     <div class="sidebar-menu">
-
-
       <!-- =========================
            DASHBOARD
       ========================= -->
@@ -398,136 +245,103 @@ const isBooksLoading = (
       <button
         class="menu-item"
         :class="{
-          active:
-            isActive('/staff')
+          active: isActive('/staff'),
         }"
-        @click="
-          go('/staff')
-        "
+        @click="go('/staff')"
       >
-
         <div>
-
-          <i
-            class="
-              bi bi-house-door
-              me-2
-            "
-          ></i>
+          <i class="bi bi-house-door me-2"></i>
 
           Trang chủ
-
         </div>
-
       </button>
-
 
       <!-- =========================
            MONITORING
       ========================= -->
 
-      <div
-        class="monitoring-menu"
-      >
-
+      <div class="monitoring-menu">
         <!-- MENU CHA -->
 
         <button
-          class="
-            menu-item
-            tree-header
-          "
+          class="menu-item tree-header"
           :class="{
-            active:
-              isMonitoringActive()
+            active: isMonitoringActive(),
           }"
-          @click="
-            toggleMonitoring
-          "
+          @click="toggleMonitoring"
         >
-
           <div>
-
-            <i
-              class="
-                bi bi-speedometer2
-                me-2
-              "
-            ></i>
+            <i class="bi bi-speedometer2 me-2"></i>
 
             Monitoring Server
-
           </div>
 
-
-          <i
-            class="bi"
-            :class="
-              showMonitoring
-                ? 'bi-chevron-down'
-                : 'bi-chevron-right'
-            "
-          ></i>
-
+          <i class="bi" :class="showMonitoring ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
         </button>
-
 
         <!-- MENU CON -->
 
-        <Transition
-          name="fade"
-        >
-
-          <div
-            v-if="
-              showMonitoring
-            "
-            class="
-              monitoring-submenu
-            "
-          >
-
+        <Transition name="fade">
+          <div v-if="showMonitoring" class="monitoring-submenu">
             <!-- =================
                  REGISTER VPS
             ================== -->
 
             <button
-              class="
-                monitoring-item
-              "
+              class="monitoring-item"
               :class="{
-                active:
-                  isActive(
-                    '/staff/monitoring/vps/register'
-                  )
+                active: isActive('/staff/monitoring/vps/register'),
               }"
-              @click="
-                go(
-                  '/staff/monitoring/vps/register'
-                )
-              "
+              @click="go('/staff/monitoring/vps/register')"
             >
-
-              <i
-                class="
-                  bi bi-server
-                  me-2
-                "
-              ></i>
+              <i class="bi bi-server me-2"></i>
 
               Đăng ký VPS
-
             </button>
-            <button class="monitoring-item" :class="{ active: isActive('/staff/monitoring/vps/performance') && route.query.schedules !== '1' }" @click="go('/staff/monitoring/vps/performance')"><i class="bi bi-graph-up me-2"></i> Hiệu năng VPS</button>
-            <button class="monitoring-item" :class="{ active: isActive('/staff/monitoring/vps/performance') && route.query.schedules === '1' }" @click="go('/staff/monitoring/vps/performance?schedules=1')"><i class="bi bi-sliders me-2"></i> Lịch thu thập metric</button>
-            <button class="monitoring-item" :class="{ active: isActive('/staff/monitoring/vps/events') }" @click="go('/staff/monitoring/vps/events')"><i class="bi bi-bell me-2"></i> Event VPS</button>
-
+            <button
+              class="monitoring-item"
+              :class="{
+                active:
+                  isActive('/staff/monitoring/vps/performance') && route.query.schedules !== '1',
+              }"
+              @click="go('/staff/monitoring/vps/performance')"
+            >
+              <i class="bi bi-graph-up me-2"></i> Hiệu năng VPS
+            </button>
+            <button
+              class="monitoring-item"
+              :class="{
+                active:
+                  isActive('/staff/monitoring/vps/performance') && route.query.schedules === '1',
+              }"
+              @click="go('/staff/monitoring/vps/performance?schedules=1')"
+            >
+              <i class="bi bi-sliders me-2"></i> Lịch thu thập metric
+            </button>
+            <button
+              class="monitoring-item"
+              :class="{ active: isActive('/staff/monitoring/vps/events') }"
+              @click="go('/staff/monitoring/vps/events')"
+            >
+              <i class="bi bi-bell me-2"></i> Event VPS
+            </button>
+            <button
+              class="monitoring-item"
+              :class="{ active: isActive('/staff/monitoring/vps/events/realtime') }"
+              @click="go('/staff/monitoring/vps/events/realtime')"
+            >
+              <i class="bi bi-broadcast me-2"></i> Event realtime
+            </button>
+            <button
+              class="monitoring-item"
+              :class="{ active: isActive('/staff/monitoring/vps/events/history') }"
+              @click="go('/staff/monitoring/vps/events/history')"
+            >
+              <i class="bi bi-clock-history me-2"></i> Lịch sử event
+            </button>
           </div>
-
         </Transition>
-
       </div>
-
 
       <!-- =========================
            CREATE BOOK
@@ -536,438 +350,166 @@ const isBooksLoading = (
       <button
         class="menu-item"
         :class="{
-          active:
-            isActive(
-              '/staff/create-book'
-            )
+          active: isActive('/staff/create-book'),
         }"
-        @click="
-          go(
-            '/staff/create-book'
-          )
-        "
+        @click="go('/staff/create-book')"
       >
-
         <div>
-
-          <i
-            class="
-              bi bi-book-half
-              me-2
-            "
-          ></i>
+          <i class="bi bi-book-half me-2"></i>
 
           Tạo sách
-
         </div>
-
       </button>
-
 
       <!-- =========================
            CONTENT MANAGEMENT
       ========================= -->
 
-      <div
-        class="tree-wrapper"
-      >
-
+      <div class="tree-wrapper">
         <!-- TREE HEADER -->
 
-        <button
-          class="
-            menu-item
-            tree-header
-          "
-          @click="
-            toggleTree
-          "
-        >
-
+        <button class="menu-item tree-header" @click="toggleTree">
           <div>
-
-            <i
-              class="
-                bi bi-diagram-3
-                me-2
-              "
-            ></i>
+            <i class="bi bi-diagram-3 me-2"></i>
 
             Quản lý nội dung
-
           </div>
 
-
-          <i
-            class="bi"
-            :class="
-              showTree
-                ? 'bi-chevron-down'
-                : 'bi-chevron-right'
-            "
-          ></i>
-
+          <i class="bi" :class="showTree ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
         </button>
-
 
         <!-- TREE BODY -->
 
-        <div
-          v-if="showTree"
-          class="tree-body"
-        >
-
-
+        <div v-if="showTree" class="tree-body">
           <!-- =================
                LOADING
           ================== -->
 
-          <div
-            v-if="loading"
-            class="loading-box"
-          >
+          <div v-if="loading" class="loading-box">
+            <div class="spinner-border spinner-border-sm"></div>
 
-            <div
-              class="
-                spinner-border
-                spinner-border-sm
-              "
-            ></div>
-
-            <span>
-              Đang tải dữ liệu...
-            </span>
-
+            <span> Đang tải dữ liệu... </span>
           </div>
-
 
           <!-- =================
                LEVEL
           ================== -->
 
-          <div
-            v-for="
-              level in levels
-            "
-            :key="
-              level.levelId
-            "
-            class="
-              level-group
-            "
-          >
-
-
+          <div v-for="level in levels" :key="level.levelId" class="level-group">
             <!-- LEVEL HEADER -->
 
-            <button
-              class="
-                level-item
-              "
-              @click="
-                toggleLevel(
-                  level.levelId
-                )
-              "
-            >
+            <button class="level-item" @click="toggleLevel(level.levelId)">
+              <div class="level-left">
+                <i class="bi bi-mortarboard me-2"></i>
 
-              <div
-                class="
-                  level-left
-                "
-              >
-
-                <i
-                  class="
-                    bi bi-mortarboard
-                    me-2
-                  "
-                ></i>
-
-                {{
-                  level.levelName
-                }}
-
+                {{ level.levelName }}
               </div>
-
 
               <i
                 class="bi"
-                :class="
-                  isLevelExpanded(
-                    level.levelId
-                  )
-                    ? 'bi-chevron-down'
-                    : 'bi-chevron-right'
-                "
+                :class="isLevelExpanded(level.levelId) ? 'bi-chevron-down' : 'bi-chevron-right'"
               ></i>
-
             </button>
-
 
             <!-- =================
                  TYPE
             ================== -->
 
-            <Transition
-              name="fade"
-            >
-
-              <div
-                v-if="
-                  isLevelExpanded(
-                    level.levelId
-                  )
-                "
-                class="
-                  type-list
-                "
-              >
-
-                <div
-                  v-for="
-                    type in types
-                  "
-                  :key="
-                    type.typeId
-                  "
-                  class="
-                    type-group
-                  "
-                >
-
-
+            <Transition name="fade">
+              <div v-if="isLevelExpanded(level.levelId)" class="type-list">
+                <div v-for="type in types" :key="type.typeId" class="type-group">
                   <!-- TYPE -->
 
-                  <button
-                    class="
-                      type-item
-                    "
-                    @click="
-                      toggleType(
-                        level.levelId,
-                        type.typeId
-                      )
-                    "
-                  >
+                  <button class="type-item" @click="toggleType(level.levelId, type.typeId)">
+                    <div class="type-left">
+                      <i class="bi bi-tags me-2"></i>
 
-                    <div
-                      class="
-                        type-left
-                      "
-                    >
-
-                      <i
-                        class="
-                          bi bi-tags
-                          me-2
-                        "
-                      ></i>
-
-                      {{
-                        type.typeName
-                      }}
-
+                      {{ type.typeName }}
                     </div>
-
 
                     <i
                       class="bi"
                       :class="
-                        isTypeExpanded(
-                          level.levelId,
-                          type.typeId
-                        )
+                        isTypeExpanded(level.levelId, type.typeId)
                           ? 'bi-chevron-down'
                           : 'bi-chevron-right'
                       "
                     ></i>
-
                   </button>
-
 
                   <!-- =================
                        BOOK
                   ================== -->
 
-                  <Transition
-                    name="fade"
-                  >
-
-                    <div
-                      v-if="
-                        isTypeExpanded(
-                          level.levelId,
-                          type.typeId
-                        )
-                      "
-                      class="
-                        book-list
-                      "
-                    >
-
-
+                  <Transition name="fade">
+                    <div v-if="isTypeExpanded(level.levelId, type.typeId)" class="book-list">
                       <!-- LOADING BOOKS -->
 
-                      <div
-                        v-if="
-                          isBooksLoading(
-                            level.levelId,
-                            type.typeId
-                          )
-                        "
-                        class="
-                          loading-books
-                        "
-                      >
+                      <div v-if="isBooksLoading(level.levelId, type.typeId)" class="loading-books">
+                        <div class="spinner-border spinner-border-sm"></div>
 
-                        <div
-                          class="
-                            spinner-border
-                            spinner-border-sm
-                          "
-                        ></div>
-
-                        <span>
-                          Đang tải sách...
-                        </span>
-
+                        <span> Đang tải sách... </span>
                       </div>
-
 
                       <!-- BOOK -->
 
                       <div
-                        v-for="
-                          book in getBooks(
-                            level.levelId,
-                            type.typeId
-                          )
-                        "
-                        :key="
-                          book.bookId
-                        "
-                        class="
-                          book-group
-                        "
+                        v-for="book in getBooks(level.levelId, type.typeId)"
+                        :key="book.bookId"
+                        class="book-group"
                       >
-
-
                         <!-- BOOK -->
 
-                        <div
-                          class="
-                            book-item
-                          "
-                        >
+                        <div class="book-item">
+                          <i class="bi bi-book me-2"></i>
 
-                          <i
-                            class="
-                              bi bi-book
-                              me-2
-                            "
-                          ></i>
-
-                          {{
-                            book.bookName
-                          }}
-
+                          {{ book.bookName }}
                         </div>
-
 
                         <!-- LESSON -->
 
-                        <div
-                          class="
-                            lesson-list
-                          "
-                        >
-
+                        <div class="lesson-list">
                           <button
-                            v-for="
-                              lesson
-                              in book.lessons
-                            "
-                            :key="
-                              lesson.lessonId
-                            "
-                            class="
-                              lesson-item
-                            "
+                            v-for="lesson in book.lessons"
+                            :key="lesson.lessonId"
+                            class="lesson-item"
                           >
+                            <i class="bi bi-file-earmark-text me-2"></i>
 
-                            <i
-                              class="
-                                bi
-                                bi-file-earmark-text
-                                me-2
-                              "
-                            ></i>
-
-                            {{
-                              lesson.lessonName
-                            }}
-
+                            {{ lesson.lessonName }}
                           </button>
-
                         </div>
-
                       </div>
-
 
                       <!-- EMPTY -->
 
                       <div
                         v-if="
-                          !isBooksLoading(
-                            level.levelId,
-                            type.typeId
-                          ) &&
-                          !getBooks(
-                            level.levelId,
-                            type.typeId
-                          ).length
+                          !isBooksLoading(level.levelId, type.typeId) &&
+                          !getBooks(level.levelId, type.typeId).length
                         "
-                        class="
-                          empty-books
-                        "
+                        class="empty-books"
                       >
-
                         Không có sách
-
                       </div>
-
                     </div>
-
                   </Transition>
-
                 </div>
-
               </div>
-
             </Transition>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
-
 </template>
 
-
 <style scoped>
-
 /* =========================
    SIDEBAR
 ========================= */
 
 .sidebar {
-
   position: fixed;
 
   top: 0;
@@ -981,101 +523,58 @@ const isBooksLoading = (
 
   overflow-y: auto;
 
-  background:
-    linear-gradient(
-      180deg,
-      #0f172a,
-      #1e293b
-    );
+  background: linear-gradient(180deg, #0f172a, #1e293b);
 
   color: white;
 
-  border-right:
-    1px solid
-    rgba(
-      255,
-      255,
-      255,
-      0.08
-    );
-
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
-
 
 /* =========================
    SCROLLBAR
 ========================= */
 
 .sidebar::-webkit-scrollbar {
-
   width: 6px;
-
 }
-
 
 .sidebar::-webkit-scrollbar-thumb {
-
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.15
-    );
+  background: rgba(255, 255, 255, 0.15);
 
   border-radius: 20px;
-
 }
-
 
 /* =========================
    HEADER
 ========================= */
 
 .sidebar-header {
-
   padding: 24px 20px;
 
-  border-bottom:
-    1px solid
-    rgba(
-      255,
-      255,
-      255,
-      0.08
-    );
-
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-
 .sidebar-title {
-
   margin: 0;
 
   font-size: 22px;
 
   font-weight: 700;
-
 }
-
 
 /* =========================
    MENU
 ========================= */
 
 .sidebar-menu {
-
   padding: 16px;
-
 }
-
 
 /* =========================
    MENU ITEM
 ========================= */
 
 .menu-item {
-
   width: 100%;
 
   border: none;
@@ -1103,71 +602,43 @@ const isBooksLoading = (
   font-size: 15px;
 
   font-weight: 500;
-
 }
-
 
 .menu-item:hover {
-
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.08
-    );
+  background: rgba(255, 255, 255, 0.08);
 
   color: white;
-
 }
 
-
 .menu-item.active {
-
   background: #2563eb;
 
   color: white;
-
 }
-
 
 /* =========================
    MONITORING
 ========================= */
 
 .monitoring-menu {
-
   margin-bottom: 8px;
-
 }
-
 
 /* =========================
    MONITORING SUB MENU
 ========================= */
 
 .monitoring-submenu {
-
   margin-left: 14px;
 
   padding-left: 10px;
 
-  border-left:
-    1px solid
-    rgba(
-      255,
-      255,
-      255,
-      0.12
-    );
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
 
   margin-bottom: 10px;
-
 }
 
-
 .monitoring-item {
-
   width: 100%;
 
   border: none;
@@ -1195,57 +666,31 @@ const isBooksLoading = (
   font-size: 14px;
 
   font-weight: 500;
-
 }
-
 
 .monitoring-item:hover {
-
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.08
-    );
+  background: rgba(255, 255, 255, 0.08);
 
   color: white;
-
 }
-
 
 .monitoring-item.active {
-
-  background:
-    rgba(
-      37,
-      99,
-      235,
-      0.85
-    );
+  background: rgba(37, 99, 235, 0.85);
 
   color: white;
-
 }
-
 
 /* =========================
    TREE
 ========================= */
 
 .tree-wrapper {
-
   margin-top: 10px;
-
 }
-
 
 .tree-body {
-
   margin-top: 10px;
-
 }
-
 
 /* =========================
    LOADING
@@ -1253,7 +698,6 @@ const isBooksLoading = (
 
 .loading-box,
 .loading-books {
-
   display: flex;
 
   align-items: center;
@@ -1263,23 +707,17 @@ const isBooksLoading = (
   padding: 12px;
 
   color: #cbd5e1;
-
 }
-
 
 /* =========================
    LEVEL
 ========================= */
 
 .level-group {
-
   margin-bottom: 16px;
-
 }
 
-
 .level-item {
-
   width: 100%;
 
   border: none;
@@ -1288,13 +726,7 @@ const isBooksLoading = (
 
   border-radius: 10px;
 
-  background:
-    rgba(
-      59,
-      130,
-      246,
-      0.15
-    );
+  background: rgba(59, 130, 246, 0.15);
 
   color: #93c5fd;
 
@@ -1309,54 +741,33 @@ const isBooksLoading = (
   cursor: pointer;
 
   transition: 0.2s ease;
-
 }
-
 
 .level-item:hover {
-
-  background:
-    rgba(
-      59,
-      130,
-      246,
-      0.22
-    );
-
+  background: rgba(59, 130, 246, 0.22);
 }
 
-
 .level-left {
-
   display: flex;
 
   align-items: center;
-
 }
-
 
 /* =========================
    TYPE
 ========================= */
 
 .type-list {
-
   margin-top: 8px;
 
   padding-left: 14px;
-
 }
-
 
 .type-group {
-
   margin-bottom: 10px;
-
 }
 
-
 .type-item {
-
   width: 100%;
 
   border: none;
@@ -1365,13 +776,7 @@ const isBooksLoading = (
 
   border-radius: 8px;
 
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.05
-    );
+  background: rgba(255, 255, 255, 0.05);
 
   color: #facc15;
 
@@ -1386,65 +791,38 @@ const isBooksLoading = (
   cursor: pointer;
 
   transition: 0.2s ease;
-
 }
-
 
 .type-item:hover {
-
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.08
-    );
-
+  background: rgba(255, 255, 255, 0.08);
 }
 
-
 .type-left {
-
   display: flex;
 
   align-items: center;
-
 }
-
 
 /* =========================
    BOOK
 ========================= */
 
 .book-list {
-
   margin-top: 6px;
 
   padding-left: 14px;
-
 }
-
 
 .book-group {
-
   margin-bottom: 8px;
-
 }
 
-
 .book-item {
-
   padding: 8px 12px;
 
   border-radius: 8px;
 
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.04
-    );
+  background: rgba(255, 255, 255, 0.04);
 
   color: #f8fafc;
 
@@ -1455,16 +833,13 @@ const isBooksLoading = (
   font-size: 14px;
 
   font-weight: 500;
-
 }
-
 
 /* =========================
    LESSON
 ========================= */
 
 .lesson-list {
-
   margin-top: 4px;
 
   padding-left: 14px;
@@ -1474,12 +849,9 @@ const isBooksLoading = (
   flex-direction: column;
 
   gap: 4px;
-
 }
 
-
 .lesson-item {
-
   width: 100%;
 
   border: none;
@@ -1499,39 +871,25 @@ const isBooksLoading = (
   transition: 0.2s ease;
 
   font-size: 13px;
-
 }
-
 
 .lesson-item:hover {
-
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.08
-    );
+  background: rgba(255, 255, 255, 0.08);
 
   color: white;
-
 }
-
 
 /* =========================
    EMPTY
 ========================= */
 
 .empty-books {
-
   padding: 10px 12px;
 
   color: #94a3b8;
 
   font-size: 13px;
-
 }
-
 
 /* =========================
    ANIMATION
@@ -1539,21 +897,13 @@ const isBooksLoading = (
 
 .fade-enter-active,
 .fade-leave-active {
-
-  transition:
-    all 0.2s ease;
-
+  transition: all 0.2s ease;
 }
-
 
 .fade-enter-from,
 .fade-leave-to {
-
   opacity: 0;
 
-  transform:
-    translateY(-4px);
-
+  transform: translateY(-4px);
 }
-
 </style>

@@ -16,6 +16,10 @@ export interface EventRule extends EventRuleInput {
   activeObjects: number
 }
 export interface MonitorEvent {
+  metricId?: number
+  metricCode?: string
+  metricName?: string
+  unit?: string
   eventId: number
   ruleId: number
   ruleName: string
@@ -29,6 +33,24 @@ export interface MonitorEvent {
   timestamp: number
   openedEventId: number | null
 }
+export interface VpsEventPage {
+  events: MonitorEvent[]
+  nextCursor: number | null
+}
+export interface VpsEventQuery {
+  metric?: string
+  severity?: EventSeverity
+  from?: string
+  to?: string
+  beforeId?: number
+}
+export const getVpsEvents = async (
+  vpsId: number,
+  query: VpsEventQuery = {},
+  signal?: AbortSignal,
+) =>
+  (await gatewayUrl.get<VpsEventPage>(`/api/staff/vps/${vpsId}/events`, { params: query, signal }))
+    .data
 const base = (vpsId: number, code: string) =>
   `/api/staff/vps/${vpsId}/metrics/${encodeURIComponent(code)}`
 export const getEventRules = async (vpsId: number, code: string, signal?: AbortSignal) =>
