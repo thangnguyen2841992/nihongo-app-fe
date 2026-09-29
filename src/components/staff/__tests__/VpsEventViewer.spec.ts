@@ -133,6 +133,20 @@ it('discards previous VPS responses and socket frames after changing selection',
   expect(wrapper!.text()).toContain('Rule 10')
   expect(wrapper!.text()).not.toContain('Rule 9')
 })
+it('shows a separate event for each matching collection and keeps the realtime screen focused on events', async () => {
+  await open()
+  const receive = vi.mocked(connectVpsEvents).mock.calls[0]![1]
+  for (let cycle = 1; cycle <= 3; cycle++) receive([{ ...event(cycle), value: 80 + cycle }])
+  await flushPromises()
+  expect(wrapper!.findAll('tbody tr')).toHaveLength(3)
+  expect(wrapper!.findAll('tbody tr').map((row) => row.text())).toEqual([
+    expect.stringContaining('83'),
+    expect.stringContaining('82'),
+    expect.stringContaining('81'),
+  ])
+  expect(wrapper!.find('[aria-label="Theo dõi chu kỳ metric"]').exists()).toBe(false)
+  expect(wrapper!.find('canvas').exists()).toBe(false)
+})
 it('queries history with UTC dates and retains applied filters during pagination', async () => {
   vi.mocked(getVpsEvents)
     .mockResolvedValueOnce({ events: [event(2)], nextCursor: 2 })
