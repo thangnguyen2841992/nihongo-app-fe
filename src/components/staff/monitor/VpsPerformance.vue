@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import MetricScheduleDialog from './MetricScheduleDialog.vue'
 import axios from 'axios'
 import { Chart, registerables } from 'chart.js'
 import { listVps, type MonitorVps } from '@/monitor/monitorVpsService'
@@ -8,16 +9,45 @@ import {
   getPerformanceMetrics,
   getVpsPerformance,
   getMetricConfigs,
-  updateVpsMetricConfig,
-  updateDefaultMetricConfig,
   type MetricConfig,
   type PerformanceMetric,
   type PerformanceObject,
+  type PerformancePoint,
   type VpsPerformance,
 } from '@/monitor/vpsPerformanceService'
 
+import { connectVpsPerformance, type PerformanceLiveStatus } from '@/monitor/vpsPerformanceRealtime'
+
 Chart.register(...registerables)
 const route = useRoute()
+const router = useRouter()
+const showSchedules = ref(false)
+const scheduleButton = ref<HTMLButtonElement | null>(null)
+watch(
+  () => route.query.schedules,
+  (value) => {
+    if (value === '1') showSchedules.value = true
+  },
+  { immediate: true },
+)
+function closeSchedules() {
+  showSchedules.value = false
+  if (route.query.schedules)
+    void router.replace({ query: { ...route.query, schedules: undefined } })
+  void nextTick(() => scheduleButton.value?.focus())
+}
+async function schedulesSaved() {
+  const id = selectedVps.value
+  if (id == null) return
+  try {
+    const [catalog, links] = await Promise.all([getPerformanceMetrics(), getMetricConfigs(id)])
+    if (disposed || id !== selectedVps.value) return
+    metrics.value = catalog
+    configs.value = links
+  } catch {
+    /* The dialog displays the save result; the socket still supplies collection updates. */
+  }
+}
 const vpsList = ref<MonitorVps[]>([])
 const metrics = ref<PerformanceMetric[]>([])
 const configs = ref<MetricConfig[]>([])
@@ -25,18 +55,10 @@ const config = computed(() => configs.value.find((c) => c.code === selectedMetri
 const visibleMetrics = computed(() =>
   metrics.value.filter((m) => configs.value.some((c) => c.code === m.code)),
 )
-const configScope = ref('vps')
-const useDefaultSchedule = ref(true)
-const scheduleSeconds = ref(60)
-const timeoutMs = ref(5000)
-const collectionEnabled = ref(true)
-const savingConfig = ref(false)
-const configOpen = ref(false)
-const configNotice = ref('')
 const selectedVps = ref<number | null>(null)
 const selectedMetric = ref('CPU_USAGE')
 const selectedObject = ref('')
-const hours = ref(1)
+const minutes = ref(10)
 const current = ref<VpsPerformance | null>(null)
 const history = ref<VpsPerformance | null>(null)
 const error = ref('')
@@ -44,7 +66,8 @@ const historyError = ref('')
 const loading = ref(false)
 const loadingHistory = ref(false)
 const initializing = ref(true)
-const autoRefresh = ref(true)
+const liveStatus = ref<PerformanceLiveStatus>('connecting')
+const clock = ref(Date.now())
 const updatedAt = ref<Date | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
 const metric = computed(() => metrics.value.find((m) => m.code === selectedMetric.value))
@@ -54,7 +77,11 @@ const object = computed(() =>
 let request: AbortController | undefined
 let historyRequest: AbortController | undefined
 let chart: Chart | undefined
+let chartRevision = 0
 let timer: ReturnType<typeof setInterval> | undefined
+let stopSocket: (() => void) | undefined
+let socketRevision = 0
+const livePoints = new Map<string, PerformancePoint[]>()
 let disposed = false
 const message = (cause: unknown) =>
   axios.isAxiosError(cause)
@@ -79,12 +106,16 @@ async function initialize() {
     metrics.value = catalog
     const id = Number(route.query.vps)
     selectedVps.value = servers.find((v) => v.vpsId === id)?.vpsId ?? servers[0]?.vpsId ?? null
+    await nextTick()
   } catch (cause) {
     if (!disposed) error.value = message(cause)
   } finally {
     initializing.value = false
   }
-  if (!disposed) await refresh()
+  if (!disposed) {
+    subscribe()
+    await refresh()
+  }
 }
 
 async function refresh() {
@@ -94,6 +125,7 @@ async function refresh() {
   request = controller
   loading.value = true
   error.value = ''
+  const revision = socketRevision
   try {
     const links = await getMetricConfigs(selectedVps.value, controller.signal)
     if (controller.signal.aborted || disposed) return
@@ -112,13 +144,10 @@ async function refresh() {
       controller.signal,
     )
     if (controller.signal.aborted || disposed) return
-    current.value = result
-    updatedAt.value = new Date()
-    if (!result.objects.some((o) => o.objectKey === selectedObject.value)) {
-      selectedObject.value = result.objects[0]?.objectKey || ''
-    } else void loadHistory()
+    if (revision === socketRevision) applySnapshot(result)
+    void loadHistory()
   } catch (cause) {
-    if (!controller.signal.aborted && !disposed) {
+    if (!controller.signal.aborted && !disposed && revision === socketRevision) {
       error.value = message(cause)
       current.value = null
       updatedAt.value = null
@@ -147,57 +176,15 @@ async function loadHistory() {
       selectedVps.value,
       selectedMetric.value,
       controller.signal,
-      hours.value,
+      undefined,
       selectedObject.value,
+      minutes.value,
     )
     if (controller.signal.aborted || disposed) return
     history.value = result
-    await nextTick()
-    if (controller.signal.aborted || disposed) return
-    const points = result.objects[0]?.points || []
-    if (canvas.value && points.length) {
-      chart = new Chart(canvas.value, {
-        type: 'line',
-        data: {
-          labels: points.map((p) => new Date(p.timestamp * 1000).toLocaleString('vi-VN')),
-          datasets: [
-            {
-              label: `${object.value?.objectName || 'Object'} (${metric.value?.unit || ''})`,
-              data: points.map((p) => p.value),
-              borderColor: '#527ca9',
-              backgroundColor: '#527ca918',
-              borderWidth: 2,
-              pointRadius: 0,
-              fill: true,
-              spanGaps: false,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          scales: {
-            x: {
-              ticks: {
-                maxTicksLimit: 5,
-                maxRotation: 0,
-                callback: (value) => {
-                  const point = points[Number(value)]
-                  if (!point) return ''
-                  const time = new Date(point.timestamp * 1000)
-                  return hours.value > 24
-                    ? time.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
-                    : time.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-                },
-              },
-            },
-            y: { title: { display: true, text: metric.value?.unit || 'Giá trị' } },
-          },
-          plugins: { legend: { display: false } },
-        },
-      })
-    }
+    const series = result.objects[0]
+    if (series) series.points = mergePoints(series.points, livePoints.get(series.objectKey) || [])
+    await renderChart(series?.points || [])
   } catch (cause) {
     if (!controller.signal.aborted && !disposed) historyError.value = message(cause)
   } finally {
@@ -205,7 +192,59 @@ async function loadHistory() {
   }
 }
 
+async function renderChart(points: PerformancePoint[]) {
+  const revision = ++chartRevision
+  chart?.destroy()
+  chart = undefined
+  await nextTick()
+  if (disposed || revision !== chartRevision) return
+  if (canvas.value && points.length) {
+    chart = new Chart(canvas.value, {
+      type: 'line',
+      data: {
+        labels: points.map((p) => new Date(p.timestamp * 1000).toLocaleString('vi-VN')),
+        datasets: [
+          {
+            label: `${object.value?.objectName || 'Object'} (${metric.value?.unit || ''})`,
+            data: points.map((p) => p.value),
+            borderColor: '#527ca9',
+            backgroundColor: '#527ca918',
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: true,
+            spanGaps: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        scales: {
+          x: {
+            ticks: {
+              maxTicksLimit: 5,
+              maxRotation: 0,
+              callback: (value) => {
+                const point = points[Number(value)]
+                if (!point) return ''
+                const time = new Date(point.timestamp * 1000)
+                return minutes.value > 1440
+                  ? time.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
+                  : time.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+              },
+            },
+          },
+          y: { title: { display: true, text: metric.value?.unit || 'Giá trị' } },
+        },
+        plugins: { legend: { display: false } },
+      },
+    })
+  }
+}
+
 watch([selectedVps, selectedMetric], () => {
+  chartRevision++
   current.value = null
   selectedObject.value = ''
   updatedAt.value = null
@@ -213,73 +252,87 @@ watch([selectedVps, selectedMetric], () => {
   history.value = null
   chart?.destroy()
   chart = undefined
-  if (!initializing.value) void refresh()
-})
-watch([selectedObject, hours], () => void loadHistory())
-watch([config, metric, configScope], () => {
-  useDefaultSchedule.value = config.value?.scheduleSeconds == null
-  scheduleSeconds.value =
-    configScope.value === 'default'
-      ? metric.value?.scheduleSeconds || 60
-      : config.value?.effectiveScheduleSeconds || 60
-  timeoutMs.value = metric.value?.timeoutMs || 5000
-  collectionEnabled.value =
-    configScope.value === 'default' ? !!metric.value?.enabled : !!config.value?.enabled
-  configNotice.value = ''
-})
-async function saveConfig() {
-  if (!metric.value || selectedVps.value == null || savingConfig.value) return
-  if (
-    !Number.isInteger(scheduleSeconds.value) ||
-    scheduleSeconds.value < 5 ||
-    scheduleSeconds.value > 86400 ||
-    !Number.isInteger(timeoutMs.value) ||
-    timeoutMs.value < 1000 ||
-    timeoutMs.value > 30000
-  ) {
-    configNotice.value = 'Chu kỳ phải từ 5–86400 giây; timeout từ 1000–30000 ms.'
-    return
+  livePoints.clear()
+  socketRevision++
+  if (!initializing.value) {
+    subscribe()
+    void refresh()
   }
-  const id = selectedVps.value,
-    code = selectedMetric.value,
-    metricId = metric.value.metricId
-  savingConfig.value = true
-  configNotice.value = ''
-  try {
-    if (configScope.value === 'default')
-      await updateDefaultMetricConfig(metricId, {
-        scheduleSeconds: scheduleSeconds.value,
-        timeoutMs: timeoutMs.value,
-        enabled: collectionEnabled.value,
-      })
-    else
-      await updateVpsMetricConfig(id, code, {
-        scheduleSeconds: useDefaultSchedule.value ? null : scheduleSeconds.value,
-        enabled: collectionEnabled.value,
-      })
-    metrics.value = await getPerformanceMetrics()
-    await refresh()
-    configNotice.value = 'Đã lưu cấu hình thu thập.'
-  } catch (cause) {
-    configNotice.value = message(cause)
-  } finally {
-    savingConfig.value = false
-  }
+})
+watch([selectedObject, minutes], () => void loadHistory())
+function applySnapshot(result: VpsPerformance) {
+  current.value = result
+  if (result.scheduleSeconds)
+    configs.value = configs.value.map((c) =>
+      c.code === result.metricCode
+        ? { ...c, effectiveScheduleSeconds: result.scheduleSeconds! }
+        : c,
+    )
+  updatedAt.value = new Date()
+  if (!result.objects.some((o) => o.objectKey === selectedObject.value))
+    selectedObject.value = result.objects[0]?.objectKey || ''
 }
+function mergePoints(base: PerformancePoint[], incoming: PerformancePoint[]) {
+  const points = new Map(base.map((p) => [p.timestamp, p]))
+  for (const p of incoming) points.set(p.timestamp, p)
+  const cutoff = Date.now() / 1000 - minutes.value * 60
+  return [...points.values()]
+    .filter((p) => p.timestamp >= cutoff)
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .slice(-1000)
+}
+function subscribe() {
+  stopSocket?.()
+  stopSocket = undefined
+  liveStatus.value = 'connecting'
+  if (selectedVps.value == null || disposed) return
+  const id = selectedVps.value,
+    code = selectedMetric.value
+  stopSocket = connectVpsPerformance(
+    id,
+    code,
+    (data) => {
+      if (disposed || selectedVps.value !== id || selectedMetric.value !== code) return
+      if (!data) {
+        void refresh()
+        return
+      }
+      socketRevision++
+      applySnapshot(data)
+      for (const item of data.objects)
+        livePoints.set(
+          item.objectKey,
+          mergePoints(livePoints.get(item.objectKey) || [], item.points),
+        )
+      const series = history.value?.objects[0]
+      if (series) {
+        series.points = mergePoints(series.points, livePoints.get(series.objectKey) || [])
+        void renderChart(series.points)
+      }
+    },
+    (status) => {
+      if (!disposed && selectedVps.value === id && selectedMetric.value === code)
+        liveStatus.value = status
+    },
+  )
+}
+const objects = computed(
+  () =>
+    current.value?.objects.map((item) => ({
+      ...item,
+      stale:
+        item.stale ||
+        (!!latest(item) &&
+          clock.value / 1000 - latest(item)!.timestamp >
+            (config.value?.effectiveScheduleSeconds || metric.value?.scheduleSeconds || 60) * 2 +
+              10),
+    })) || [],
+)
 onMounted(() => {
   void initialize()
   timer = setInterval(() => {
-    if (
-      autoRefresh.value &&
-      !document.hidden &&
-      !loading.value &&
-      !initializing.value &&
-      !configOpen.value &&
-      !savingConfig.value
-    ) {
-      void refresh()
-    }
-  }, 30000)
+    clock.value = Date.now()
+  }, 1000)
 })
 onBeforeUnmount(() => {
   disposed = true
@@ -287,6 +340,7 @@ onBeforeUnmount(() => {
   historyRequest?.abort()
   chart?.destroy()
   clearInterval(timer)
+  stopSocket?.()
 })
 </script>
 
@@ -296,13 +350,17 @@ onBeforeUnmount(() => {
       <div>
         <span class="eyebrow">GIÁM SÁT VPS</span>
         <h1>Hiệu năng từng object</h1>
-        <p>
-          Dữ liệu thu thập tự động và lưu trong DB cho từng CPU, filesystem hoặc interface mạng.
-        </p>
+        <p>Tải dữ liệu 10 phút gần nhất từ DB, sau đó nối tiếp giá trị mới qua socket.</p>
       </div>
-      <RouterLink to="/staff/monitoring/vps/register" class="link-button"
-        ><i class="bi bi-plus-circle" aria-hidden="true"></i> Đăng ký VPS</RouterLink
+      <button
+        ref="scheduleButton"
+        type="button"
+        @click="showSchedules = true"
+        aria-haspopup="dialog"
+        class="link-button"
       >
+        <i class="bi bi-sliders" aria-hidden="true"></i> Lịch thu thập
+      </button>
     </header>
     <div v-if="error" role="alert" class="error-message">
       {{ error }}
@@ -318,7 +376,7 @@ onBeforeUnmount(() => {
       <section class="filters">
         <div>
           <label for="perf-vps">Máy chủ VPS</label
-          ><select id="perf-vps" v-model="selectedVps" :disabled="savingConfig">
+          ><select id="perf-vps" v-model="selectedVps">
             <option v-for="vps in vpsList" :key="vps.vpsId" :value="vps.vpsId">
               {{ vps.hostname || vps.ipAddress }} · {{ vps.ipAddress }}
             </option>
@@ -326,7 +384,7 @@ onBeforeUnmount(() => {
         </div>
         <div>
           <label for="perf-metric">Metric</label
-          ><select id="perf-metric" v-model="selectedMetric" :disabled="savingConfig">
+          ><select id="perf-metric" v-model="selectedMetric">
             <option v-for="item in visibleMetrics" :key="item.code" :value="item.code">
               {{ item.name }}{{ item.unit ? ` (${item.unit})` : '' }}
             </option>
@@ -347,70 +405,19 @@ onBeforeUnmount(() => {
                 ? 'Thu thập lỗi hoặc dữ liệu đã cũ'
                 : 'Chưa thu thập'
         }}</span
-        ><span v-if="updatedAt">Đọc DB lúc {{ updatedAt.toLocaleTimeString('vi-VN') }}</span
-        ><label class="auto"
-          ><input v-model="autoRefresh" type="checkbox" /> Tự cập nhật mỗi 30 giây</label
-        >
+        ><span v-if="updatedAt">Cập nhật lúc {{ updatedAt.toLocaleTimeString('vi-VN') }}</span
+        ><span class="auto" role="status" :class="liveStatus">{{
+          liveStatus === 'live'
+            ? '● Đang nhận trực tiếp'
+            : liveStatus === 'connecting'
+              ? 'Đang kết nối socket...'
+              : 'Mất kết nối · Đang thử lại'
+        }}</span>
+        <span v-if="config">Chu kỳ {{ config.effectiveScheduleSeconds }} giây</span>
       </div>
       <div v-if="current?.collectionError" class="error-message" role="alert">
         {{ current.collectionError }}
       </div>
-      <details
-        v-if="config && metric"
-        class="panel config-panel"
-        @toggle="configOpen = ($event.target as HTMLDetailsElement).open"
-      >
-        <summary>
-          Cấu hình thu thập · {{ config.effectiveScheduleSeconds }} giây/lần ·
-          {{ config.enabled && metric.enabled ? 'Đang bật' : 'Đã tắt' }}
-        </summary>
-        <fieldset :disabled="savingConfig">
-          <div class="config-fields">
-            <div>
-              <label for="config-scope">Phạm vi cấu hình</label
-              ><select id="config-scope" v-model="configScope">
-                <option value="vps">Metric trên VPS này</option>
-                <option value="default">Mặc định của metric (mọi VPS)</option>
-              </select>
-            </div>
-            <div>
-              <label for="config-seconds">Chu kỳ (giây)</label
-              ><input
-                id="config-seconds"
-                v-model.number="scheduleSeconds"
-                type="number"
-                min="5"
-                max="86400"
-                :disabled="configScope === 'vps' && useDefaultSchedule"
-              />
-            </div>
-            <div v-if="configScope === 'default'">
-              <label for="config-timeout">Timeout (ms)</label
-              ><input
-                id="config-timeout"
-                v-model.number="timeoutMs"
-                type="number"
-                min="1000"
-                max="30000"
-              />
-            </div>
-          </div>
-          <div class="config-actions">
-            <label v-if="configScope === 'vps'"
-              ><input v-model="useDefaultSchedule" type="checkbox" /> Dùng chu kỳ mặc định
-              {{ metric.scheduleSeconds }} giây</label
-            ><label><input v-model="collectionEnabled" type="checkbox" /> Bật thu thập</label
-            ><button type="button" class="primary" @click="saveConfig">
-              {{ savingConfig ? 'Đang lưu...' : 'Lưu cấu hình' }}
-            </button>
-          </div>
-          <p class="hint">
-            Thay đổi áp dụng cho các lần thu thập tiếp theo. Tắt metric mặc định sẽ dừng metric đó
-            trên mọi VPS.
-          </p>
-        </fieldset>
-        <p v-if="configNotice" role="status" class="config-notice">{{ configNotice }}</p>
-      </details>
       <div v-if="loading && !current" role="status" class="empty">Đang lấy giá trị metric...</div>
       <div v-else-if="current && !current.objects.length" class="empty">
         Chưa có object cho metric này. Object sẽ được nhận diện trong lần thu thập thành công.
@@ -423,7 +430,7 @@ onBeforeUnmount(() => {
           <p class="hint">Chọn object để xem lịch sử riêng.</p>
           <div class="object-list">
             <button
-              v-for="item in current.objects"
+              v-for="item in objects"
               :key="item.objectKey"
               class="object-row"
               :class="{ selected: selectedObject === item.objectKey }"
@@ -463,11 +470,12 @@ onBeforeUnmount(() => {
             </div>
             <div>
               <label for="perf-hours" class="visually-hidden">Khoảng thời gian</label
-              ><select id="perf-hours" v-model="hours">
-                <option :value="1">1 giờ</option>
-                <option :value="6">6 giờ</option>
-                <option :value="24">24 giờ</option>
-                <option :value="168">7 ngày</option>
+              ><select id="perf-hours" v-model="minutes">
+                <option :value="10">10 phút gần nhất</option>
+                <option :value="60">1 giờ</option>
+                <option :value="360">6 giờ</option>
+                <option :value="1440">24 giờ</option>
+                <option :value="10080">7 ngày</option>
               </select>
             </div>
           </div>
@@ -493,57 +501,21 @@ onBeforeUnmount(() => {
       </div>
     </template>
   </main>
+  <MetricScheduleDialog
+    v-if="showSchedules"
+    :vps-id="selectedVps"
+    :metric-code="selectedMetric"
+    @close="closeSchedules"
+    @saved="schedulesSaved"
+  />
 </template>
 
 <style scoped>
-.config-panel {
-  margin-bottom: 20px;
+.auto.live {
+  color: #287864;
 }
-.config-panel summary {
-  font-size: 14px;
-  font-weight: 650;
-  cursor: pointer;
-}
-.config-panel fieldset {
-  border: 0;
-  padding: 0;
-  margin: 20px 0 0;
-}
-.config-fields {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.config-fields > div {
-  flex: 1;
-  min-width: 160px;
-}
-.config-fields input {
-  width: 100%;
-  padding: 11px 12px;
-  border: 1px solid #dce3ed;
-  border-radius: 9px;
-  background: #f9fbfd;
-  font-size: 13px;
-}
-.config-actions {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin: 18px 0;
-}
-.config-actions label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-weight: 400;
-  margin: 0;
-}
-.config-notice {
-  margin-top: 12px;
-  font-size: 13px;
-  color: #47678e;
+.auto.offline {
+  color: #a5642a;
 }
 .object-row small.stale {
   color: #b07837;

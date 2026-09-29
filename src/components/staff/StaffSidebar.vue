@@ -548,7 +548,8 @@ const isBooksLoading = (
               Đăng ký VPS
 
             </button>
-            <button class="monitoring-item" :class="{ active: isActive('/staff/monitoring/vps/performance') }" @click="go('/staff/monitoring/vps/performance')"><i class="bi bi-graph-up me-2"></i> Hiệu năng VPS</button>
+            <button class="monitoring-item" :class="{ active: isActive('/staff/monitoring/vps/performance') && route.query.schedules !== '1' }" @click="go('/staff/monitoring/vps/performance')"><i class="bi bi-graph-up me-2"></i> Hiệu năng VPS</button>
+            <button class="monitoring-item" :class="{ active: isActive('/staff/monitoring/vps/performance') && route.query.schedules === '1' }" @click="go('/staff/monitoring/vps/performance?schedules=1')"><i class="bi bi-sliders me-2"></i> Lịch thu thập metric</button>
 
           </div>
 

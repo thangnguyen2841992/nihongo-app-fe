@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory} from 'vue-router'
+import {createRouter, createWebHistory, type RouteLocation} from 'vue-router'
 
 import MainLayout from '@/layouts/MainLayout.vue'
 import Home from '@/users/Home-User.vue'
@@ -176,6 +176,11 @@ const routes = [
       },
 
       // 🔥 Đăng ký VPS
+      {
+        path: 'monitoring/vps/schedules',
+        name: 'monitor-vps-schedules',
+        redirect: (to: RouteLocation) => ({ path: '/staff/monitoring/vps/performance', query: { ...to.query, schedules: '1' } })
+      },
       {
         path: 'monitoring/vps/performance',
         name: 'monitor-vps-performance',

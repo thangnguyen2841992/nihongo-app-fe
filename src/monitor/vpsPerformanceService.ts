@@ -23,6 +23,7 @@ export interface PerformanceObject {
   points: PerformancePoint[]
 }
 export interface VpsPerformance {
+  scheduleSeconds?: number
   vpsId: number
   metricCode: string
   state: 'UP' | 'DOWN' | 'UNKNOWN' | 'PAUSED'
@@ -57,10 +58,11 @@ export const getVpsPerformance = async (
   signal: AbortSignal,
   hours?: number,
   objectKey?: string,
+  minutes?: number,
 ) =>
   (
     await gatewayUrl.get<VpsPerformance>(`/api/staff/vps/${id}/performance`, {
-      params: { metric, hours, objectKey },
+      params: { metric, hours, objectKey, minutes },
       signal,
       timeout: 35000,
     })
