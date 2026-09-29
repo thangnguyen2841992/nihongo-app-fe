@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { onMounted, ref, watch } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { gatewayUrl } from "@/api/authApi.ts"
 
@@ -62,6 +62,9 @@ const showMonitoring = ref(
     "/staff/monitoring"
   )
 )
+watch(() => route.path, path => {
+  if (path.startsWith('/staff/monitoring')) showMonitoring.value = true
+})
 
 
 /*
@@ -485,39 +488,6 @@ const isBooksLoading = (
           >
 
             <!-- =================
-                 MONITORING DASHBOARD
-            ================== -->
-
-            <button
-              class="
-                monitoring-item
-              "
-              :class="{
-                active:
-                  isActive(
-                    '/staff/monitoring'
-                  )
-              }"
-              @click="
-                go(
-                  '/staff/monitoring'
-                )
-              "
-            >
-
-              <i
-                class="
-                  bi bi-speedometer2
-                  me-2
-                "
-              ></i>
-
-              Tổng quan
-
-            </button>
-
-
-            <!-- =================
                  REGISTER VPS
             ================== -->
 
@@ -550,6 +520,7 @@ const isBooksLoading = (
             </button>
             <button class="monitoring-item" :class="{ active: isActive('/staff/monitoring/vps/performance') && route.query.schedules !== '1' }" @click="go('/staff/monitoring/vps/performance')"><i class="bi bi-graph-up me-2"></i> Hiệu năng VPS</button>
             <button class="monitoring-item" :class="{ active: isActive('/staff/monitoring/vps/performance') && route.query.schedules === '1' }" @click="go('/staff/monitoring/vps/performance?schedules=1')"><i class="bi bi-sliders me-2"></i> Lịch thu thập metric</button>
+            <button class="monitoring-item" :class="{ active: isActive('/staff/monitoring/vps/events') }" @click="go('/staff/monitoring/vps/events')"><i class="bi bi-bell me-2"></i> Event VPS</button>
 
           </div>
 

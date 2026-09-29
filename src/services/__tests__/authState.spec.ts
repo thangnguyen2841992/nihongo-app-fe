@@ -23,3 +23,18 @@ it('allows anonymous initialization and does not start realtime connections', as
   expect(useAuthState().isAuthenticated.value).toBe(false)
   expect(mocks.connect).not.toHaveBeenCalled(); expect(mocks.privateGet).not.toHaveBeenCalled()
 })
+
+it('clears stale identity and stops polling when initialization becomes anonymous', async () => {
+  mocks.get.mockResolvedValueOnce({ data: { isLoggedIn: true, name: 'User', email: 'u@example.com', role: 'USER', sessionId: 'sid' } })
+  await initAuth()
+  localStorage.setItem('display-theme', 'soft')
+  sessionStorage.setItem('purchase-retry', 'key')
+  mocks.get.mockResolvedValueOnce({ data: { isLoggedIn: false } })
+  await initAuth()
+  expect(useAuthState().userName.value).toBe('')
+  expect(sessionStorage.getItem('sessionId')).toBeNull()
+  expect(localStorage.getItem('display-theme')).toBe('soft')
+  expect(sessionStorage.getItem('purchase-retry')).toBe('key')
+  await vi.advanceTimersByTimeAsync(16000)
+  expect(mocks.privateGet).not.toHaveBeenCalled()
+})

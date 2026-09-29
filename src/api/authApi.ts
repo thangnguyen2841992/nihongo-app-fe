@@ -1,6 +1,7 @@
 import axios from 'axios'
 import router from '@/router'
 import { gatewayBaseUrl } from '@/services/endpoints'
+import { clearAuthenticationStorage } from '@/services/authStorage'
 
 declare module 'axios' {
   export interface InternalAxiosRequestConfig {
@@ -39,8 +40,7 @@ const processQueue = (error: any = null) => {
 
 const logout = async () => {
   window.dispatchEvent(new Event('auth:expired'))
-  localStorage.clear()
-  sessionStorage.clear()
+  clearAuthenticationStorage()
 
   if (router.currentRoute.value.path !== '/login') {
     await router.replace('/login')

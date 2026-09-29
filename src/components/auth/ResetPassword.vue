@@ -2,6 +2,7 @@
 import { ref, watch, nextTick, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {gatewayUrl} from '@/api/authApi'
+import { validPassword, passwordHint } from '@/services/passwordPolicy'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,10 +23,6 @@ const showConfirm = ref(false)
 const passwordRef = ref<HTMLInputElement | null>(null)
 const confirmRef = ref<HTMLInputElement | null>(null)
 
-// 🔐 regex password mạnh
-const passwordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/
-
 // realtime errors
 const passwordError = ref('')
 const confirmError = ref('')
@@ -34,9 +31,8 @@ const confirmError = ref('')
 watch(password, (val) => {
   if (!val) {
     passwordError.value = 'Vui lòng nhập mật khẩu'
-  } else if (!passwordRegex.test(val)) {
-    passwordError.value =
-      'Ít nhất 8 ký tự, gồm chữ hoa, thường, số, ký tự đặc biệt'
+  } else if (!validPassword(val)) {
+    passwordError.value = passwordHint
   } else {
     passwordError.value = ''
   }
@@ -54,6 +50,9 @@ watch(confirmPassword, (val) => {
 
 // 👉 submit
 const submit = async () => {
+  if (loading.value) return
+  if (!validPassword(password.value)) { passwordError.value = passwordHint; return }
+  if (password.value !== confirmPassword.value) { confirmError.value = 'Mật khẩu không khớp'; return }
   if (passwordError.value || confirmError.value) return
 
   try {

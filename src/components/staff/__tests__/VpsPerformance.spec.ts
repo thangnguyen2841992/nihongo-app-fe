@@ -110,7 +110,10 @@ afterEach(() => {
 async function open(query = '') {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/perf', component: VpsPerformance }],
+    routes: [
+      { path: '/perf', component: VpsPerformance },
+      { path: '/staff/monitoring/vps/events', component: { template: '<div />' } },
+    ],
   })
   await router.push('/perf' + query)
   wrapper = mount(VpsPerformance, { global: { plugins: [router] } })
@@ -118,6 +121,7 @@ async function open(query = '') {
 }
 it('shows each object separately and requests history for the selected object', async () => {
   await open('?vps=2')
+  expect(vi.mocked(getVpsPerformance).mock.calls.filter((call) => call[5] === 10)).toHaveLength(1)
   expect(wrapper!.findAll('.object-row')).toHaveLength(2)
   expect(wrapper!.get('.object-list').text()).toContain('Chưa có dữ liệu')
   await wrapper!.findAll('.object-row')[1]!.trigger('click')
@@ -275,7 +279,7 @@ it('shows an empty state when no VPS is registered', async () => {
 it('edits schedules in a popup for the selected VPS without leaving the performance screen', async () => {
   await open('?vps=2')
   const overflow = document.body.style.overflow
-  await wrapper!.get('button[aria-haspopup="dialog"]').trigger('click')
+  await wrapper!.get('button[aria-label="Mở lịch thu thập"]').trigger('click')
   await flushPromises()
   expect(wrapper!.get('.schedule-dialog').attributes()).toHaveProperty('open')
   expect(document.body.style.overflow).toBe('hidden')
@@ -305,4 +309,12 @@ it('opens from the schedule shortcut and closes with Escape', async () => {
   await flushPromises()
   expect(wrapper!.find('.schedule-dialog').exists()).toBe(false)
   expect(document.body.style.overflow).not.toBe('hidden')
+})
+it('links to the dedicated event page with the selected VPS and metric', async () => {
+  await open('?vps=2')
+  const link = wrapper!.get('.header-actions a')
+  expect(link.text()).toContain('Event VPS')
+  expect(link.attributes('href')).toBe('/staff/monitoring/vps/events?vps=2&metric=CPU_USAGE')
+  expect(wrapper!.find('.events').exists()).toBe(false)
+  expect(wrapper!.find('.event-rules').exists()).toBe(false)
 })

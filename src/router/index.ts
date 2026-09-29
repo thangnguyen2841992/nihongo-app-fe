@@ -1,27 +1,27 @@
 import {createRouter, createWebHistory, type RouteLocation} from 'vue-router'
+import { authorizeRoute } from '@/services/routeAuthorization'
 
-import MainLayout from '@/layouts/MainLayout.vue'
-import Home from '@/users/Home-User.vue'
+const MainLayout = () => import("@/layouts/MainLayout.vue")
+const Home = () => import("@/users/Home-User.vue")
 
-import LoginView from '@/components/auth/LoginView.vue'
-import CheckEmailView from '@/components/auth/CheckEmailView.vue'
+const LoginView = () => import("@/components/auth/LoginView.vue")
+const CheckEmailView = () => import("@/components/auth/CheckEmailView.vue")
 
 // 🔥 thêm
-import ActiveAccount from '@/components/auth/ActiveAccount.vue'
-import ResetPassword from '@/components/auth/ResetPassword.vue'
-import ActiveExpired from '@/components/auth/ActiveExpired.vue'
-import ActiveFailed from '@/components/auth/ActiveFailed.vue'
-import RegisterView from "@/components/auth/RegisterView.vue";
-import AdminHome from "@/components/admin/Admin-home.vue";
-import AdminLayout from "@/components/admin/AdminLayout.vue";
-import StaffLayout from "@/components/staff/StaffLayout.vue";
-import StaffHome from "@/components/staff/StaffHome.vue";
-import CourseView from "@/users/CourseView.vue";
-import MyCoursesView from "@/users/MyCoursesView.vue";
-import JapaneseAiResult from "@/components/staff/JapaneseAiResult.vue";
-import ServerMonitoring from "@/components/staff/ServerMonitoring.vue";
-import RegisterVps from "@/components/staff/monitor/RegisterVps.vue";
-import GoogleSetupPassword from "@/components/auth/GoogleSetupPassword.vue";
+const ActiveAccount = () => import("@/components/auth/ActiveAccount.vue")
+const ResetPassword = () => import("@/components/auth/ResetPassword.vue")
+const ActiveExpired = () => import("@/components/auth/ActiveExpired.vue")
+const ActiveFailed = () => import("@/components/auth/ActiveFailed.vue")
+const RegisterView = () => import("@/components/auth/RegisterView.vue")
+const AdminHome = () => import("@/components/admin/Admin-home.vue")
+const AdminLayout = () => import("@/components/admin/AdminLayout.vue")
+const StaffLayout = () => import("@/components/staff/StaffLayout.vue")
+const StaffHome = () => import("@/components/staff/StaffHome.vue")
+const CourseView = () => import("@/users/CourseView.vue")
+const MyCoursesView = () => import("@/users/MyCoursesView.vue")
+const JapaneseAiResult = () => import("@/components/staff/JapaneseAiResult.vue")
+const RegisterVps = () => import("@/components/staff/monitor/RegisterVps.vue")
+const GoogleSetupPassword = () => import("@/components/auth/GoogleSetupPassword.vue")
 
 const routes = [
   // 🔥 layout chính
@@ -36,22 +36,26 @@ const routes = [
       },
       {
         path: 'user/my-courses',
+        meta: { requiresAuth: true },
         component: MyCoursesView
       },
       {
         path: '/course/:courseId',
         name: 'course-learning',
+        meta: { requiresAuth: true },
         component: () =>
           import('@/users/CourseLearningView.vue')
       },
       {
         path: "/course/:courseId/books",
         name: "CourseBooks",
+        meta: { requiresAuth: true },
         component: () => import("@/users/CourseBooksView.vue")
       },
       {
         path: '/course/book/:bookId',
         name: "CourseBookDetail",
+        meta: { requiresAuth: true },
         component: () =>
           import('@/users/CourseBookDetailView.vue')
       },
@@ -59,6 +63,7 @@ const routes = [
       {
         path: 'course/lesson/:lessonId/exercises',
         name: 'course-lesson-exercises',
+        meta: { requiresAuth: true },
         component: () =>
           import('@/users/CourseLessonExerciseView.vue')
       },
@@ -66,12 +71,14 @@ const routes = [
       {
         path: 'users/exercises/history/:lessonId',
         name: 'user-exercise-history',
+        meta: { requiresAuth: true },
         component: () =>
           import('@/users/HistoryExercise.vue')
       },
       {
         path: '/japanese-ai',
         name: 'JapaneseAi',
+        meta: { requiresAuth: true },
         component: JapaneseAiResult
       },
       {
@@ -124,6 +131,7 @@ const routes = [
   //admin
   {
     path: '/admin',
+    meta: { requiresAuth: true, roles: ['ADMIN'] },
     component: AdminLayout,
     children: [
       {
@@ -152,6 +160,7 @@ const routes = [
   // STAFF
   {
     path: '/staff',
+    meta: { requiresAuth: true, roles: ['ADMIN', 'STAFF'] },
     component: StaffLayout,
     children: [
       {
@@ -172,7 +181,7 @@ const routes = [
       {
         path: 'monitoring',
         name: 'staff-monitoring',
-        component: ServerMonitoring
+        redirect: (to: RouteLocation) => ({ path: '/staff/monitoring/vps/performance', query: to.query })
       },
 
       // 🔥 Đăng ký VPS
@@ -180,6 +189,11 @@ const routes = [
         path: 'monitoring/vps/schedules',
         name: 'monitor-vps-schedules',
         redirect: (to: RouteLocation) => ({ path: '/staff/monitoring/vps/performance', query: { ...to.query, schedules: '1' } })
+      },
+      {
+        path: 'monitoring/vps/events',
+        name: 'monitor-vps-events',
+        component: () => import('@/components/staff/monitor/VpsEvents.vue')
       },
       {
         path: 'monitoring/vps/performance',
@@ -199,5 +213,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+router.beforeEach(authorizeRoute)
 
 export default router

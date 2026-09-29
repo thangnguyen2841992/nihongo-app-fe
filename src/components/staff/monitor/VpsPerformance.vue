@@ -144,8 +144,10 @@ async function refresh() {
       controller.signal,
     )
     if (controller.signal.aborted || disposed) return
+    const previousObject = selectedObject.value
     if (revision === socketRevision) applySnapshot(result)
-    void loadHistory()
+    // A changed selection triggers the history watcher; only resync here if it stayed the same.
+    if (previousObject === selectedObject.value) void loadHistory()
   } catch (cause) {
     if (!controller.signal.aborted && !disposed && revision === socketRevision) {
       error.value = message(cause)
@@ -352,15 +354,28 @@ onBeforeUnmount(() => {
         <h1>Hiệu năng từng object</h1>
         <p>Tải dữ liệu 10 phút gần nhất từ DB, sau đó nối tiếp giá trị mới qua socket.</p>
       </div>
-      <button
-        ref="scheduleButton"
-        type="button"
-        @click="showSchedules = true"
-        aria-haspopup="dialog"
-        class="link-button"
-      >
-        <i class="bi bi-sliders" aria-hidden="true"></i> Lịch thu thập
-      </button>
+      <div class="header-actions">
+        <RouterLink
+          v-if="selectedVps != null && config"
+          class="link-button"
+          :to="{
+            path: '/staff/monitoring/vps/events',
+            query: { vps: selectedVps, metric: selectedMetric },
+          }"
+        >
+          <i class="bi bi-bell" aria-hidden="true"></i> Event VPS
+        </RouterLink>
+        <button
+          ref="scheduleButton"
+          type="button"
+          @click="showSchedules = true"
+          aria-haspopup="dialog"
+          aria-label="Mở lịch thu thập"
+          class="link-button"
+        >
+          <i class="bi bi-sliders" aria-hidden="true"></i> Lịch thu thập
+        </button>
+      </div>
     </header>
     <div v-if="error" role="alert" class="error-message">
       {{ error }}
@@ -511,6 +526,11 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .auto.live {
   color: #287864;
 }

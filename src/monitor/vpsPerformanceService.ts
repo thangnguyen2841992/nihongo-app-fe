@@ -1,4 +1,5 @@
 import { gatewayUrl } from '@/api/authApi'
+import type { MonitorEvent } from './monitorEventService'
 
 export interface PerformanceMetric {
   metricId: number
@@ -23,6 +24,7 @@ export interface PerformanceObject {
   points: PerformancePoint[]
 }
 export interface VpsPerformance {
+  events?: MonitorEvent[]
   scheduleSeconds?: number
   vpsId: number
   metricCode: string

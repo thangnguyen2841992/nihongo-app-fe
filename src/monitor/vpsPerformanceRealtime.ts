@@ -52,6 +52,26 @@ export function connectVpsPerformance(
           )
             return
           if (
+            data.events !== undefined &&
+            (!Array.isArray(data.events) ||
+              !data.events.every(
+                (e) =>
+                  Number.isSafeInteger(e.eventId) &&
+                  e.eventId > 0 &&
+                  Number.isSafeInteger(e.ruleId) &&
+                  typeof e.ruleName === 'string' &&
+                  typeof e.objectName === 'string' &&
+                  typeof e.objectKey === 'string' &&
+                  ['ALERT', 'RECOVERY'].includes(e.kind) &&
+                  ['MINOR', 'WARNING', 'CRITICAL', 'FATAL'].includes(e.severity) &&
+                  ['GT', 'GTE', 'LT', 'LTE'].includes(e.operator) &&
+                  Number.isFinite(e.threshold) &&
+                  Number.isFinite(e.value) &&
+                  Number.isFinite(e.timestamp),
+              ))
+          )
+            return
+          if (
             !data.objects.every(
               (o) =>
                 typeof o.objectKey === 'string' &&

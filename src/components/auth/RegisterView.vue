@@ -2,6 +2,7 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { gatewayUrl } from "@/api/authApi.ts"
+import { validPassword, passwordHint } from '@/services/passwordPolicy'
 
 const router = useRouter()
 
@@ -37,6 +38,8 @@ const register = async () => {
 
   error.value = ''
   message.value = ''
+  if (!validPassword(password.value)) { error.value = passwordHint; return }
+  if (password.value !== confirmPassword.value) { error.value = 'Mật khẩu không khớp'; return }
   loading.value = true
 
   try {

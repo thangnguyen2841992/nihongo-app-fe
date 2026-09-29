@@ -78,7 +78,7 @@
           </div>
 
           <small class="password-hint">
-            Mật khẩu phải có ít nhất 8 ký tự
+            {{ passwordHint }}
           </small>
         </div>
 
@@ -164,6 +164,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { publicClient } from '@/api/authApi'
+import { validPassword, passwordHint } from '@/services/passwordPolicy'
 
 const router = useRouter()
 const route = useRoute()
@@ -207,8 +208,8 @@ const setupPassword = async (): Promise<void> => {
     return
   }
 
-  if (password.value.length < 8) {
-    error.value = 'Mật khẩu phải có ít nhất 8 ký tự'
+  if (!validPassword(password.value)) {
+    error.value = passwordHint
     return
   }
 

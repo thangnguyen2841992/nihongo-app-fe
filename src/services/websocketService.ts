@@ -31,7 +31,6 @@ class WebSocketService {
       onConnect: () => {
         if (this.sessionId !== sessionId) return
 
-        console.log('✅ WS connected')
 
         this.client?.subscribe(
           '/user/queue/logout',
@@ -42,7 +41,6 @@ class WebSocketService {
 
               const data = JSON.parse(msg.body)
 
-              console.log('📩 WS message:', data)
 
               // ✅ chỉ logout đúng session/tab
               if (
@@ -51,9 +49,6 @@ class WebSocketService {
                 data.sessionId === sessionId
               ) {
 
-                console.log(
-                  '🔥 Force logout current tab'
-                )
 
                 this.logoutCallback?.()
               }
@@ -90,6 +85,7 @@ class WebSocketService {
     const old = this.client
     this.client = null
     this.sessionId = null
+    this.logoutCallback = null
     if (old) void old.deactivate()
   }
 }
