@@ -21,6 +21,7 @@ const vpsList = ref<MonitorVps[]>([])
 const metrics = ref<PerformanceMetric[]>([])
 const configs = ref<MetricConfig[]>([])
 const selectedVps = ref<number | null>(null)
+const isMysql = computed(() => vpsList.value.find(vps => vps.vpsId === selectedVps.value)?.exporterType === 'MYSQL_JDBC')
 const selectedMetric = ref('')
 const current = ref<VpsPerformance | null>(null)
 const editor = ref<InstanceType<typeof MetricEventRules> | null>(null)
@@ -179,8 +180,8 @@ onBeforeUnmount(() => {
   <main class="events-page">
     <header>
       <div>
-        <span class="eyebrow">GIÁM SÁT VPS</span>
-        <h1>Event VPS</h1>
+        <span class="eyebrow">{{ isMysql ? 'GIÁM SÁT MYSQL' : 'GIÁM SÁT VPS' }}</span>
+        <h1>{{ isMysql ? 'Event MySQL' : 'Event VPS' }}</h1>
         <p>Cấu hình điều kiện theo từng object và theo dõi event phát sinh trực tiếp.</p>
       </div>
       <span v-if="selectedMetric" class="live-state" :class="liveStatus" role="status">{{
@@ -201,14 +202,14 @@ onBeforeUnmount(() => {
         Thử lại
       </button>
     </p>
-    <p v-if="initializing" class="empty" role="status">Đang tải danh sách VPS...</p>
+    <p v-if="initializing" class="empty" role="status">Đang tải danh sách target...</p>
     <p v-else-if="!vpsList.length && !error" class="empty">
-      Chưa có VPS nào được đăng ký. Hãy đăng ký VPS trước khi cấu hình event.
+      Chưa có target nào được đăng ký. Hãy đăng ký máy chủ hoặc MySQL trước khi cấu hình event.
     </p>
     <template v-else-if="vpsList.length">
-      <section class="filters" aria-label="Chọn VPS và metric">
+      <section class="filters" aria-label="Chọn target và metric">
         <div>
-          <label for="event-vps">Máy chủ VPS</label
+          <label for="event-vps">Target giám sát</label
           ><select id="event-vps" v-model="selectedVps" :disabled="saving">
             <option v-for="vps in vpsList" :key="vps.vpsId" :value="vps.vpsId">
               {{ vps.hostname || vps.ipAddress }} · {{ vps.ipAddress }}

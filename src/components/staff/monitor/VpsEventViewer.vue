@@ -23,6 +23,7 @@ const vpsList = ref<MonitorVps[]>([]),
 const selectedVps = ref<number | null>(null),
   selectedMetric = ref(''),
   selectedSeverity = ref<EventSeverity | ''>('')
+const isMysql = computed(() => vpsList.value.find(vps => vps.vpsId === selectedVps.value)?.exporterType === 'MYSQL_JDBC')
 const events = ref<MonitorEvent[]>([]),
   cursor = ref<number | null>(null)
 const initializing = ref(true),
@@ -239,12 +240,12 @@ function historyLink() {
   <main class="event-viewer">
     <header>
       <div>
-        <span class="eyebrow">GIÁM SÁT VPS</span>
+        <span class="eyebrow">{{ isMysql ? 'GIÁM SÁT MYSQL' : 'GIÁM SÁT VPS' }}</span>
         <h1>{{ realtime ? 'Event realtime' : 'Lịch sử event' }}</h1>
         <p>
           {{
             realtime
-              ? 'Nhận event mới của mọi metric trên VPS qua socket.'
+              ? 'Nhận event mới của mọi metric trên target qua socket.'
               : 'Tra cứu event đã lưu theo mốc thời gian, metric và cấp độ.'
           }}
         </p>
@@ -267,12 +268,12 @@ function historyLink() {
       {{ error }}
       <button type="button" @click="!vpsList.length ? initialize() : search()">Thử lại</button>
     </p>
-    <p v-if="initializing" class="empty" role="status">Đang tải danh sách VPS...</p>
-    <p v-else-if="!vpsList.length && !error" class="empty">Chưa có VPS nào được đăng ký.</p>
+    <p v-if="initializing" class="empty" role="status">Đang tải danh sách target...</p>
+    <p v-else-if="!vpsList.length && !error" class="empty">Chưa có target nào được đăng ký.</p>
     <template v-else-if="vpsList.length">
       <form class="filters" @submit.prevent="search">
         <div>
-          <label for="event-view-vps">VPS</label
+          <label for="event-view-vps">Target giám sát</label
           ><select id="event-view-vps" v-model="selectedVps">
             <option v-for="vps in vpsList" :key="vps.vpsId" :value="vps.vpsId">
               {{ vps.hostname || vps.ipAddress }} · {{ vps.ipAddress }}

@@ -49,6 +49,8 @@ async function schedulesSaved() {
   }
 }
 const vpsList = ref<MonitorVps[]>([])
+const selectedTarget = computed(() => vpsList.value.find(vps => vps.vpsId === selectedVps.value))
+const isMysql = computed(() => selectedTarget.value?.exporterType === 'MYSQL_JDBC')
 const metrics = ref<PerformanceMetric[]>([])
 const configs = ref<MetricConfig[]>([])
 const config = computed(() => configs.value.find((c) => c.code === selectedMetric.value))
@@ -87,7 +89,7 @@ const message = (cause: unknown) =>
   axios.isAxiosError(cause)
     ? cause.response?.data?.message ||
       (cause.response?.status === 403
-        ? 'Bạn không có quyền xem metric VPS.'
+        ? 'Bạn không có quyền xem metric của target này.'
         : 'Không tải được dữ liệu. Vui lòng kiểm tra kết nối và thử lại.')
     : 'Không tải được dữ liệu. Vui lòng thử lại.'
 const formatValue = (value: number | null | undefined) =>
@@ -350,8 +352,8 @@ onBeforeUnmount(() => {
   <main class="perf-page">
     <header>
       <div>
-        <span class="eyebrow">GIÁM SÁT VPS</span>
-        <h1>Hiệu năng từng object</h1>
+        <span class="eyebrow">{{ isMysql ? 'GIÁM SÁT MYSQL' : 'GIÁM SÁT VPS' }}</span>
+        <h1>{{ isMysql ? 'Hiệu năng MySQL' : 'Hiệu năng từng object' }}</h1>
         <p>Tải dữ liệu 10 phút gần nhất từ DB, sau đó nối tiếp giá trị mới qua socket.</p>
       </div>
       <div class="header-actions">
@@ -363,7 +365,7 @@ onBeforeUnmount(() => {
             query: { vps: selectedVps, metric: selectedMetric },
           }"
         >
-          <i class="bi bi-bell" aria-hidden="true"></i> Event VPS
+          <i class="bi bi-bell" aria-hidden="true"></i> Event giám sát
         </RouterLink>
         <button
           ref="scheduleButton"
@@ -385,12 +387,12 @@ onBeforeUnmount(() => {
     </div>
     <div v-if="initializing" role="status" class="empty">Đang tải danh sách máy chủ...</div>
     <div v-else-if="!vpsList.length && !error" class="empty">
-      Chưa có VPS nào được đăng ký. Hãy đăng ký máy chủ trước khi xem hiệu năng.
+      Chưa có target nào được đăng ký. Hãy đăng ký máy chủ hoặc MySQL trước khi xem hiệu năng.
     </div>
     <template v-else-if="vpsList.length">
       <section class="filters">
         <div>
-          <label for="perf-vps">Máy chủ VPS</label
+          <label for="perf-vps">Target giám sát</label
           ><select id="perf-vps" v-model="selectedVps">
             <option v-for="vps in vpsList" :key="vps.vpsId" :value="vps.vpsId">
               {{ vps.hostname || vps.ipAddress }} · {{ vps.ipAddress }}

@@ -247,7 +247,7 @@ it('blocks selection and navigation while a rule is being saved', async () => {
 it('shows empty states without creating a subscription when VPS/assignments are missing', async () => {
   vi.mocked(listVps).mockResolvedValue([])
   await open()
-  expect(wrapper!.text()).toContain('Chưa có VPS')
+  expect(wrapper!.text()).toContain('Chưa có target')
   expect(connectVpsPerformance).not.toHaveBeenCalled()
   wrapper!.unmount()
   wrapper = undefined
@@ -291,14 +291,14 @@ it('navigates to the event page from the sidebar and highlights the menu', async
     .trigger('click')
   await wrapper
     .findAll('button')
-    .find((b) => b.text() === 'Event VPS')!
+    .find((b) => b.text() === 'Event giám sát')!
     .trigger('click')
   await flushPromises()
   expect(router.currentRoute.value.path).toBe(path)
   expect(
     wrapper
       .findAll('button')
-      .find((b) => b.text() === 'Event VPS')!
+      .find((b) => b.text() === 'Event giám sát')!
       .classes(),
   ).toContain('active')
 })

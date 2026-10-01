@@ -22,7 +22,7 @@ export interface NodeExporterDiscoveryResult {
   osType: string | null
   osVersion: string | null
   architecture: string | null
-  exporterType?: 'NODE_EXPORTER' | 'WINDOWS_EXPORTER'
+  exporterType?: 'NODE_EXPORTER' | 'WINDOWS_EXPORTER' | 'MYSQL_JDBC'
   nodeExporterVersion: string | null
   message: string
 }
@@ -32,7 +32,7 @@ export interface MonitorVps {
   hostname: string
   ipAddress: string
   agentPort: number
-  exporterType?: 'NODE_EXPORTER' | 'WINDOWS_EXPORTER'
+  exporterType?: 'NODE_EXPORTER' | 'WINDOWS_EXPORTER' | 'MYSQL_JDBC'
   osType: string
   osVersion: string
   architecture: string

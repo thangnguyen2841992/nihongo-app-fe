@@ -300,13 +300,20 @@ const isBooksLoading = (levelId: number, typeId: number) => {
             </button>
             <button
               class="monitoring-item"
+              :class="{ active: isActive('/staff/monitoring/mysql/register') }"
+              @click="go('/staff/monitoring/mysql/register')"
+            >
+              <i class="bi bi-database me-2"></i> Đăng ký MySQL
+            </button>
+            <button
+              class="monitoring-item"
               :class="{
                 active:
                   isActive('/staff/monitoring/vps/performance') && route.query.schedules !== '1',
               }"
               @click="go('/staff/monitoring/vps/performance')"
             >
-              <i class="bi bi-graph-up me-2"></i> Hiệu năng VPS
+              <i class="bi bi-graph-up me-2"></i> Hiệu năng VPS / MySQL
             </button>
             <button
               class="monitoring-item"
@@ -323,7 +330,7 @@ const isBooksLoading = (levelId: number, typeId: number) => {
               :class="{ active: isActive('/staff/monitoring/vps/events') }"
               @click="go('/staff/monitoring/vps/events')"
             >
-              <i class="bi bi-bell me-2"></i> Event VPS
+              <i class="bi bi-bell me-2"></i> Event giám sát
             </button>
             <button
               class="monitoring-item"

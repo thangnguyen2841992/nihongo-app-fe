@@ -270,10 +270,10 @@ it('shows collector errors and identifies stale values without replacing them wi
   expect(wrapper!.get('.object-list').text()).toContain('Giá trị đã cũ')
   expect(wrapper!.get('.object-list').text()).toContain('25')
 })
-it('shows an empty state when no VPS is registered', async () => {
+it('shows an empty state when no target is registered', async () => {
   vi.mocked(listVps).mockResolvedValue([])
   await open()
-  expect(wrapper!.text()).toContain('Chưa có VPS nào')
+  expect(wrapper!.text()).toContain('Chưa có target nào')
   expect(getVpsPerformance).not.toHaveBeenCalled()
 })
 it('edits schedules in a popup for the selected VPS without leaving the performance screen', async () => {
@@ -313,7 +313,7 @@ it('opens from the schedule shortcut and closes with Escape', async () => {
 it('links to the dedicated event page with the selected VPS and metric', async () => {
   await open('?vps=2')
   const link = wrapper!.get('.header-actions a')
-  expect(link.text()).toContain('Event VPS')
+  expect(link.text()).toContain('Event giám sát')
   expect(link.attributes('href')).toBe('/staff/monitoring/vps/events?vps=2&metric=CPU_USAGE')
   expect(wrapper!.find('.events').exists()).toBe(false)
   expect(wrapper!.find('.event-rules').exists()).toBe(false)

@@ -44,7 +44,7 @@ onBeforeUnmount(() => {
   >
     <header class="dialog-heading">
       <div>
-        <span class="eyebrow">GIÁM SÁT VPS</span>
+        <span class="eyebrow">GIÁM SÁT HỆ THỐNG</span>
         <h2 id="schedule-dialog-title">Lịch thu thập metric</h2>
         <p>Sửa chu kỳ và bật/tắt thu thập ngay tại đây.</p>
       </div>

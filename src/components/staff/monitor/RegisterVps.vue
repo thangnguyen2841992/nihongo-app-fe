@@ -62,7 +62,7 @@ const loadList = async () => {
   loadingList.value = true
   listError.value = ''
   try {
-    vpsList.value = await listVps()
+    vpsList.value = (await listVps()).filter(vps => vps.exporterType !== 'MYSQL_JDBC')
   } catch (cause: unknown) {
     listError.value = errorMessage(cause, 'Không thể tải danh sách máy chủ. Vui lòng thử lại.')
   } finally {

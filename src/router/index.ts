@@ -213,6 +213,11 @@ const routes = [
         component: () => import('@/components/staff/monitor/VpsPerformance.vue')
       },
       {
+        path: 'monitoring/mysql/register',
+        name: 'monitor-mysql-register',
+        component: () => import('@/components/staff/monitor/RegisterMysql.vue')
+      },
+      {
         path: 'monitoring/vps/register',
         name: 'monitor-vps-register',
         component: RegisterVps

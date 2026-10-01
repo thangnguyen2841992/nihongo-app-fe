@@ -178,9 +178,9 @@ onBeforeUnmount(() => {
   <section class="schedule-page" :class="{ embedded: props.embedded }">
     <header v-if="!props.embedded">
       <div>
-        <span class="eyebrow">GIÁM SÁT VPS</span>
+        <span class="eyebrow">GIÁM SÁT HỆ THỐNG</span>
         <h1>Lịch thu thập metric</h1>
-        <p>Điều chỉnh chu kỳ, bật/tắt từng metric và chọn lịch riêng cho từng máy chủ.</p>
+        <p>Điều chỉnh chu kỳ, bật/tắt từng metric và chọn lịch riêng cho từng target.</p>
       </div>
       <RouterLink
         :to="{
@@ -198,12 +198,12 @@ onBeforeUnmount(() => {
       <div>
         <label for="schedule-scope">Phạm vi</label
         ><select id="schedule-scope" v-model="scope" :disabled="saving || loading">
-          <option value="vps">Từng VPS</option>
+          <option value="vps">Từng target</option>
           <option value="default">Mặc định của metric</option>
         </select>
       </div>
       <div v-if="scope === 'vps'">
-        <label for="schedule-vps">Máy chủ VPS</label
+        <label for="schedule-vps">Target giám sát</label
         ><select id="schedule-vps" v-model="selectedVps" :disabled="saving || loading">
           <option v-for="vps in servers" :key="vps.vpsId" :value="vps.vpsId">
             {{ vps.hostname || vps.ipAddress }} · {{ vps.ipAddress }}
@@ -223,16 +223,16 @@ onBeforeUnmount(() => {
     <p class="scope-note">
       {{
         scope === 'default'
-          ? 'Lịch mặc định áp dụng cho VPS dùng lịch chung. Tắt metric tại đây sẽ dừng thu thập metric đó trên mọi VPS.'
-          : 'Mỗi metric có thể dùng lịch mặc định hoặc chu kỳ riêng trên VPS đang chọn.'
+          ? 'Lịch mặc định áp dụng cho mọi target dùng lịch chung. Tắt metric tại đây sẽ dừng thu thập metric đó trên các target tương ứng.'
+          : 'Mỗi metric có thể dùng lịch mặc định hoặc chu kỳ riêng trên target đang chọn.'
       }}
     </p>
     <div v-if="loading" class="empty" role="status">Đang tải cấu hình...</div>
     <div v-else-if="!rows.length && !error" class="empty">
       {{
         servers.length
-          ? 'Chưa có metric được gán cho VPS này.'
-          : 'Chưa có VPS được đăng ký. Bạn vẫn có thể cấu hình lịch mặc định.'
+          ? 'Chưa có metric được gán cho target này.'
+          : 'Chưa có target được đăng ký. Bạn vẫn có thể cấu hình lịch mặc định.'
       }}
     </div>
     <section v-else-if="rows.length" class="metric-list" aria-label="Lịch thu thập từng metric">
@@ -300,7 +300,7 @@ onBeforeUnmount(() => {
             </div>
           </fieldset>
           <p v-if="scope === 'vps' && !metric.enabled" class="hint">
-            Metric đang bị tắt ở cấu hình mặc định. Bật mặc định để tiếp tục thu thập trên VPS này.
+            Metric đang bị tắt ở cấu hình mặc định. Bật mặc định để tiếp tục thu thập trên target này.
           </p>
           <p
             v-if="drafts[metric.code]!.notice"
