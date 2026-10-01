@@ -63,6 +63,17 @@ const sorted = (rows: MonitorEvent[]) =>
   [...new Map(rows.map((e) => [e.eventId, e])).values()].sort(
     (a, b) => b.timestamp - a.timestamp || b.eventId - a.eventId,
   )
+const latestRealtime = (rows: MonitorEvent[]) => {
+  const names = new Set<string>()
+  return sorted(rows)
+    .filter((event) => {
+      const key = JSON.stringify([event.metricCode, event.objectKey, event.ruleName])
+      if (names.has(key)) return false
+      names.add(key)
+      return true
+    })
+    .slice(0, 200)
+}
 let pendingLive: MonitorEvent[] = []
 async function initialize() {
   initializing.value = true
@@ -112,8 +123,8 @@ function selectVps() {
         void search()
         return
       }
-      if (loading.value) pendingLive = sorted([...pendingLive, ...rows]).slice(0, 200)
-      events.value = sorted([...events.value, ...rows]).slice(0, 200)
+      if (loading.value) pendingLive = latestRealtime([...pendingLive, ...rows])
+      events.value = latestRealtime([...events.value, ...rows])
       queried.value = true
     },
     (status) => {
@@ -159,7 +170,7 @@ async function search() {
     const page = await getVpsEvents(id, query, controller.signal)
     if (disposed || controller.signal.aborted || session !== generation) return
     events.value = props.realtime
-      ? sorted([...page.events, ...pendingLive]).slice(0, 200)
+      ? latestRealtime([...page.events, ...pendingLive])
       : page.events
     cursor.value = page.nextCursor
     queried.value = true
@@ -304,7 +315,8 @@ function historyLink() {
           <div>
             <h2>{{ realtime ? 'Event mới nhất của VPS' : 'Kết quả tra cứu' }}</h2>
             <p v-if="realtime">
-              {{ visible.length }} event hiển thị · Giữ tối đa 200 event gần nhất trong màn này.
+              {{ visible.length }} event hiển thị · Mỗi tên event chỉ hiện bản mới nhất trên từng
+              metric/object (tối đa 200).
             </p>
             <p v-else-if="queried">{{ events.length }} event · {{ appliedLabel }}</p>
           </div>

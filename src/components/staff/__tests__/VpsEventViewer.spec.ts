@@ -109,6 +109,51 @@ it('merges a DB snapshot with arriving socket events, deduplicates and filters m
   await flushPromises()
   expect(getVpsEvents).toHaveBeenCalledTimes(2)
 })
+it('replaces an event with the newest event of the same name, metric and object', async () => {
+  let resolve!: (page: VpsEventPage) => void
+  vi.mocked(getVpsEvents).mockImplementationOnce(
+    () =>
+      new Promise((done) => {
+        resolve = done
+      }),
+  )
+  await open()
+  const receive = vi.mocked(connectVpsEvents).mock.calls[0]![1]
+  const oldEvent = { ...event(1), ruleName: 'High usage', value: 81 }
+  const currentEvent = {
+    ...event(3),
+    ruleName: 'High usage',
+    kind: 'RECOVERY' as const,
+    value: 70,
+    openedEventId: 1,
+  }
+  receive([currentEvent])
+  resolve({ events: [oldEvent], nextCursor: null })
+  await flushPromises()
+  expect(wrapper!.findAll('tbody tr')).toHaveLength(1)
+  expect(wrapper!.get('tbody tr').text()).toContain('#3')
+  expect(wrapper!.get('tbody tr').text()).toContain('Hồi phục')
+  receive([{ ...event(2), ruleName: 'High usage', value: 99 }])
+  await flushPromises()
+  expect(wrapper!.findAll('tbody tr')).toHaveLength(1)
+  expect(wrapper!.get('tbody tr').text()).toContain('#3')
+  receive([{ ...event(4), ruleName: 'High usage', value: 64 }])
+  await flushPromises()
+  expect(wrapper!.findAll('tbody tr')).toHaveLength(1)
+  expect(wrapper!.get('tbody tr').text()).toContain('#4')
+  expect(wrapper!.get('tbody tr').text()).not.toContain('#3')
+})
+it('keeps same-name events for different objects or metrics separate', async () => {
+  await open()
+  const receive = vi.mocked(connectVpsEvents).mock.calls[0]![1]
+  receive([
+    { ...event(1), ruleName: 'High usage', objectKey: 'disk-a' },
+    { ...event(2), ruleName: 'High usage', objectKey: 'disk-b' },
+    { ...event(3, 'DISK_USAGE'), ruleName: 'High usage', objectKey: 'disk-a' },
+  ])
+  await flushPromises()
+  expect(wrapper!.findAll('tbody tr')).toHaveLength(3)
+})
 it('discards previous VPS responses and socket frames after changing selection', async () => {
   let resolve!: (page: VpsEventPage) => void
   vi.mocked(getVpsEvents).mockImplementationOnce(
@@ -179,6 +224,19 @@ it('queries history with UTC dates and retains applied filters during pagination
     { ...query, beforeId: 2 },
     expect.any(AbortSignal),
   )
+  expect(wrapper!.findAll('tbody tr')).toHaveLength(2)
+})
+it('retains repeated same-name events in history', async () => {
+  vi.mocked(getVpsEvents).mockResolvedValueOnce({
+    events: [
+      { ...event(2), ruleName: 'High usage' },
+      { ...event(1), ruleName: 'High usage' },
+    ],
+    nextCursor: null,
+  })
+  await open('history')
+  await wrapper!.get('form').trigger('submit')
+  await flushPromises()
   expect(wrapper!.findAll('tbody tr')).toHaveLength(2)
 })
 it('rejects an inverted interval and displays request failures', async () => {

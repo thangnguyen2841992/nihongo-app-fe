@@ -28,7 +28,7 @@ it('shows list errors and supports retry through refresh', async () => {
   expect(wrapper.get('#registered-vps-list [role="alert"]').text()).toContain('kiểm tra mạng')
   await wrapper.get('#registered-vps-list .list-toolbar button').trigger('click')
   await flushPromises()
-  expect(wrapper.get('#registered-vps-list').text()).toContain('Chưa có VPS nào')
+  expect(wrapper.get('#registered-vps-list').text()).toContain('Chưa có máy chủ nào')
   wrapper.unmount()
 })
 const discovered = { installed: true, ipAddress: '160.22.107.232', port: 9100, hostname: 'vps-8sz0fc', osType: 'Linux', osVersion: '24.04', architecture: 'amd64', nodeExporterVersion: '1.9', message: '' }
@@ -73,8 +73,24 @@ it('disables registration after success', async () => {
   const wrapper = await ready()
   await wrapper.get('.btn-register').trigger('click')
   await flushPromises()
-  expect(wrapper.get('[role="status"]').text()).toContain('Đăng ký VPS thành công')
+  expect(wrapper.get('[role="status"]').text()).toContain('Đăng ký máy chủ thành công')
   expect(wrapper.get('.btn-register').attributes('disabled')).toBeDefined()
+  wrapper.unmount()
+})
+it('selects Windows Exporter port and displays the detected exporter', async () => {
+  vi.mocked(discoveryVps).mockResolvedValue({
+    ...discovered, ipAddress: '127.0.0.1', port: 9182, hostname: 'LAPTOP',
+    osType: 'Windows', exporterType: 'WINDOWS_EXPORTER', nodeExporterVersion: '0.31.8',
+    message: 'Đã tìm thấy Windows Exporter.'
+  })
+  const wrapper = mount(RegisterVps)
+  await wrapper.get('#exporter-type').setValue('WINDOWS_EXPORTER')
+  expect((wrapper.get('#vps-port').element as HTMLInputElement).value).toBe('9182')
+  await wrapper.get('#vps-ip').setValue('127.0.0.1')
+  await wrapper.get('form').trigger('submit')
+  await flushPromises()
+  expect(discoveryVps).toHaveBeenCalledWith({ ipAddress: '127.0.0.1', agentPort: 9182 })
+  expect(wrapper.get('.server-details').text()).toContain('Windows Exporter 0.31.8')
   wrapper.unmount()
 })
 it('explains when persistence succeeded but SSH synchronization failed', async () => {

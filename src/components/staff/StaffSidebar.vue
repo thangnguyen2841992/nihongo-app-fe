@@ -296,7 +296,7 @@ const isBooksLoading = (levelId: number, typeId: number) => {
             >
               <i class="bi bi-server me-2"></i>
 
-              Đăng ký VPS
+              Đăng ký máy chủ
             </button>
             <button
               class="monitoring-item"
