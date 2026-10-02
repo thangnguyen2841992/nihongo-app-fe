@@ -1,13 +1,16 @@
-import { expect, it, vi } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import RegisterMysql from '../monitor/RegisterMysql.vue'
-import { listMysqlTargets, probeMysqlTarget, registerMysqlTarget } from '@/monitor/mysqlTargetService'
+import { listMysqlTargets, probeMysqlTarget, registerMysqlTarget, replaceMysqlTargetPassword } from '@/monitor/mysqlTargetService'
 
 vi.mock('@/monitor/mysqlTargetService', () => ({
   listMysqlTargets: vi.fn(),
   probeMysqlTarget: vi.fn(),
   registerMysqlTarget: vi.fn(),
+  replaceMysqlTargetPassword: vi.fn(),
 }))
+
+beforeEach(() => vi.resetAllMocks())
 
 it('checks MySQL before registering and clears the password afterwards', async () => {
   vi.mocked(listMysqlTargets).mockResolvedValue([])
@@ -32,5 +35,25 @@ it('checks MySQL before registering and clears the password afterwards', async (
   expect(registerMysqlTarget).toHaveBeenCalledOnce()
   expect((wrapper.get('#mysql-password').element as HTMLInputElement).value).toBe('')
   expect(wrapper.get('.success').text()).toContain('DB chính')
+  wrapper.unmount()
+})
+
+it('updates an existing target password without registering a new target', async () => {
+  vi.mocked(listMysqlTargets).mockResolvedValue([{
+    vpsId: 7, hostname: 'DB chính', ipAddress: '127.0.0.1', agentPort: 3306,
+    exporterType: 'MYSQL_JDBC', osType: 'MySQL', osVersion: '8.0', architecture: '', status: 'UP', lastSeenAt: '',
+  }])
+  vi.mocked(replaceMysqlTargetPassword).mockResolvedValue()
+  const wrapper = mount(RegisterMysql, { global: { stubs: { RouterLink: true } } })
+  await flushPromises()
+  await wrapper.get('.list tbody button').trigger('click')
+  expect(wrapper.get('[role=dialog]').text()).toContain('DB chính')
+  await wrapper.get('#mysql-replacement-password').setValue('new-secret')
+  await wrapper.get('[role=dialog] form').trigger('submit')
+  await flushPromises()
+  expect(replaceMysqlTargetPassword).toHaveBeenCalledWith(7, 'new-secret')
+  expect(registerMysqlTarget).not.toHaveBeenCalled()
+  expect(wrapper.find('[role=dialog]').exists()).toBe(false)
+  expect(wrapper.get('[role=status]').text()).toContain('Đã cập nhật mật khẩu')
   wrapper.unmount()
 })

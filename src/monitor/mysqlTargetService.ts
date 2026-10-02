@@ -25,3 +25,7 @@ export const probeMysqlTarget = async (request: MysqlTargetRequest) =>
 
 export const registerMysqlTarget = async (request: MysqlTargetRequest) =>
   (await gatewayUrl.post<MonitorVps>('/api/staff/mysql-targets', request)).data
+
+export const replaceMysqlTargetPassword = async (vpsId: number, password: string) => {
+  await gatewayUrl.put(`/api/staff/mysql-targets/${vpsId}/credentials`, { password })
+}
