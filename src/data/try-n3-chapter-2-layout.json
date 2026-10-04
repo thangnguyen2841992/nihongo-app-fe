@@ -1,0 +1,65 @@
+{
+  "sections": [
+    {
+      "number": 1,
+      "typeName": "TRY! N3 · Chương 2 · 問題1〈文法形式の判断〉",
+      "title": "文法形式の判断",
+      "instruction": "次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つえらびなさい。",
+      "printedPages": [
+        41,
+        42
+      ],
+      "choiceColumns": [
+        2,
+        2,
+        2,
+        2,
+        4,
+        2,
+        4,
+        4
+      ],
+      "vietnameseTitle": "Chọn dạng ngữ pháp",
+      "questionCount": 8,
+      "sourcePrintedPages": "41–42"
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N3 · Chương 2 · 問題2〈文の組み立て〉",
+      "title": "文の組み立て",
+      "instruction": "次の文の ★ に入る最もよいものを、1・2・3・4から一つえらびなさい。",
+      "printedPages": [
+        42
+      ],
+      "vietnameseTitle": "Sắp xếp câu",
+      "questionCount": 3,
+      "sourcePrintedPages": "42"
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N3 · Chương 2 · 問題3〈文章の文法〉",
+      "title": "文章の文法",
+      "instruction": "次の文章を読んで、文章全体の内容を考えて、［1］～［4］の中に入る最もよいものを、1・2・3・4から一つ選びなさい。",
+      "printedPages": [
+        42,
+        43
+      ],
+      "reading": "うちの子は遊園地が大好きだ。今週も［1］から、連れていくことにした。「連れていって！」と［2］と、なかなかいやとは言えない。\n遊園地に入った［3］、娘はうれしそうに好きな乗り物に向かって走り出した。その後も次々といろいろなものに乗りたがるので大変だった。ぼくは疲れてしまってメリーゴーランドには一人で乗ってもらおうとしたが、結局、一緒に［4］。\nでも、娘のうれしそうな様子を見ていたら、ぼくも何だかうれしくなって、来てよかったと思った。",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "questionCount": 4,
+      "sourcePrintedPages": "42–43"
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N3 · Chương 2 · 問題4〈聴解〉",
+      "title": "聴解",
+      "instruction": "この問題では、まず質問を聞いてください。そのあと、問題用紙を見てください。読む時間があります。それから話を聞いて、問題用紙の1から4の中から、最もよいものを一つえらんでください。",
+      "printedPages": [
+        43
+      ],
+      "vietnameseTitle": "Nghe hiểu",
+      "questionCount": 3,
+      "sourcePrintedPages": "43"
+    }
+  ]
+}

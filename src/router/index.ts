@@ -173,6 +173,18 @@ const routes = [
           import('@/components/staff/BookDetailView.vue')
       },
       {
+        path: 'imports/books',
+        component: () => import('@/components/staff/BookImportView.vue')
+      },
+      {
+        path: 'imports/try-n3/book',
+        component: () => import('@/components/staff/TryN3BookImportView.vue')
+      },
+      {
+        path: 'imports/try-n3',
+        component: () => import('@/components/staff/TryN3ImportView.vue')
+      },
+      {
         path: 'lesson/:lessonId/exercises',
         name: 'lesson-exercises',
         component: () =>

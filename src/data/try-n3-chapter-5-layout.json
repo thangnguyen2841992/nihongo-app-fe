@@ -1,0 +1,66 @@
+{
+  "sections": [
+    {
+      "number": 1,
+      "typeName": "TRY! N3 · Chương 5 · 問題1〈文法形式の判断〉",
+      "title": "文法形式の判断",
+      "vietnameseTitle": "Chọn dạng ngữ pháp",
+      "instruction": "次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つえらびなさい。",
+      "printedPages": [
+        83,
+        84
+      ],
+      "sourcePrintedPages": "83–84",
+      "questionCount": 9,
+      "choiceColumns": [
+        2,
+        4,
+        2,
+        4,
+        4,
+        4,
+        4,
+        4,
+        2
+      ]
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N3 · Chương 5 · 問題2〈文の組み立て〉",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "次の文の ★ に入る最もよいものを、1・2・3・4から一つえらびなさい。",
+      "printedPages": [
+        84
+      ],
+      "sourcePrintedPages": "84",
+      "questionCount": 4
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N3 · Chương 5 · 問題3〈文章の文法〉",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "次の文章を読んで、文章全体の内容を考えて、［1］～［4］の中に入る最もよいものを、1・2・3・4から一つ選びなさい。",
+      "printedPages": [
+        84,
+        85
+      ],
+      "sourcePrintedPages": "84–85",
+      "questionCount": 4,
+      "reading": "今日は、火を［1］できるとても簡単なデザートをご紹介します。材料は、ヨーグルト（200グラム）、生クリーム（50グラム）、砂糖（20グラム）だけです。\nまず、ふきんを敷いたざるにヨーグルトをのせて、その下［2］ボウルを置きます。そのまま冷蔵庫に一晩入れておきましょう。ヨーグルトから水分が出て、豆腐の［3］固さになります。あとは、生クリームと砂糖を混ぜれば完成です。\nフルーツと一緒に食べるの［4］パンに塗って食べてもおいしいです。"
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N3 · Chương 5 · 問題4〈聴解〉",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "各問題の指示に従って話を聞き、最もよい答えを一つえらんでください。",
+      "printedPages": [
+        85
+      ],
+      "sourcePrintedPages": "85",
+      "questionCount": 5
+    }
+  ]
+}

@@ -164,6 +164,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { publicClient } from '@/api/authApi'
+import { setAuth } from '@/services/authState'
 import { validPassword, passwordHint } from '@/services/passwordPolicy'
 
 const router = useRouter()
@@ -233,7 +234,8 @@ const setupPassword = async (): Promise<void> => {
       }
     )
 
-    await router.replace('/')
+    await setAuth()
+    await router.replace('/user/my-courses')
 
   } catch (e: any) {
     error.value =

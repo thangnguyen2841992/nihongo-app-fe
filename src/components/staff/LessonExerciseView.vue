@@ -4,6 +4,14 @@ import {useRoute, useRouter} from "vue-router"
 import ExerciseKeywordModal from "@/components/staff/ExerciseKeywordModal.vue";
 import {gatewayUrl} from "@/api/authApi.ts";
 
+import BookExerciseHeading from '@/components/BookExerciseHeading.vue'
+import BookAiSolution from '@/components/BookAiSolution.vue'
+import type { AiAnswer } from '@/services/bookAiAnswers'
+import BookListeningPreview from '@/components/BookListeningPreview.vue'
+import { importedAudioUrl } from '@/services/bookImport'
+import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
+import { exerciseBookLayout, exerciseGroups, bookChoiceColumns, bookAudioTrack, bookListeningItem, tryN3Listening } from '@/services/exerciseBookLayout'
+
 const route = useRoute()
 const router = useRouter()
 
@@ -15,6 +23,8 @@ interface Lesson {
   bookId : number
 }
 interface ExerciseKeyword {
+  aiSolution?: AiAnswer | null
+  audioUrl?: string | null
   exerciseKeywordId: number
 
   contentNihongo: string
@@ -65,8 +75,24 @@ const lessonId = computed(
 
 const exerciseTypes =
   ref<ExerciseType[]>([])
+const availableExerciseTypes = computed(() => {
+  const types = new Map(exerciseTypes.value.map(type => [type.exerciseTypeId, type]))
+  for (const exercise of exercises.value) {
+    if (!types.has(exercise.exerciseTypeId)) types.set(exercise.exerciseTypeId,
+      { exerciseTypeId: exercise.exerciseTypeId, name: exercise.exerciseTypeName })
+  }
+  return [...types.values()]
+})
 
+const scrollToListening = () => {
+  document.getElementById('book-listening')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 const handleScroll = () => {
+  const listening = document.getElementById('book-listening')
+  if (!hasListeningExercises.value && !isAutoScrolling.value && listening && listening.getBoundingClientRect().top <= 180) {
+    activeGroupId.value = -4
+    return
+  }
 
   if (
     isAutoScrolling.value
@@ -336,54 +362,9 @@ const goBack = () => {
   router.back()
 }
 
-const groupedExercises =
-  computed(() => {
-
-    const groups:
-      Record<
-        number,
-        {
-          exerciseTypeName: string
-          exercises: ExerciseKeyword[]
-        }
-      > = {}
-
-    // Tạo trước toàn bộ nhóm
-    exerciseTypes.value.forEach(
-      type => {
-
-        groups[
-          type.exerciseTypeId
-          ] = {
-          exerciseTypeName:
-          type.name,
-          exercises: []
-        }
-      }
-    )
-
-    // Đổ câu hỏi vào nhóm tương ứng
-    exercises.value.forEach(
-      exercise => {
-
-        if (
-          !exercise.exerciseTypeId
-        ) {
-          return
-        }
-
-        groups[
-          exercise.exerciseTypeId
-          ]?.exercises.push(
-          exercise
-        )
-      }
-    )
-
-    return Object.entries(
-      groups
-    )
-  })
+const groupedExercises = computed(() => exerciseGroups(exercises.value, exerciseTypes.value).map(group => [String(group.exerciseTypeId), group] as const))
+const isBookReview = computed(() => exercises.value.some(e => exerciseBookLayout(e.exerciseTypeName)))
+const hasListeningExercises = computed(() => exercises.value.some(e => exerciseBookLayout(e.exerciseTypeName)?.title === '聴解'))
 const scrollToGroup =
   (exerciseTypeId: number) => {
 
@@ -427,7 +408,7 @@ const scrollToGroup =
 
 <template>
 
-  <div class="container-fluid py-4">
+  <div class="container-fluid py-4" :class="{ 'book-review': isBookReview }">
 
     <!-- HEADER -->
 
@@ -486,8 +467,9 @@ const scrollToGroup =
         )
       "
         >
-          📘 Bài {{ groupIndex + 1 }}
+          {{ exerciseBookLayout(group.exerciseTypeName) ? '問題' + exerciseBookLayout(group.exerciseTypeName)?.number : 'Bài ' + (groupIndex + 1) }}
         </button>
+        <button v-if="isBookReview && !hasListeningExercises" class="exercise-tab" :class="{ active: activeGroupId === -4 }" @click="scrollToListening">問題4</button>
 
       </div>
 
@@ -525,6 +507,7 @@ const scrollToGroup =
         v-else
         class="exercise-list"
       >
+        <h2 v-if="isBookReview" class="book-review-title" lang="ja">まとめの問題 <small>Bài ôn tập</small></h2>
 
         <div
           v-for="
@@ -538,12 +521,7 @@ const scrollToGroup =
           class="exercise-group"
         >
 
-          <div class="group-header">
-
-            📚 Bài {{ groupIndex + 1 }}:
-            {{ group.exerciseTypeName }}
-
-          </div>
+          <BookExerciseHeading :type-name="group.exerciseTypeName" :index="groupIndex" />
 
           <div
             v-for="
@@ -564,6 +542,8 @@ const scrollToGroup =
     }"
           >
 
+            <p v-if="bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) === '06'" class="listening-instruction" lang="ja">2. {{ tryN3Listening.instruction2 }}</p>
+            <p v-if="bookListeningItem(bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo))?.item === 1 && bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) !== '06'" class="listening-instruction" lang="ja">聴解 {{ bookListeningItem(bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo))?.part }}</p>
             <div
               class="exercise-header"
             >
@@ -571,11 +551,11 @@ const scrollToGroup =
               <div class="exercise-title-wrapper">
 
                 <div class="question-number">
-                  Câu {{ index + 1 }}
+                  {{ exerciseBookLayout(group.exerciseTypeName) ? (bookListeningItem(bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo))?.item ?? index + 1) : 'Câu ' + (index + 1) }}
                 </div>
 
                 <div
-                  class="exercise-title"
+                  v-if="!bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo)" class="exercise-title"
                   v-html="
       exercise.contentNihongo
     "
@@ -613,8 +593,10 @@ const scrollToGroup =
 
             </div>
 
+            <BookAudioPlayer v-if="importedAudioUrl(exercise.audioUrl)" :source="importedAudioUrl(exercise.audioUrl)" />
+            <BookAudioPlayer v-else-if="bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo)" :track="bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo)!" />
             <div
-              class="answer-grid"
+              class="answer-grid" :style="{ '--choice-columns': bookChoiceColumns(group.exerciseTypeName, index, exercise.answerD ? 4 : 3) }"
             >
 
               <div
@@ -624,7 +606,7 @@ const scrollToGroup =
             exercise.correctAnswer === 'A'
         }"
               >
-                A. {{ exercise.answerA }}
+                {{ (bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) === '06' || (bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) && exercise.answerA === '1')) ? '' : (exerciseBookLayout(group.exerciseTypeName) ? '1' : 'A.') }} {{ exercise.answerA }}
               </div>
 
               <div
@@ -634,7 +616,7 @@ const scrollToGroup =
             exercise.correctAnswer === 'B'
         }"
               >
-                B. {{ exercise.answerB }}
+                {{ (bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) === '06' || (bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) && exercise.answerB === '2')) ? '' : (exerciseBookLayout(group.exerciseTypeName) ? '2' : 'B.') }} {{ exercise.answerB }}
               </div>
 
               <div
@@ -644,21 +626,21 @@ const scrollToGroup =
             exercise.correctAnswer === 'C'
         }"
               >
-                C. {{ exercise.answerC }}
+                {{ (bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) === '06' || (bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) && exercise.answerC === '3')) ? '' : (exerciseBookLayout(group.exerciseTypeName) ? '3' : 'C.') }} {{ exercise.answerC }}
               </div>
 
-              <div
+              <div v-if="exercise.answerD"
                 class="answer-item"
                 :class="{
           correct:
             exercise.correctAnswer === 'D'
         }"
               >
-                D. {{ exercise.answerD }}
+                {{ (bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) === '06' || (bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) && exercise.answerD === '4')) ? '' : (exerciseBookLayout(group.exerciseTypeName) ? '4' : 'D.') }} {{ exercise.answerD }}
               </div>
 
             </div>
-
+            <BookAiSolution :exercise="exercise" :visible="true" />
           </div>
 
         </div>
@@ -667,6 +649,7 @@ const scrollToGroup =
 
     </div>
 
+    <BookListeningPreview v-if="isBookReview && !hasListeningExercises && !loadingExercises" />
   </div>
   <ExerciseKeywordModal
     v-if="
@@ -675,7 +658,7 @@ const scrollToGroup =
   "
     :lesson="lesson"
     :exercise="editingExercise"
-    :exercise-types="exerciseTypes"
+    :exercise-types="availableExerciseTypes"
     @close="closeCreateModal"
     @saved="reloadExercises"
   />
@@ -1244,4 +1227,18 @@ const scrollToGroup =
     0 4px 16px
     rgba(0,0,0,.06);
 }
+
+.book-review .exercise-list { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 28px; }
+.book-review .exercise-group { margin-bottom: 36px; }
+.book-review .exercise-card { border: 0; border-radius: 0; box-shadow: none; padding: 20px 0; margin: 0; border-bottom: 1px solid #edf0f5; background: #fff; }
+.book-review .exercise-header { gap: 16px; }
+.book-review .question-number { min-width: 34px; width: 34px; height: 28px; padding: 0; display: grid; place-items: center; border: 1px solid #94a3b8; border-radius: 0; background: #fff; color: #24334b; font-size: 16px; flex-shrink: 0; }
+.book-review .exercise-title { font-size: 18px; font-weight: 400; line-height: 1.9; }
+.book-review .answer-grid { grid-template-columns: repeat(var(--choice-columns, 2), minmax(0, 1fr)); margin-top: 16px; gap: 12px; }
+.book-review .answer-item { font-size: 16px; line-height: 1.8; padding: 8px 12px; overflow-wrap: anywhere; }
+.book-review .page-header { flex-wrap: wrap; gap: 16px; }
+.book-review .exercise-card:hover { transform: none; }
+@media (max-width: 800px) { .book-review .exercise-list { padding: 20px; }.book-review .answer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.book-review .exercise-title { font-size: 16px; } }
+.book-review-title { font-size: 24px; font-weight: 700; color: #24334b; margin: 0 0 30px; }.book-review-title small { font-size: 16px; font-weight: 400; color: #64748b; margin-left: 12px; }
+.listening-instruction { margin: 0 0 24px; font-size: 17px; line-height: 1.9; color: #24334b; }
 </style>

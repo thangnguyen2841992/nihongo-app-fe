@@ -11,11 +11,13 @@ declare module 'axios' {
 
 const gatewayUrl = axios.create({
   baseURL: gatewayBaseUrl,
+  timeout: 15000,
   withCredentials: true
 })
 
 const publicClient = axios.create({
   baseURL: gatewayBaseUrl,
+  timeout: 15000,
   withCredentials: true
 })
 

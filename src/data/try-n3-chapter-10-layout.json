@@ -1,0 +1,56 @@
+{
+  "sections": [
+    {
+      "number": 1,
+      "typeName": "TRY! N3 · Chương 10 · 問題1〈文法形式の判断〉",
+      "title": "文法形式の判断",
+      "vietnameseTitle": "Chọn dạng ngữ pháp",
+      "instruction": "次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つえらびなさい。",
+      "printedPages": [
+        154,
+        155
+      ],
+      "sourcePrintedPages": "154–155",
+      "questionCount": 8,
+      "choiceColumns": 2
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N3 · Chương 10 · 問題2〈文の組み立て〉",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "次の文の ★ に入る最もよいものを、1・2・3・4から一つえらびなさい。",
+      "printedPages": [
+        155
+      ],
+      "sourcePrintedPages": "155",
+      "questionCount": 4
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N3 · Chương 10 · 問題3〈文章の文法〉",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "次の文章を読んで、文章全体の内容を考えて、［1］～［4］の中に入る最もよいものを、1・2・3・4から一つ選びなさい。",
+      "printedPages": [
+        155,
+        156
+      ],
+      "sourcePrintedPages": "155–156",
+      "questionCount": 4,
+      "reading": "木村：高橋さん、サークルのボウリング大会、行かないの？\n高橋：うーん、ごめん。\n木村：どうして？\n高橋：私、したことないから…。\n木村：大丈夫、コーチの資格を持っている伊藤先輩も一緒だから。伊藤先輩［1］、きっとていねいに教えてくれるよ。\n高橋：だめだめ。教えてもらっても、でき［2］よ。運動苦手だし…。\n\n伊藤：木村さん、どうしたの？\n木村：あ、ちょうどよかった。伊藤先輩、高橋さん、やったことがないから、ボウリング大会、行かないって言っているんです。\n伊藤：高橋さん、行こうよ。みんなで行く［3］、楽しいんだよ。ボウリング［4］簡単だよ。よかったら教えるよ。\n高橋：そうですか。じゃ、行ってみようかな。"
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N3 · Chương 10 · 問題4〈聴解〉",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "各問題の指示に従って話を聞き、最もよい答えを一つえらんでください。",
+      "printedPages": [
+        156
+      ],
+      "sourcePrintedPages": "156",
+      "questionCount": 4
+    }
+  ]
+}

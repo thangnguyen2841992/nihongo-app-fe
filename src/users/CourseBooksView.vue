@@ -49,7 +49,8 @@ const openBook = (bookId: number) => {
     name: "CourseBookDetail",
     params: {
       bookId
-    }
+    },
+    query: { courseId: String(route.params.courseId) }
   })
 
 }

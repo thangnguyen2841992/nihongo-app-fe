@@ -1,0 +1,54 @@
+{
+  "sections": [
+    {
+      "number": 1,
+      "typeName": "TRY! N3 · Chương 8 · 問題1〈文法形式の判断〉",
+      "title": "文法形式の判断",
+      "vietnameseTitle": "Chọn dạng ngữ pháp",
+      "instruction": "次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つえらびなさい。",
+      "printedPages": [
+        124
+      ],
+      "sourcePrintedPages": "124",
+      "questionCount": 5,
+      "choiceColumns": 2
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N3 · Chương 8 · 問題2〈文の組み立て〉",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "次の文の ★ に入る最もよいものを、1・2・3・4から一つえらびなさい。",
+      "printedPages": [
+        125
+      ],
+      "sourcePrintedPages": "125",
+      "questionCount": 3
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N3 · Chương 8 · 問題3〈読解〉",
+      "title": "読解",
+      "vietnameseTitle": "Đọc hiểu",
+      "instruction": "次の文章を読んで、質問に答えなさい。答えは、1・2・3・4から最もよいものを一つえらびなさい。",
+      "printedPages": [
+        125
+      ],
+      "sourcePrintedPages": "125",
+      "questionCount": 1,
+      "reading": "日ごろは、当社の携帯電話をご利用いただき、誠にありがとうございます。お客様の携帯電話からのメールサービスは本年７月よりご利用いただけなくなりますので、６月末日までに、新しい機種に変更していただきますようお願いいたします。お客様にはたいへんご不便・ご迷惑をおかけいたしますこと、深くおわび申し上げます。\n皆様のご理解とご協力をお願いいたします。"
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N3 · Chương 8 · 問題4〈聴解〉",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "まず文を聞いてください。それから、その返事を聞いて、1から3の中から、最もよいものを一つえらんでください。",
+      "printedPages": [
+        126
+      ],
+      "sourcePrintedPages": "126",
+      "questionCount": 3
+    }
+  ]
+}

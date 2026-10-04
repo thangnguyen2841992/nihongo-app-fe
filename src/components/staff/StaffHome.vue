@@ -208,6 +208,8 @@ const deleteBook = async (
         📚 Quản lý sách
       </h3>
 
+      <div class="d-flex gap-2 flex-wrap">
+      <RouterLink to="/staff/imports/books" class="btn btn-outline-primary">Nhập sách từ PDF</RouterLink>
       <button
         class="btn btn-primary"
         @click="openModal"
@@ -223,6 +225,7 @@ const deleteBook = async (
         Thêm sách
 
       </button>
+      </div>
 
     </div>
 

@@ -1,0 +1,76 @@
+{
+  "chapter": 1,
+  "title": "まとめの問題",
+  "vietnameseTitle": "Bài ôn tập",
+  "answerSource": "Phụ lục trang 12 (trang PDF 201)",
+  "sections": [
+    {
+      "number": 1,
+      "typeName": "TRY! N3 · Chương 1 · 問題1〈文法形式の判断〉",
+      "title": "文法形式の判断",
+      "vietnameseTitle": "Chọn hình thức ngữ pháp",
+      "instruction": "次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つえらびなさい。",
+      "sourcePrintedPages": "28",
+      "questionCount": 8
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N3 · Chương 1 · 問題2〈文の組み立て〉",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "次の文の ★ に入る最もよいものを、1・2・3・4から一つえらびなさい。",
+      "sourcePrintedPages": "29",
+      "questionCount": 3
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N3 · Chương 1 · 問題3〈文章の文法〉",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "次の文章を読んで、文章全体の内容を考えて、［1］～［4］の中に入る最もよいものを、1・2・3・4から一つ選びなさい。",
+      "sourcePrintedPages": "29–30",
+      "questionCount": 4,
+      "reading": "水族館でシロイルカの赤ちゃんが生まれたと聞いたので、友だちと見に行った。シロイルカは色が白いからシロイルカ ［1］ 名前がついている。でも、赤ちゃんを ［2］ 白くなかったのでびっくりした。赤ちゃんのときはグレーで、だんだん白くなるのだと、係の人が説明してくれた。とてもかわいかった。私たちのほうへ ［3］ ので、うれしかった。写真を撮ろうとしたら、フラッシュを使わない ［4］ 言われた。赤ちゃんがおどろいてしまうからだそうだ。いろいろな動物を大切に育てている係の人はとても大変だろうと思う。"
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N3 · Chương 1 · 問題4〈聴解〉",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "1. この問題では、まず質問を聞いてください。それから話を聞いて、問題用紙の1から4の中から、最もよいものを一つえらんでください。",
+      "sourcePrintedPages": "30",
+      "questionCount": 3
+    }
+  ],
+  "listening": {
+    "number": 4,
+    "title": "聴解",
+    "vietnameseTitle": "Nghe hiểu",
+    "sourcePrintedPages": "30",
+    "instruction1": "この問題では、まず質問を聞いてください。それから話を聞いて、問題用紙の1から4の中から、最もよいものを一つえらんでください。",
+    "questions": [
+      {
+        "number": 1,
+        "track": "04",
+        "choices": [
+          "春",
+          "夏",
+          "秋",
+          "冬"
+        ]
+      },
+      {
+        "number": 2,
+        "track": "05",
+        "choices": [
+          "会議室の予約を取り直す",
+          "ほかのメンバーに連絡する",
+          "会議室の予約を確認する",
+          "部長に連絡する"
+        ]
+      }
+    ],
+    "instruction2": "この問題では、問題用紙に何も印刷されていません。まず文を聞いてください。それから、その返事を聞いて、1から3の中から、最もよいものを一つえらんでください。",
+    "track": "06"
+  }
+}

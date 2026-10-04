@@ -4,6 +4,7 @@ import { useRouter } from "vue-router"
 import { purchaseCourse } from "@/services/coursePurchase"
 import { useAuthState } from "@/services/authState"
 import {gatewayUrl, publicClient} from "@/api/authApi"
+import { saveLearningPosition } from '@/api/learningPosition'
 
 const router = useRouter()
 const { isAuthenticated, userEmail } = useAuthState()
@@ -29,6 +30,9 @@ interface Course {
 interface MyCourse {
   courseId: number
   expiredAt: string
+  startedAt: string | null
+  lastBookId: number | null
+  lastLessonId: number | null
 }
 
 const courses = ref<Course[]>([])
@@ -146,8 +150,30 @@ const renewCourse = (courseId: number) => {
 
 }
 
-const continueLearning = (courseId: number) => {
-  router.push(`/course/${courseId}/books`)
+const continueLearning = async (courseId: number) => {
+  const course = myCourses.value.find(item => item.courseId === courseId)
+  if (!course) return
+  try {
+    if (!course.startedAt) {
+      await saveLearningPosition(courseId)
+      course.startedAt = new Date().toISOString()
+    }
+    if (course.lastBookId) {
+      await router.push({
+        name: 'CourseBookDetail',
+        params: { bookId: course.lastBookId },
+        query: {
+          courseId: String(courseId),
+          ...(course.lastLessonId ? { lessonId: String(course.lastLessonId) } : {})
+        }
+      })
+    } else {
+      await router.push({ name: 'CourseBooks', params: { courseId } })
+    }
+  } catch (error) {
+    console.error(error)
+    loadError.value = 'Không thể mở khóa học. Vui lòng thử lại.'
+  }
 }
 
 onMounted(() => { void loadCourses() })

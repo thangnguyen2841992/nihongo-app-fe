@@ -9,6 +9,8 @@ import {
 } from "vue"
 
 import { gatewayUrl } from "@/api/authApi.ts"
+import audioManifest from '@/data/try-n3-audio.json'
+import { bookReadingAudioTrack } from '@/services/bookReadingAudio'
 
 interface Lesson {
   lessonId: number
@@ -16,6 +18,7 @@ interface Lesson {
   name: string
   description: string
   reading: string
+  audioTrack?: string | null
 }
 
 interface Props {
@@ -41,7 +44,8 @@ const readingRef =
 const form = ref({
   name: "",
   description: "",
-  reading: ""
+  reading: "",
+  audioTrack: ""
 })
 
 const isEdit =
@@ -94,7 +98,8 @@ watch(
       form.value = {
         name: "",
         description: "",
-        reading: ""
+        reading: "",
+        audioTrack: ""
       }
 
       return
@@ -105,7 +110,8 @@ watch(
       description:
         lesson.description || "",
       reading:
-        lesson.reading || ""
+        lesson.reading || "",
+      audioTrack: lesson.audioTrack || bookReadingAudioTrack(props.bookName, lesson.name) || ""
     }
   },
   {
@@ -131,6 +137,7 @@ const submit = async () => {
       name: form.value.name,
       description: form.value.description,
       reading: form.value.reading,
+      audioTrack: form.value.audioTrack,
       bookId: props.bookId
     }
 
@@ -263,6 +270,14 @@ const submit = async () => {
         </div>
 
         <!-- READING -->
+
+        <div>
+          <label class="form-label" for="lesson-audio">File nghe của bài đọc</label>
+          <select id="lesson-audio" v-model="form.audioTrack" class="form-select">
+            <option value="">Không gắn file nghe</option>
+            <option v-for="track in Object.keys(audioManifest.tracks)" :key="track" :value="track">TRY! N3 · CD {{ track }}</option>
+          </select>
+        </div>
 
         <div>
 

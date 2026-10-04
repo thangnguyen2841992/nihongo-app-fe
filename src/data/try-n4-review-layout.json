@@ -1,0 +1,1280 @@
+{
+  "sections": [
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 1 - 問題1 - 聴解 [Chưa đối chiếu đáp án]",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "話を聞いて、最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "17",
+      "questionCount": 4,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/17.png"
+      ],
+      "choiceColumns": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "aiAnswerCount": 2,
+      "pendingAnswerCount": 2
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 2 - 問題1 - 文の組み立て [Chưa đối chiếu đáp án]",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "★に入るものはどれですか。1・2・3・4からいちばんいいものを一つ選んでください。",
+      "sourcePrintedPages": "34, 35",
+      "questionCount": 4,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/34.png",
+        "images/try-n4/35.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 2 - 問題2 - 文章の文法 [Chưa đối chiếu đáp án]",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "34, 35",
+      "questionCount": 4,
+      "answersReviewed": true,
+      "reading": "今日、キムさんが 作った ケーキを 食べた。キムさんは はじめて 作ったと 言っていたけど、とても おいしかった。わたしは ケーキが 大好きだが、【1】。キムさんが 作った ケーキを 食べて、わたしも 自分で 作って みたいと おもった。【2】、今度 キムさんと いっしょに 作る やくそくを した。おいしく【3】か どうか わからないが、上手に【4】友だちにも あげたい。",
+      "sourceImages": [
+        "images/try-n4/34.png",
+        "images/try-n4/35.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 2 - 問題3 - 聴解 [Chưa đối chiếu đáp án]",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "話を聞いて、最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "34, 35",
+      "questionCount": 3,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/34.png",
+        "images/try-n4/35.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 3,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 3 - 問題1 - 文の組み立て [Chưa đối chiếu đáp án]",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "★に入るものはどれですか。1・2・3・4からいちばんいいものを一つ選んでください。",
+      "sourcePrintedPages": "48, 49",
+      "questionCount": 7,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/48.png",
+        "images/try-n4/49.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 7,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 3 - 問題2 - 文章の文法 [Chưa đối chiếu đáp án]",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "48, 49",
+      "questionCount": 4,
+      "answersReviewed": true,
+      "reading": "ベトナムではけっこんしきにだれが【1】。せきもきまっていませんから、どこに【2】。しかし、日本ではすわる席をきめ【3】から、しょうたいじょうを早く送ります。けっこんしきの会場では、うけつけで名前を言って、かならずおいわいのお金をわたします。たいせつなけっこんしきですから、ちこくしたら、しつれいだと日本人は思います。だから、日本では早く【4】。",
+      "sourceImages": [
+        "images/try-n4/48.png",
+        "images/try-n4/49.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 3 - 問題3 - 聴解 [Chưa đối chiếu đáp án]",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "話を聞いて、最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "48, 49",
+      "questionCount": 2,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/48.png",
+        "images/try-n4/49.png"
+      ],
+      "choiceColumns": [
+        4,
+        4
+      ],
+      "aiAnswerCount": 1,
+      "pendingAnswerCount": 1
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 4 - 問題1 - 文の組み立て [Chưa đối chiếu đáp án]",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "★に入るものはどれですか。1・2・3・4からいちばんいいものを一つ選んでください。",
+      "sourcePrintedPages": "66, 67",
+      "questionCount": 6,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/66.png",
+        "images/try-n4/67.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 6,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 4 - 問題2 - 読解 [Chưa đối chiếu đáp án]",
+      "title": "読解",
+      "vietnameseTitle": "Đọc hiểu",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "66, 67",
+      "questionCount": 2,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/66.png",
+        "images/try-n4/67.png"
+      ],
+      "choiceColumns": [
+        4,
+        4
+      ],
+      "aiAnswerCount": 2,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 4 - 問題3 - 聴解 [Chưa đối chiếu đáp án]",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "話を聞いて、最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "66, 67",
+      "questionCount": 2,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/66.png",
+        "images/try-n4/67.png"
+      ],
+      "choiceColumns": [
+        4,
+        4
+      ],
+      "aiAnswerCount": 1,
+      "pendingAnswerCount": 1
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 5 - 問題1 - 文の組み立て [Chưa đối chiếu đáp án]",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "★に入るものはどれですか。1・2・3・4からいちばんいいものを一つ選んでください。",
+      "sourcePrintedPages": "84, 85",
+      "questionCount": 5,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/84.png",
+        "images/try-n4/85.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 5,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 5 - 問題2 - 文章の文法 [Chưa đối chiếu đáp án]",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "84, 85",
+      "questionCount": 4,
+      "answersReviewed": true,
+      "reading": "今日、高橋さんに 山のぼりに さそわれた。山に のぼるのは 【1】 そうだから、ほんとうは 行きたくなかった。でも、ロープウェイを 使って 【2】 だいじょうぶだと 聞いて、【3】 ことに した。高橋さんは 毎日 ジョギングして いるらしい。山のぼりに 行く 前に、私も 少し 【4】 ほうがいいかなあ。",
+      "sourceImages": [
+        "images/try-n4/84.png",
+        "images/try-n4/85.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 5 - 問題3 - 聴解 [Chưa đối chiếu đáp án]",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "話を聞いて、最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "84, 85",
+      "questionCount": 4,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/84.png",
+        "images/try-n4/85.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 3,
+      "pendingAnswerCount": 1
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 6 - 問題1 - 文の組み立て [Chưa đối chiếu đáp án]",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "★に入るものはどれですか。1・2・3・4からいちばんいいものを一つ選んでください。",
+      "sourcePrintedPages": "101, 102",
+      "questionCount": 6,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/101.png",
+        "images/try-n4/102.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 6,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 6 - 問題2 - 文章の文法 [Chưa đối chiếu đáp án]",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "101, 102",
+      "questionCount": 4,
+      "answersReviewed": true,
+      "reading": "今日、鈴木くんに会ったとき、手が赤く【1】おどろいた。木からおりられなくなった子ねこをたすけに行って子ねこに【2】らしい。鈴木くんは、子ねこがけがをしなくてよかったと言っていたけど、鈴木くんは【3】から、とてもしんぱいだ。むりをしない【4】言ったけど…。",
+      "sourceImages": [
+        "images/try-n4/101.png",
+        "images/try-n4/102.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 6 - 問題3 - 聴解 [Chưa đối chiếu đáp án]",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "話を聞いて、最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "101, 102",
+      "questionCount": 5,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/101.png",
+        "images/try-n4/102.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        3,
+        3,
+        3
+      ],
+      "aiAnswerCount": 0,
+      "pendingAnswerCount": 5
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 7 - 問題1 - 文の組み立て [Chưa đối chiếu đáp án]",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "★に入るものはどれですか。1・2・3・4からいちばんいいものを一つ選んでください。",
+      "sourcePrintedPages": "117, 118, 119",
+      "questionCount": 5,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/117.png",
+        "images/try-n4/118.png",
+        "images/try-n4/119.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 5,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 7 - 問題2 - 文章の文法 [Chưa đối chiếu đáp án]",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "117, 118, 119",
+      "questionCount": 4,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/117.png",
+        "images/try-n4/118.png",
+        "images/try-n4/119.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 7 - 問題3 - 読解 [Chưa đối chiếu đáp án]",
+      "title": "読解",
+      "vietnameseTitle": "Đọc hiểu",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "117, 118, 119",
+      "questionCount": 3,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/117.png",
+        "images/try-n4/118.png",
+        "images/try-n4/119.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 3,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N4 - Chương 7 - 問題4 - 聴解 [Chưa đối chiếu đáp án]",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "話を聞いて、最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "117, 118, 119",
+      "questionCount": 4,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/117.png",
+        "images/try-n4/118.png",
+        "images/try-n4/119.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 3,
+      "pendingAnswerCount": 1
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 8 - 問題1 - 文の組み立て [Chưa đối chiếu đáp án]",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "★に入るものはどれですか。1・2・3・4からいちばんいいものを一つ選んでください。",
+      "sourcePrintedPages": "132, 133",
+      "questionCount": 5,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/132.png",
+        "images/try-n4/133.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 5,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 8 - 問題2 - 文章の文法 [Chưa đối chiếu đáp án]",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "132, 133",
+      "questionCount": 4,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/132.png",
+        "images/try-n4/133.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 8 - 問題3 - 聴解 [Chưa đối chiếu đáp án]",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "話を聞いて、最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "132, 133",
+      "questionCount": 5,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/132.png",
+        "images/try-n4/133.png"
+      ],
+      "choiceColumns": [
+        4,
+        3,
+        3,
+        3,
+        3
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 1
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 9 - 問題1 - 文の組み立て [Chưa đối chiếu đáp án]",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "★に入るものはどれですか。1・2・3・4からいちばんいいものを一つ選んでください。",
+      "sourcePrintedPages": "147, 148, 149",
+      "questionCount": 7,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/147.png",
+        "images/try-n4/148.png",
+        "images/try-n4/149.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 7,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 9 - 問題2 - 文章の文法 [Chưa đối chiếu đáp án]",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "147, 148, 149",
+      "questionCount": 4,
+      "answersReviewed": true,
+      "reading": "みなさん、新しいコーチを【1】。大川コーチです。大川コーチはせんしゅをいんたいされて、来月からはこのチームのコーチになっていただく【2】。大川コーチは東京でお生まれになり、18さいのときドイツにサッカーりゅうがくをされました。21さいのとき、全日本のメンバーにえらばれました。二度、ワールドカップに出場なさって、たくさんの世界のチームと試合を【3】。大川コーチのゆめは世界一のチームを【4】そうです。チームのみなさん、大川コーチといっしょにがんばってください。",
+      "sourceImages": [
+        "images/try-n4/147.png",
+        "images/try-n4/148.png",
+        "images/try-n4/149.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 9 - 問題3 - 読解 [Chưa đối chiếu đáp án]",
+      "title": "読解",
+      "vietnameseTitle": "Đọc hiểu",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "147, 148, 149",
+      "questionCount": 1,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/147.png",
+        "images/try-n4/148.png",
+        "images/try-n4/149.png"
+      ],
+      "choiceColumns": [
+        4
+      ],
+      "aiAnswerCount": 1,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N4 - Chương 9 - 問題4 - 聴解 [Chưa đối chiếu đáp án]",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "話を聞いて、最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "147, 148, 149",
+      "questionCount": 2,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/147.png",
+        "images/try-n4/148.png",
+        "images/try-n4/149.png"
+      ],
+      "choiceColumns": [
+        4,
+        4
+      ],
+      "aiAnswerCount": 0,
+      "pendingAnswerCount": 2
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 10 - 問題1 - 文の組み立て [Chưa đối chiếu đáp án]",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "★に入るものはどれですか。1・2・3・4からいちばんいいものを一つ選んでください。",
+      "sourcePrintedPages": "160, 161",
+      "questionCount": 5,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/160.png",
+        "images/try-n4/161.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 5,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 10 - 問題2 - 文章の文法 [Chưa đối chiếu đáp án]",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "160, 161",
+      "questionCount": 4,
+      "answersReviewed": true,
+      "reading": "日本の生活にもなれたので、アルバイトがしたいと思った。英語を教える仕事【1】と思ったので、今日めんせつに行った。めんせつであまりむずかしいしつもんはなかった。いっしょうけんめいねいな日本語を【2】が、ちゃんと話せたかどうかしんぱいだ。でもクラスでは日本語を話すひつようはないし、アメリカでTOEFLのクラスを教えたこともある【3】だいじょうぶだろう。月曜日と水曜日に【4】と言われたが、ちょうどその日は学校のじゅぎょうがない日だし、アルバイトができるといいなあ。",
+      "sourceImages": [
+        "images/try-n4/160.png",
+        "images/try-n4/161.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 10 - 問題3 - 聴解 [Chưa đối chiếu đáp án]",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "話を聞いて、最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "160, 161",
+      "questionCount": 4,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/160.png",
+        "images/try-n4/161.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        3
+      ],
+      "aiAnswerCount": 1,
+      "pendingAnswerCount": 3
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 11 - 問題1 - Trắc nghiệm [Chưa đối chiếu đáp án]",
+      "title": "Trắc nghiệm",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "162, 163, 164, 165, 166, 167, 168, 169",
+      "questionCount": 9,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/162.png",
+        "images/try-n4/163.png",
+        "images/try-n4/164.png",
+        "images/try-n4/165.png",
+        "images/try-n4/166.png",
+        "images/try-n4/167.png",
+        "images/try-n4/168.png",
+        "images/try-n4/169.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 9,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 11 - 問題2 - Sắp xếp câu [Chưa đối chiếu đáp án]",
+      "title": "Sắp xếp câu",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "162, 163, 164, 165, 166, 167, 168, 169",
+      "questionCount": 5,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/162.png",
+        "images/try-n4/163.png",
+        "images/try-n4/164.png",
+        "images/try-n4/165.png",
+        "images/try-n4/166.png",
+        "images/try-n4/167.png",
+        "images/try-n4/168.png",
+        "images/try-n4/169.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 5,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 11 - 問題3 - Trắc nghiệm phó từ [Chưa đối chiếu đáp án]",
+      "title": "Trắc nghiệm phó từ",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "162, 163, 164, 165, 166, 167, 168, 169",
+      "questionCount": 7,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/162.png",
+        "images/try-n4/163.png",
+        "images/try-n4/164.png",
+        "images/try-n4/165.png",
+        "images/try-n4/166.png",
+        "images/try-n4/167.png",
+        "images/try-n4/168.png",
+        "images/try-n4/169.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 7,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N4 - Chương 11 - 問題4 - Trắc nghiệm từ chỉ thị [Chưa đối chiếu đáp án]",
+      "title": "Trắc nghiệm từ chỉ thị",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "162, 163, 164, 165, 166, 167, 168, 169",
+      "questionCount": 3,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/162.png",
+        "images/try-n4/163.png",
+        "images/try-n4/164.png",
+        "images/try-n4/165.png",
+        "images/try-n4/166.png",
+        "images/try-n4/167.png",
+        "images/try-n4/168.png",
+        "images/try-n4/169.png"
+      ],
+      "choiceColumns": [
+        3,
+        3,
+        3
+      ],
+      "aiAnswerCount": 3,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 5,
+      "typeName": "TRY! N4 - Chương 11 - 問題5 - Trắc nghiệm tự động từ/tha động từ [Chưa đối chiếu đáp án]",
+      "title": "Trắc nghiệm tự động từ/tha động từ",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "162, 163, 164, 165, 166, 167, 168, 169",
+      "questionCount": 6,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/162.png",
+        "images/try-n4/163.png",
+        "images/try-n4/164.png",
+        "images/try-n4/165.png",
+        "images/try-n4/166.png",
+        "images/try-n4/167.png",
+        "images/try-n4/168.png",
+        "images/try-n4/169.png"
+      ],
+      "choiceColumns": [
+        3,
+        3,
+        4,
+        3,
+        3,
+        3
+      ],
+      "aiAnswerCount": 3,
+      "pendingAnswerCount": 3
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 12 - 問題1 - Chọn cách đọc [Chưa đối chiếu đáp án]",
+      "title": "Chọn cách đọc",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "170, 171, 172, 173, 174, 175, 176",
+      "questionCount": 9,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/170.png",
+        "images/try-n4/171.png",
+        "images/try-n4/172.png",
+        "images/try-n4/173.png",
+        "images/try-n4/174.png",
+        "images/try-n4/175.png",
+        "images/try-n4/176.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 9,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 12 - 問題2 - Chọn chữ Hán [Chưa đối chiếu đáp án]",
+      "title": "Chọn chữ Hán",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "170, 171, 172, 173, 174, 175, 176",
+      "questionCount": 6,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/170.png",
+        "images/try-n4/171.png",
+        "images/try-n4/172.png",
+        "images/try-n4/173.png",
+        "images/try-n4/174.png",
+        "images/try-n4/175.png",
+        "images/try-n4/176.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 5,
+      "pendingAnswerCount": 1
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 12 - 問題3 - Điền từ [Chưa đối chiếu đáp án]",
+      "title": "Điền từ",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "170, 171, 172, 173, 174, 175, 176",
+      "questionCount": 9,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/170.png",
+        "images/try-n4/171.png",
+        "images/try-n4/172.png",
+        "images/try-n4/173.png",
+        "images/try-n4/174.png",
+        "images/try-n4/175.png",
+        "images/try-n4/176.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 9,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N4 - Chương 12 - 問題4 - Chọn câu tương đương [Chưa đối chiếu đáp án]",
+      "title": "Chọn câu tương đương",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "170, 171, 172, 173, 174, 175, 176",
+      "questionCount": 5,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/170.png",
+        "images/try-n4/171.png",
+        "images/try-n4/172.png",
+        "images/try-n4/173.png",
+        "images/try-n4/174.png",
+        "images/try-n4/175.png",
+        "images/try-n4/176.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 5,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 5,
+      "typeName": "TRY! N4 - Chương 12 - 問題5 - Cách dùng từ [Chưa đối chiếu đáp án]",
+      "title": "Cách dùng từ",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "170, 171, 172, 173, 174, 175, 176",
+      "questionCount": 5,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/170.png",
+        "images/try-n4/171.png",
+        "images/try-n4/172.png",
+        "images/try-n4/173.png",
+        "images/try-n4/174.png",
+        "images/try-n4/175.png",
+        "images/try-n4/176.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 5,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 12 - 問題1 - Chọn từ điền vào chỗ trống [Chưa đối chiếu đáp án]",
+      "title": "Chọn từ điền vào chỗ trống",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "177, 178, 179, 180, 181",
+      "questionCount": 15,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/177.png",
+        "images/try-n4/178.png",
+        "images/try-n4/179.png",
+        "images/try-n4/180.png",
+        "images/try-n4/181.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 15,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 12 - 問題2 - Sắp xếp câu [Chưa đối chiếu đáp án]",
+      "title": "Sắp xếp câu",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "177, 178, 179, 180, 181",
+      "questionCount": 5,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/177.png",
+        "images/try-n4/178.png",
+        "images/try-n4/179.png",
+        "images/try-n4/180.png",
+        "images/try-n4/181.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 5,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 12 - 問題3 - Điền vào đoạn văn [Chưa đối chiếu đáp án]",
+      "title": "Điền vào đoạn văn",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "177, 178, 179, 180, 181",
+      "questionCount": 5,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/177.png",
+        "images/try-n4/178.png",
+        "images/try-n4/179.png",
+        "images/try-n4/180.png",
+        "images/try-n4/181.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 5,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N4 - Chương 12 - 問題4 - Đọc hiểu [Chưa đối chiếu đáp án]",
+      "title": "Đọc hiểu",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "182, 183, 184, 185, 186, 187, 188, 189, 190",
+      "questionCount": 4,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/182.png",
+        "images/try-n4/183.png",
+        "images/try-n4/184.png",
+        "images/try-n4/185.png",
+        "images/try-n4/186.png",
+        "images/try-n4/187.png",
+        "images/try-n4/188.png",
+        "images/try-n4/189.png",
+        "images/try-n4/190.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 5,
+      "typeName": "TRY! N4 - Chương 12 - 問題5 - Đọc hiểu [Chưa đối chiếu đáp án]",
+      "title": "Đọc hiểu",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "182, 183, 184, 185, 186, 187, 188, 189, 190",
+      "questionCount": 4,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/182.png",
+        "images/try-n4/183.png",
+        "images/try-n4/184.png",
+        "images/try-n4/185.png",
+        "images/try-n4/186.png",
+        "images/try-n4/187.png",
+        "images/try-n4/188.png",
+        "images/try-n4/189.png",
+        "images/try-n4/190.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 6,
+      "typeName": "TRY! N4 - Chương 12 - 問題6 - Đọc hiểu [Chưa đối chiếu đáp án]",
+      "title": "Đọc hiểu",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "182, 183, 184, 185, 186, 187, 188, 189, 190",
+      "questionCount": 2,
+      "answersReviewed": true,
+      "sourceImages": [
+        "images/try-n4/182.png",
+        "images/try-n4/183.png",
+        "images/try-n4/184.png",
+        "images/try-n4/185.png",
+        "images/try-n4/186.png",
+        "images/try-n4/187.png",
+        "images/try-n4/188.png",
+        "images/try-n4/189.png",
+        "images/try-n4/190.png"
+      ],
+      "choiceColumns": [
+        4,
+        4
+      ],
+      "aiAnswerCount": 2,
+      "pendingAnswerCount": 0
+    },
+    {
+      "number": 1,
+      "typeName": "TRY! N4 - Chương 12 - 問題1 - Nghe hiểu [Chưa đối chiếu đáp án]",
+      "title": "Nghe hiểu",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "191, 192, 193, 194, 195, 196, 197, 198, 199",
+      "questionCount": 8,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/191.png",
+        "images/try-n4/192.png",
+        "images/try-n4/193.png",
+        "images/try-n4/194.png",
+        "images/try-n4/195.png",
+        "images/try-n4/196.png",
+        "images/try-n4/197.png",
+        "images/try-n4/198.png",
+        "images/try-n4/199.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 5,
+      "pendingAnswerCount": 3
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N4 - Chương 12 - 問題2 - Nghe hiểu [Chưa đối chiếu đáp án]",
+      "title": "Nghe hiểu",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "191, 192, 193, 194, 195, 196, 197, 198, 199",
+      "questionCount": 7,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/191.png",
+        "images/try-n4/192.png",
+        "images/try-n4/193.png",
+        "images/try-n4/194.png",
+        "images/try-n4/195.png",
+        "images/try-n4/196.png",
+        "images/try-n4/197.png",
+        "images/try-n4/198.png",
+        "images/try-n4/199.png"
+      ],
+      "choiceColumns": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 3
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N4 - Chương 12 - 問題3 - Nghe hiểu [Chưa đối chiếu đáp án]",
+      "title": "Nghe hiểu",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "191, 192, 193, 194, 195, 196, 197, 198, 199",
+      "questionCount": 5,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/191.png",
+        "images/try-n4/192.png",
+        "images/try-n4/193.png",
+        "images/try-n4/194.png",
+        "images/try-n4/195.png",
+        "images/try-n4/196.png",
+        "images/try-n4/197.png",
+        "images/try-n4/198.png",
+        "images/try-n4/199.png"
+      ],
+      "choiceColumns": [
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "aiAnswerCount": 4,
+      "pendingAnswerCount": 1
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N4 - Chương 12 - 問題4 - Nghe hiểu [Chưa đối chiếu đáp án]",
+      "title": "Nghe hiểu",
+      "vietnameseTitle": "Chọn đáp án",
+      "instruction": "最もよいものを一つ選んでください。",
+      "sourcePrintedPages": "191, 192, 193, 194, 195, 196, 197, 198, 199",
+      "questionCount": 8,
+      "answersReviewed": false,
+      "sourceImages": [
+        "images/try-n4/191.png",
+        "images/try-n4/192.png",
+        "images/try-n4/193.png",
+        "images/try-n4/194.png",
+        "images/try-n4/195.png",
+        "images/try-n4/196.png",
+        "images/try-n4/197.png",
+        "images/try-n4/198.png",
+        "images/try-n4/199.png"
+      ],
+      "choiceColumns": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "aiAnswerCount": 7,
+      "pendingAnswerCount": 1
+    }
+  ]
+}

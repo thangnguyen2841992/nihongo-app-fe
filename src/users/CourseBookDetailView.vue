@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import {nextTick, onMounted, onUnmounted, ref} from "vue"
+import { bookLessonOrder } from '@/services/bookLessonOrder'
+import { bookAdditionalAudio } from '@/services/bookAdditionalAudio'
+import {computed, nextTick, onMounted, onUnmounted, ref} from "vue"
 
 import {useRoute, useRouter} from "vue-router"
 
@@ -8,6 +10,11 @@ import CreateLessonModal from "@/components/staff/CreateLessonModal.vue"
 import {gatewayUrl} from "@/api/authApi.ts"
 import ExampleModal from "@/components/staff/ExampleModal.vue"
 import GrammarModal from "@/components/staff/GrammarModal.vue";
+import { saveLearningPosition } from '@/api/learningPosition'
+import GrammarNotes from '@/components/GrammarNotes.vue'
+import { importedAudioUrl } from '@/services/bookImport'
+import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
+import { bookReadingAudioTrack } from '@/services/bookReadingAudio'
 
 /* =========================
    ROUTER
@@ -26,6 +33,8 @@ interface Lesson {
   name: string
   description: string
   reading: string
+  audioTrack?: string | null
+  audioUrl?: string | null
   bookId: number
 }
 
@@ -73,6 +82,9 @@ const grammars =
 
 const selectedLesson =
   ref<Lesson | null>(null)
+
+const readingTrack = computed(() => selectedLesson.value?.audioTrack || bookReadingAudioTrack(book.value?.bookName, selectedLesson.value?.name))
+const readingAudioSource = computed(() => importedAudioUrl(selectedLesson.value?.audioUrl))
 
 const showLessonModal =
   ref(false)
@@ -306,6 +318,22 @@ const onExampleSaved = async (
 
 const bookId =
   Number(route.params.bookId)
+const courseId = Number(route.query.courseId)
+const positionError = ref('')
+let pendingPositionSave: Promise<void> = Promise.resolve()
+
+const rememberPosition = (lessonId: number | null) => {
+  if (!Number.isInteger(courseId) || courseId <= 0) return
+  pendingPositionSave = pendingPositionSave.catch(() => {}).then(() =>
+    saveLearningPosition(courseId, bookId, lessonId)
+  )
+  void pendingPositionSave.then(() => {
+    positionError.value = ''
+  }).catch(error => {
+    console.error(error)
+    positionError.value = 'Chưa lưu được vị trí học. Vui lòng chọn lại bài học.'
+  })
+}
 
 /* =========================
    FETCH BOOK
@@ -353,7 +381,7 @@ const fetchLessons =
         )
 
       lessons.value =
-        res.data
+        bookLessonOrder(res.data)
 
     } catch (e) {
 
@@ -440,6 +468,14 @@ const openLesson = async (
 ) => {
 
   selectedLesson.value = lesson
+  rememberPosition(lesson.lessonId)
+  if (Number.isInteger(courseId) && courseId > 0) {
+    void router.replace({
+      name: 'CourseBookDetail',
+      params: { bookId },
+      query: { courseId: String(courseId), lessonId: String(lesson.lessonId) }
+    })
+  }
 
   await fetchGrammars(
     lesson.lessonId
@@ -516,8 +552,11 @@ const toggleExamples =
 ========================= */
 
 const goBack = () => {
-
-  router.push("/staff")
+  if (Number.isInteger(courseId) && courseId > 0) {
+    router.push({ name: 'CourseBooks', params: { courseId } })
+  } else {
+    router.push('/staff')
+  }
 }
 
 const getStructureImage = (
@@ -554,17 +593,24 @@ onMounted(async () => {
   if (
     lessons.value.length > 0
   ) {
-
-    await openLesson(
-      lessons.value[0]!
-    )
+    const requestedLessonId = Number(route.query.lessonId)
+    const requestedLesson = lessons.value.find(lesson => lesson.lessonId === requestedLessonId)
+    await openLesson(requestedLesson ?? lessons.value[0]!)
+  } else {
+    rememberPosition(null)
   }
 
 })
 
 const goToExercisePage =
-  () => {
+  async () => {
     if (!selectedLesson.value) {
+      return
+    }
+    try {
+      await pendingPositionSave
+    } catch {
+      positionError.value = 'Chưa lưu được vị trí học. Vui lòng chọn lại bài học.'
       return
     }
     router.push({
@@ -572,7 +618,10 @@ const goToExercisePage =
       params: {
         lessonId:
         selectedLesson.value.lessonId
-      }
+      },
+      query: Number.isInteger(courseId) && courseId > 0
+        ? { courseId: String(courseId), bookId: String(bookId) }
+        : {}
     })
   }
 </script>
@@ -580,6 +629,7 @@ const goToExercisePage =
 <template>
 
   <div class="grammar-page">
+    <p v-if="positionError" role="alert" class="position-error">{{ positionError }}</p>
 
     <!-- HEADER -->
 
@@ -699,14 +749,14 @@ const goToExercisePage =
         >
 
           <button
-            v-for="(grammar,index) in grammars"
+            v-for="grammar in grammars"
             :key="grammar.grammarId"
             class="grammar-tab"
             :class="{
     active:
       activeGrammarId === grammar.grammarId
   }"
-            :data-tooltip="`${index + 1}. ${grammar.title}`"
+            :data-tooltip="grammar.title"
             @click="
     scrollToGrammar(
       grammar.grammarId
@@ -714,7 +764,7 @@ const goToExercisePage =
   "
           >
   <span class="grammar-tab-text">
-    {{ index + 1 }}. {{ grammar.title }}
+    {{ grammar.title }}
   </span>
           </button>
 
@@ -748,6 +798,8 @@ const goToExercisePage =
 
           </div>
 
+          <BookAudioPlayer v-if="readingAudioSource || readingTrack" :key="readingAudioSource || readingTrack" :source="readingAudioSource" :track="readingAudioSource ? undefined : readingTrack" />
+          <BookAudioPlayer v-for="audio in bookAdditionalAudio(book?.bookName, selectedLesson.name)" :key="audio.source" :source="audio.source" :label="audio.label" />
           <div
             class="lesson-reading-content"
             v-html="selectedLesson.reading"
@@ -809,11 +861,7 @@ const goToExercisePage =
 
             <!-- DESCRIPTION -->
 
-            <div class="grammar-description">
-
-              {{ grammar.description }}
-
-            </div>
+            <GrammarNotes :description="grammar.description" />
 
 
             <!-- EXAMPLES -->
@@ -903,6 +951,7 @@ const goToExercisePage =
                         />
 
                         <div
+                          v-if="example.vietnamese"
                           class="vn-text"
                           v-html="
                             example.vietnamese
@@ -1724,7 +1773,7 @@ const goToExercisePage =
   font-size: 17px;
   line-height: 1.9;
 
-  white-space: normal;
+  white-space: pre-line;
 
   word-break: break-word;
 
@@ -2097,5 +2146,10 @@ const goToExercisePage =
 
   padding: 20px 24px;
 }
+
+.example-card { position: relative; overflow: hidden; }
+.jp-text, .vn-text { white-space: pre-line; }
+.jp-text :deep(p), .vn-text :deep(p) { margin: 0; }
+.vn-text::before { display: none; }
 
 </style>

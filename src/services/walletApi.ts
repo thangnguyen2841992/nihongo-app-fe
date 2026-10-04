@@ -11,7 +11,22 @@ export interface WalletDeposit {
 export interface BankInfo { bankName: string; accountNumber: string; accountName: string }
 export interface DepositReview { approve: boolean; bankReference?: string; note?: string }
 const base = '/api/nihongo-user/wallets'
-export const getWallet = async (): Promise<WalletResponse> => (await gatewayUrl.get(base)).data
+let walletRequest: Promise<WalletResponse> | undefined
+let walletRequestSession: string | null = null
+const resetWalletRequest = () => { walletRequest = undefined }
+window.addEventListener('auth:expired', resetWalletRequest)
+if (import.meta.hot) import.meta.hot.dispose(() => window.removeEventListener('auth:expired', resetWalletRequest))
+
+export const getWallet = (): Promise<WalletResponse> => {
+  const session = sessionStorage.getItem('sessionId')
+  if (walletRequest && walletRequestSession === session) return walletRequest
+  const request = gatewayUrl.get<WalletResponse>(base).then(response => response.data).finally(() => {
+    if (walletRequest === request) walletRequest = undefined
+  })
+  walletRequest = request
+  walletRequestSession = session
+  return request
+}
 export const depositWallet = async (data: DepositWalletRequest): Promise<WalletDeposit> =>
   (await gatewayUrl.post(`${base}/deposit`, data)).data
 export const getDeposits = async (): Promise<WalletDeposit[]> => (await gatewayUrl.get(`${base}/deposits`)).data
@@ -23,5 +38,6 @@ export const walletError = (error: unknown, fallback: string): string => {
   if (axios.isAxiosError(error) && typeof error.response?.data?.message === 'string') return error.response.data.message
   return fallback
 }
-export const formatMoney = (value: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
+const moneyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
+export const formatMoney = (value: number) => moneyFormatter.format(value)
 export const depositStatus = (status: WalletDeposit['status']) => ({ PENDING: 'Chờ đối soát', SUCCESS: 'Đã cộng tiền', CANCELLED: 'Đã từ chối' })[status]

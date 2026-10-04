@@ -2,18 +2,24 @@
 import {onMounted, ref} from "vue"
 import {gatewayUrl} from "@/api/authApi"
 import { useRouter } from "vue-router"
+import { saveLearningPosition } from '@/api/learningPosition'
 
 interface MyCourse {
   courseId: number
   courseName: string
   packageName: string
   progress: number
+  startedAt: string | null
+  lastBookId: number | null
+  lastLessonId: number | null
   enrolledAt: string
   expiredAt: string
 }
 
 const courses = ref<MyCourse[]>([])
 const loading = ref(true)
+const openingCourseId = ref<number | null>(null)
+const actionError = ref('')
 const router = useRouter()
 
 const loadCourses = async () => {
@@ -27,12 +33,33 @@ const loadCourses = async () => {
   }
 }
 
-const continueLearning = (courseId: number) => {
-  window.location.href = `/course/${courseId}`
-}
-
-const startLearning = (courseId: number) => {
-  router.push(`/course/${courseId}/books`)
+const openCourse = async (course: MyCourse) => {
+  if (openingCourseId.value !== null) return
+  openingCourseId.value = course.courseId
+  actionError.value = ''
+  try {
+    if (!course.startedAt) {
+      await saveLearningPosition(course.courseId)
+      course.startedAt = new Date().toISOString()
+    }
+    if (course.lastBookId) {
+      await router.push({
+        name: 'CourseBookDetail',
+        params: { bookId: course.lastBookId },
+        query: {
+          courseId: String(course.courseId),
+          ...(course.lastLessonId ? { lessonId: String(course.lastLessonId) } : {})
+        }
+      })
+    } else {
+      await router.push({ name: 'CourseBooks', params: { courseId: course.courseId } })
+    }
+  } catch (error) {
+    console.error(error)
+    actionError.value = 'Không thể mở khóa học. Vui lòng thử lại.'
+  } finally {
+    openingCourseId.value = null
+  }
 }
 
 /**
@@ -67,6 +94,7 @@ onMounted(loadCourses)
     <div v-if="loading" class="loading">
       Đang tải dữ liệu...
     </div>
+    <p v-if="actionError" role="alert" class="action-error">{{ actionError }}</p>
 
     <!-- EMPTY -->
     <div v-else-if="courses.length === 0" class="empty">
@@ -154,13 +182,14 @@ onMounted(loadCourses)
                 class="status"
                 :class="{
                   done: c.progress >= 100,
-                  active: c.progress < 100
+                  active: c.progress < 100 && !!c.startedAt,
+                  waiting: !c.startedAt
                 }"
               >
                 {{
                   c.progress >= 100
                     ? "Hoàn thành"
-                    : "Đang học"
+                    : c.startedAt ? "Đang học" : "Chưa học"
                 }}
               </span>
           </td>
@@ -169,14 +198,11 @@ onMounted(loadCourses)
           <td>
             <button
               class="btn"
-              @click="
-        c.progress === 0
-            ? startLearning(c.courseId)
-            : continueLearning(c.courseId)
-    "
-              :disabled="isExpired(c.expiredAt)"
+              :class="{ 'btn-continue': !!c.startedAt }"
+              @click="openCourse(c)"
+              :disabled="isExpired(c.expiredAt) || openingCourseId !== null"
             >
-              {{ c.progress === 0 ? '📖 Bắt đầu học' : '▶ Học tiếp' }}
+              {{ c.startedAt ? '▶ Học tiếp' : '📖 Bắt đầu học' }}
             </button>
           </td>
 
@@ -286,6 +312,10 @@ onMounted(loadCourses)
   background: #e6f4ff;
   color: #1677ff;
 }
+.status.waiting {
+  background: #f1f5f9;
+  color: #64748b;
+}
 
 .status.done {
   background: #f6ffed;
@@ -294,12 +324,32 @@ onMounted(loadCourses)
 
 /* BUTTON */
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 150px;
+  height: 40px;
+  white-space: nowrap;
   padding: 8px 12px;
   border: none;
   border-radius: 8px;
   background: #1677ff;
   color: white;
   cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: #0f5fd6;
+}
+
+.btn.btn-continue {
+  background: #389e0d;
+}
+
+.btn.btn-continue:hover:not(:disabled) {
+  background: #237804;
 }
 
 .btn:disabled {
@@ -332,4 +382,5 @@ onMounted(loadCourses)
   text-align: center;
   padding: 40px;
 }
+.action-error { color: #c62828; margin-top: 16px; }
 </style>

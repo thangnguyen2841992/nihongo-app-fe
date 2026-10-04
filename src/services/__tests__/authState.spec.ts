@@ -38,3 +38,28 @@ it('clears stale identity and stops polling when initialization becomes anonymou
   await vi.advanceTimersByTimeAsync(16000)
   expect(mocks.privateGet).not.toHaveBeenCalled()
 })
+
+it('ignores initialization that finishes after the session expires', async () => {
+  let resolve!: (response: any) => void
+  mocks.get.mockImplementationOnce(() => new Promise(done => { resolve = done }))
+  const initialization = initAuth()
+  window.dispatchEvent(new Event('auth:expired'))
+  resolve({ data: { isLoggedIn: true, sessionId: 'expired-session', email: 'old@example.com' } })
+  await initialization
+  expect(useAuthState().isAuthenticated.value).toBe(false)
+  expect(sessionStorage.getItem('sessionId')).toBeNull()
+  expect(mocks.connect).not.toHaveBeenCalled()
+})
+
+it('ignores a polling response after the session expires', async () => {
+  mocks.get.mockResolvedValueOnce({ data: { isLoggedIn: true, sessionId: 'sid', email: 'u@example.com' } })
+  await initAuth()
+  let resolve!: (response: any) => void
+  mocks.privateGet.mockImplementationOnce(() => new Promise(done => { resolve = done }))
+  await vi.advanceTimersByTimeAsync(8000)
+  window.dispatchEvent(new Event('auth:expired'))
+  resolve({ data: { isLoggedIn: true, sessionId: 'sid', email: 'u@example.com' } })
+  await Promise.resolve()
+  expect(useAuthState().isAuthenticated.value).toBe(false)
+  expect(sessionStorage.getItem('sessionId')).toBeNull()
+})

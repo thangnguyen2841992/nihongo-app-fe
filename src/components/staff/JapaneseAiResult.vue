@@ -76,6 +76,8 @@
       {{ error }}
     </div>
 
+    <p v-if="speechError" class="alert alert-warning mt-3" role="alert">{{ speechError }}</p>
+
 
     <!-- =====================================================
          RESULT
@@ -410,9 +412,11 @@ import { ref, watch, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { analyzeJapanese, type JapaneseAiResponse } from '@/services/japaneseAiService'
+import { useJapaneseSpeech } from '@/services/japaneseSpeech'
 
 const route = useRoute()
 const router = useRouter()
+const { speechError, speakJapanese, stopSpeaking } = useJapaneseSpeech()
 const maxInputLength = 2000
 const searchText = ref('')
 const result = ref<JapaneseAiResponse | null>(null)
@@ -422,6 +426,8 @@ let activeRequest: AbortController | undefined
 let requestId = 0
 
 function cancelSearch() {
+  stopSpeaking()
+  speechError.value = ''
   ++requestId
   activeRequest?.abort()
   activeRequest = undefined
@@ -501,45 +507,7 @@ watch(() => route.query.q, keyword => {
 
 onBeforeUnmount(() => {
   cancelSearch()
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel()
 })
-const speakJapanese = (text: string) => {
-
-  if (!text) {
-    return
-  }
-
-
-  // Browser không hỗ trợ Speech Synthesis
-  if (!('speechSynthesis' in window)) {
-    console.warn(
-      'Speech Synthesis API is not supported by this browser.'
-    )
-
-    return
-  }
-
-
-  // Dừng câu đang đọc
-  window.speechSynthesis.cancel()
-
-
-  const utterance =
-    new SpeechSynthesisUtterance(text)
-
-
-  utterance.lang = 'ja-JP'
-
-  utterance.rate = 0.9
-
-  utterance.pitch = 1
-
-
-  window.speechSynthesis.speak(
-    utterance
-  )
-
-}
 
 </script>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {nextTick, onMounted, onUnmounted, ref} from "vue"
+import {computed, nextTick, onMounted, onUnmounted, ref} from "vue"
 
 import {useRoute, useRouter} from "vue-router"
 
@@ -8,6 +8,12 @@ import CreateLessonModal from "@/components/staff/CreateLessonModal.vue"
 import {gatewayUrl} from "@/api/authApi.ts"
 import ExampleModal from "@/components/staff/ExampleModal.vue"
 import GrammarModal from "@/components/staff/GrammarModal.vue";
+import GrammarNotes from '@/components/GrammarNotes.vue'
+import { importedAudioUrl } from '@/services/bookImport'
+import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
+import { bookReadingAudioTrack } from '@/services/bookReadingAudio'
+import { bookLessonOrder } from '@/services/bookLessonOrder'
+import { bookAdditionalAudio } from '@/services/bookAdditionalAudio'
 
 /* =========================
    ROUTER
@@ -26,6 +32,8 @@ interface Lesson {
   name: string
   description: string
   reading: string
+  audioTrack?: string | null
+  audioUrl?: string | null
   bookId: number
 }
 
@@ -73,6 +81,9 @@ const grammars =
 
 const selectedLesson =
   ref<Lesson | null>(null)
+
+const readingTrack = computed(() => selectedLesson.value?.audioTrack || bookReadingAudioTrack(book.value?.bookName, selectedLesson.value?.name))
+const readingAudioSource = computed(() => importedAudioUrl(selectedLesson.value?.audioUrl))
 
 const showLessonModal =
   ref(false)
@@ -353,7 +364,7 @@ const fetchLessons =
         )
 
       lessons.value =
-        res.data
+        bookLessonOrder(res.data)
 
     } catch (e) {
 
@@ -727,7 +738,7 @@ const goToExercisePage =
 
               <button
                 v-for="
-      (grammar,index)
+      grammar
       in grammars
     "
                 :key="
@@ -745,7 +756,6 @@ const goToExercisePage =
       )
     "
               >
-                {{ index + 1 }}.
                 {{ grammar.title }}
               </button>
 
@@ -775,6 +785,8 @@ const goToExercisePage =
 
               </div>
 
+              <BookAudioPlayer v-if="readingAudioSource || readingTrack" :key="readingAudioSource || readingTrack" :source="readingAudioSource" :track="readingAudioSource ? undefined : readingTrack" />
+              <BookAudioPlayer v-for="audio in bookAdditionalAudio(book?.bookName, selectedLesson.name)" :key="audio.source" :source="audio.source" :label="audio.label" />
               <div class="lesson-reading-content"  v-html="selectedLesson.reading">
 
               </div>
@@ -866,12 +878,7 @@ const goToExercisePage =
                     class="grammar-structure-image"
                     @click="openImage(grammar.imageUrl)">
                 </div>
-                <div
-                  class="grammar-description">
-                  {{
-                    grammar.description
-                  }}
-                </div>
+                <GrammarNotes :description="grammar.description" />
                 <!-- EXAMPLE ACTION -->
 
                 <div class="example-section">
@@ -953,6 +960,7 @@ const goToExercisePage =
                             ></div>
 
                             <div
+                              v-if="example.vietnamese"
                               class="vn-text"
                               v-html="example.vietnamese"
                             ></div>
@@ -2119,5 +2127,32 @@ const goToExercisePage =
   );
 
   color: white;
+}
+
+.grammar-panel, .grammar-scroll, .grammar-card { min-width: 0; }
+.grammar-card { border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; scroll-margin-top: 100px; }
+.grammar-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.grammar-title { display: flex; align-items: center; gap: 12px; min-width: 0; font-size: 21px; font-weight: 700; color: #1e293b; overflow-wrap: anywhere; }
+.grammar-number { flex: 0 0 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; background: #edf3ff; color: #3158d8; font-size: 14px; }
+.grammar-actions, .edit-example-btn { flex-shrink: 0; }
+.top-actions, .selected-lesson-wrapper, .page-header { flex-wrap: wrap; gap: 16px; }
+.grammar-tab { flex: 0 0 auto; max-width: 240px; }
+.example-section { margin-top: 20px; }
+.example-expand { padding: 16px; border-radius: 12px; background: #f8fafc; margin-top: 12px; }
+.example-topbar { margin-bottom: 14px; }
+.example-card { position: relative; overflow: hidden; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+.example-card:last-child { margin-bottom: 0; }
+.example-card::before { background: #dbe7fa; width: 3px; }
+.example-card:hover { transform: none; box-shadow: none; }
+.example-content { flex: 1; min-width: 0; }
+.jp-text { font-size: 19px; line-height: 1.85; white-space: pre-line; overflow-wrap: anywhere; }
+.jp-text :deep(p), .vn-text :deep(p) { margin: 0; }
+.vn-text { font-size: 15px; line-height: 1.8; color: #526479; margin-top: 8px; padding-left: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.vn-text::before { display: none; }
+.example-number { width: 28px; height: 28px; font-size: 12px; background: #edf3ff; color: #49658b; }
+.lesson-reading-content { white-space: normal; }
+@media (max-width: 900px) {
+  .grammar-panel { padding: 16px; }.grammar-card { padding: 18px; }.grammar-title { font-size: 19px; }
+  .example-expand { padding: 12px; }.example-row { gap: 10px; }.jp-text { font-size: 17px; }
 }
 </style>

@@ -1,0 +1,55 @@
+{
+  "sections": [
+    {
+      "number": 1,
+      "typeName": "TRY! N3 · Chương 6 · 問題1〈文法形式の判断〉",
+      "title": "文法形式の判断",
+      "vietnameseTitle": "Chọn dạng ngữ pháp",
+      "instruction": "次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つえらびなさい。",
+      "printedPages": [
+        99
+      ],
+      "sourcePrintedPages": "99",
+      "questionCount": 8,
+      "choiceColumns": 2
+    },
+    {
+      "number": 2,
+      "typeName": "TRY! N3 · Chương 6 · 問題2〈文の組み立て〉",
+      "title": "文の組み立て",
+      "vietnameseTitle": "Sắp xếp câu",
+      "instruction": "次の文の ★ に入る最もよいものを、1・2・3・4から一つえらびなさい。",
+      "printedPages": [
+        100
+      ],
+      "sourcePrintedPages": "100",
+      "questionCount": 4
+    },
+    {
+      "number": 3,
+      "typeName": "TRY! N3 · Chương 6 · 問題3〈文章の文法〉",
+      "title": "文章の文法",
+      "vietnameseTitle": "Ngữ pháp trong đoạn văn",
+      "instruction": "次の文章を読んで、文章全体の内容を考えて、［1］～［4］の中に入る最もよいものを、1・2・3・4から一つ選びなさい。",
+      "printedPages": [
+        100,
+        101
+      ],
+      "sourcePrintedPages": "100–101",
+      "questionCount": 4,
+      "reading": "皆さんは男性の育児参加についてどう思いますか。\n育児に参加したくても会社の評価が心配で育児休暇が取れない人がまだ多いようですが、子育ては家族［1］でなく、社会全体の問題として考える［2］です。\n私は娘が生まれたときに、理解ある上司の［3］３か月間の育児休暇を取ることができました。子どもの世話をしながら父親であることを実感し、仕事をする意味も改めて感じられるようになりました。子育ての経験は仕事にも生かせる［4］だと私は信じています。"
+    },
+    {
+      "number": 4,
+      "typeName": "TRY! N3 · Chương 6 · 問題4〈聴解〉",
+      "title": "聴解",
+      "vietnameseTitle": "Nghe hiểu",
+      "instruction": "まず文を聞いてください。それから、その返事を聞いて、1から3の中から、最もよいものを一つえらんでください。",
+      "printedPages": [
+        101
+      ],
+      "sourcePrintedPages": "101",
+      "questionCount": 6
+    }
+  ]
+}

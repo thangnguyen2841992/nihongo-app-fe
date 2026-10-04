@@ -12,10 +12,12 @@ const userRole = ref('')
 let pollingTimer: ReturnType<typeof setInterval> | null = null
 let isChecking = false
 let isLoggingOut = false
+let sessionVersion = 0
 
 type Session = { isLoggedIn: boolean; name?: string; email?: string; role?: string; sessionId?: string }
 
 const clearAuth = () => {
+  ++sessionVersion
   isAuthenticated.value = false
   userName.value = ''; userEmail.value = ''; userRole.value = ''
   if (pollingTimer !== null) clearInterval(pollingTimer)
@@ -42,9 +44,10 @@ const applySession = (session: Session) => {
   pollingTimer = setInterval(async () => {
     if (!isAuthenticated.value || isChecking || isLoggingOut || document.visibilityState === 'hidden') return
     isChecking = true
+    const version = sessionVersion
     try {
       const { data } = await gatewayUrl.get<Session>('/api/auth/checkLogin')
-      applySession(data)
+      if (version === sessionVersion && !isLoggingOut) applySession(data)
     } catch {
       // The API interceptor handles expiration. Keep the session during network outages.
     } finally { isChecking = false }
@@ -54,6 +57,7 @@ const applySession = (session: Session) => {
 export const logout = async () => {
   if (isLoggingOut) return
   isLoggingOut = true
+  ++sessionVersion
   try {
     await publicClient.post('/api/auth/logout')
     expireAuth()
@@ -62,14 +66,15 @@ export const logout = async () => {
 }
 
 const loadAuth = async () => {
+  const version = sessionVersion
   try {
     const { data } = await publicClient.get<Session>('/api/auth/checkLogin').catch(async error => {
       if (!axios.isAxiosError(error) || error.response?.status !== 401) throw error
       await publicClient.post('/api/auth/refresh')
       return publicClient.get<Session>('/api/auth/checkLogin')
     })
-    applySession(data)
-  } catch { clearAuth() }
+    if (version === sessionVersion && !isLoggingOut) applySession(data)
+  } catch { if (version === sessionVersion) clearAuth() }
   finally { isAuthReady.value = true }
 }
 
@@ -81,8 +86,9 @@ export const initAuth = (): Promise<void> => {
 }
 
 export const setAuth = async () => {
+  const version = ++sessionVersion
   const { data } = await gatewayUrl.get<Session>('/api/auth/checkLogin')
-  applySession(data)
+  if (version === sessionVersion && !isLoggingOut) applySession(data)
 }
 
 if (import.meta.hot) {

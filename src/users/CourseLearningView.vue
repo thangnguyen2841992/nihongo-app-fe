@@ -133,7 +133,7 @@ onMounted(() => {
           >
 
             <router-link
-              :to="`/book/${book.bookId}`"
+              :to="{ name: 'CourseBookDetail', params: { bookId: book.bookId }, query: { courseId: String(courseId) } }"
               class="btn btn-primary w-100"
             >
               📖 Học ngay
