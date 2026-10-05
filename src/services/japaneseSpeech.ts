@@ -1,5 +1,12 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 
+export function japaneseSpeechText(html: string) {
+  const content = document.createElement('template')
+  content.innerHTML = html
+  content.content.querySelectorAll('rt, rp').forEach(annotation => annotation.remove())
+  return (content.content.textContent ?? '').replace(/\s+/g, ' ').trim()
+}
+
 export function selectJapaneseVoice(voices: SpeechSynthesisVoice[]) {
   const japanese = voices.filter(voice => /^ja(?:[-_]|$)/i.test(voice.lang))
   return japanese.find(voice => /^ja[-_]JP$/i.test(voice.lang) && /Google/i.test(voice.name))

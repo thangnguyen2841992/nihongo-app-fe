@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { h } from 'vue'
-import { useJapaneseSpeech } from '../japaneseSpeech'
+import { japaneseSpeechText, useJapaneseSpeech } from '../japaneseSpeech'
 
 let wrapper: ReturnType<typeof mount> | undefined
 let speech: ReturnType<typeof useJapaneseSpeech>
@@ -25,6 +25,11 @@ it('explicitly selects a Japanese voice even when the default voice is English',
   speech.speakJapanese('学校')
   expect(synth.speak).toHaveBeenCalledWith(expect.objectContaining({ text: '学校', voice: japanese, lang: 'ja-JP', rate: 0.9 }))
   expect(speech.speechError.value).toBe('')
+})
+
+it('reads example HTML without markup or duplicate ruby pronunciation', () => {
+  expect(japaneseSpeechText('<p><ruby>日本語<rt>にほんご</rt></ruby>を勉強します。<br>頑張ります。</p>'))
+    .toBe('日本語を勉強します。頑張ります。')
 })
 
 it('shows an explanation instead of using an English voice when Japanese is unavailable', () => {

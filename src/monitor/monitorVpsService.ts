@@ -45,7 +45,7 @@ export const listVps = async (): Promise<MonitorVps[]> => {
   return response.data
 }
 
-export const discoveryVps = async (
+export const    discoveryVps = async (
   request: DiscoveryVpsRequest
 ): Promise<NodeExporterDiscoveryResult> => {
 

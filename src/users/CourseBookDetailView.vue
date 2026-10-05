@@ -15,6 +15,7 @@ import GrammarNotes from '@/components/GrammarNotes.vue'
 import { importedAudioUrl } from '@/services/bookImport'
 import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
 import { bookReadingAudioTrack } from '@/services/bookReadingAudio'
+import { japaneseSpeechText, useJapaneseSpeech } from '@/services/japaneseSpeech'
 
 /* =========================
    ROUTER
@@ -85,6 +86,14 @@ const selectedLesson =
 
 const readingTrack = computed(() => selectedLesson.value?.audioTrack || bookReadingAudioTrack(book.value?.bookName, selectedLesson.value?.name))
 const readingAudioSource = computed(() => importedAudioUrl(selectedLesson.value?.audioUrl))
+const isTryN3 = computed(() => book.value?.bookName?.startsWith('TRY! N3') ?? false)
+const { speechError, speakJapanese, stopSpeaking } = useJapaneseSpeech()
+const activeSpokenExampleId = ref<number | null>(null)
+
+function speakExample(example: Example) {
+  activeSpokenExampleId.value = example.exampleId
+  speakJapanese(japaneseSpeechText(example.nihongo))
+}
 
 const showLessonModal =
   ref(false)
@@ -467,6 +476,9 @@ const openLesson = async (
   lesson: Lesson
 ) => {
 
+  stopSpeaking()
+  speechError.value = ''
+  activeSpokenExampleId.value = null
   selectedLesson.value = lesson
   rememberPosition(lesson.lessonId)
   if (Number.isInteger(courseId) && courseId > 0) {
@@ -958,7 +970,25 @@ const goToExercisePage =
                           "
                         />
 
+                        <p
+                          v-if="activeSpokenExampleId === example.exampleId && speechError"
+                          class="example-speech-error"
+                          role="alert"
+                        >{{ speechError }}</p>
+
                       </div>
+
+                      <button
+                        v-if="isTryN3 && example.nihongo?.trim()"
+                        type="button"
+                        class="example-speak"
+                        :aria-label="`Nghe phát âm câu ví dụ ${exampleIndex + 1}`"
+                        title="Đọc bằng giọng tiếng Nhật trên thiết bị"
+                        @click="speakExample(example)"
+                      >
+                        <i class="bi bi-volume-up" aria-hidden="true"></i>
+                        <span>Nghe phát âm</span>
+                      </button>
 
                     </div>
 
@@ -2151,5 +2181,9 @@ const goToExercisePage =
 .jp-text, .vn-text { white-space: pre-line; }
 .jp-text :deep(p), .vn-text :deep(p) { margin: 0; }
 .vn-text::before { display: none; }
+.example-speak { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid #c5d9ea; border-radius: 999px; background: #f0f7fd; color: #275b83; font-size: 12px; font-weight: 650; cursor: pointer; white-space: nowrap; }
+.example-speak:hover { background: #deeffb; }
+.example-speak:focus-visible { outline: 3px solid #90c5e7; outline-offset: 2px; }
+.example-speech-error { margin: 8px 0 0; color: #a34141; font-size: 12px; }
 
 </style>
