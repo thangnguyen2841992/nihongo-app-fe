@@ -46,3 +46,31 @@ it('allows practice but prevents submitting N4 questions whose source answers ar
   expect(gatewayUrl.post).not.toHaveBeenCalled()
   wrapper.unmount()
 })
+
+it('distinguishes a loading failure from a lesson with no exercises', async () => {
+  let fail = true
+  vi.mocked(gatewayUrl.get).mockImplementation(async url => {
+    if (url?.includes('getAllExcercises')) {
+      if (fail) throw new Error('offline')
+      return { data: [] } as never
+    }
+    return { data: url === '/api/staff/exerciseTypes' ? [] : { lessonId: 1, name: 'Lesson', bookId: 1 } } as never
+  })
+  const errorLog = vi.spyOn(console, 'error').mockImplementation(() => {})
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/lesson/:lessonId', component: ExerciseView }] })
+  await router.push('/lesson/1'); await router.isReady()
+  const wrapper = mount(ExerciseView, { global: { plugins: [router] } })
+  try {
+    await flushPromises()
+    expect(wrapper.text()).toContain('Không tải được danh sách bài tập')
+    expect(wrapper.text()).not.toContain('Không có bài tập')
+    fail = false
+    await wrapper.get('.empty-retry-btn').trigger('click')
+    await flushPromises()
+    expect(wrapper.get('[role="status"]').text()).toContain('Không có bài tập')
+    expect(wrapper.find('.start-btn').exists()).toBe(false)
+  } finally {
+    wrapper.unmount()
+    errorLog.mockRestore()
+  }
+})

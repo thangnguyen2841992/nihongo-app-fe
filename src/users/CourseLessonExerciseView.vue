@@ -107,7 +107,8 @@ const exercises =
   ref<ExerciseKeyword[]>([])
 
 const loadingExercises =
-  ref(false)
+  ref(true)
+const exerciseLoadError = ref(false)
 const showCreateModal =
   ref(false)
 
@@ -365,6 +366,7 @@ const fetchExercises =
 
       loadingExercises.value =
         true
+      exerciseLoadError.value = false
 
       const res =
         await gatewayUrl.get(
@@ -377,10 +379,8 @@ const fetchExercises =
     } catch (e) {
 
       console.error(e)
-
-      alert(
-        "Không tải được danh sách bài tập"
-      )
+      exercises.value = []
+      exerciseLoadError.value = true
 
     } finally {
 
@@ -573,7 +573,7 @@ const scrollToGroup =
 
     <!-- MENU -->
 
-    <div class="exercise-tabs">
+    <div v-if="!loadingExercises && exercises.length" class="exercise-tabs">
 
       <div class="tabs-left">
 
@@ -649,6 +649,18 @@ const scrollToGroup =
       <div v-if="loadingExercises"
            class="empty-state">
         Đang tải...
+      </div>
+
+      <div v-else-if="exerciseLoadError" class="empty-state" role="alert">
+        <div class="empty-state-title">Không tải được danh sách bài tập</div>
+        <button type="button" class="empty-retry-btn" @click="fetchExercises">Thử lại</button>
+      </div>
+
+      <div v-else-if="!exercises.length" class="empty-state" role="status">
+        <div class="empty-state-icon" aria-hidden="true">📝</div>
+        <div class="empty-state-title">Không có bài tập</div>
+        <p>Bài học này hiện chưa có bài tập. Bạn có thể quay lại nội dung bài học.</p>
+        <button type="button" class="back-btn" @click="goBack">← Quay lại bài học</button>
       </div>
 
       <div
@@ -1049,12 +1061,16 @@ const scrollToGroup =
 
 .empty-state {
 
-  padding: 80px;
+  padding: 64px 24px;
 
   text-align: center;
 
-  color: #94a3b8;
+  color: #64748b;
 }
+.empty-state-icon { font-size: 36px; margin-bottom: 12px; }
+.empty-state-title { color: #334155; font-size: 20px; font-weight: 700; }
+.empty-state p { margin: 10px 0 20px; }
+.empty-retry-btn { margin-top: 16px; padding: 10px 18px; border: 0; border-radius: 10px; background: #e6efff; color: #2454a6; font-weight: 600; cursor: pointer; }
 
 .page-title {
 

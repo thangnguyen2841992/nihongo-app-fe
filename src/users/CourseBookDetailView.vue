@@ -87,12 +87,12 @@ const selectedLesson =
 const readingTrack = computed(() => selectedLesson.value?.audioTrack || bookReadingAudioTrack(book.value?.bookName, selectedLesson.value?.name))
 const readingAudioSource = computed(() => importedAudioUrl(selectedLesson.value?.audioUrl))
 const isTryN3 = computed(() => book.value?.bookName?.startsWith('TRY! N3') ?? false)
-const { speechError, speakJapanese, stopSpeaking } = useJapaneseSpeech()
+const { speechError, speechProvider, speakExample: playExample, stopSpeaking } = useJapaneseSpeech()
 const activeSpokenExampleId = ref<number | null>(null)
 
 function speakExample(example: Example) {
   activeSpokenExampleId.value = example.exampleId
-  speakJapanese(japaneseSpeechText(example.nihongo))
+  if (example.grammarId) void playExample(example.exampleId, example.grammarId, japaneseSpeechText(example.nihongo))
 }
 
 const showLessonModal =
@@ -104,6 +104,13 @@ const editingLesson =
 
 const examples =
   ref<Record<number, Example[]>>({})
+type LessonContent = { grammars: Grammar[]; examples: Record<number, Example[]>; loadedAt: number }
+const lessonContentCache = new Map<number, LessonContent>()
+const loadingLessonContent = ref(false)
+const lessonContentError = ref('')
+let lessonRequestId = 0
+let lessonContentController: AbortController | null = null
+let disposed = false
 
 const expandedGrammar =
   ref<Record<number, boolean>>({})
@@ -117,7 +124,15 @@ const editingGrammar =
 /* =========================
    TOOLBAR ACTIVE
 ========================= */
+let scrollFrame: number | null = null
 const handleScroll = () => {
+  if (scrollFrame !== null) return
+  scrollFrame = window.requestAnimationFrame(() => {
+    scrollFrame = null
+    updateActiveGrammarFromScroll()
+  })
+}
+const updateActiveGrammarFromScroll = () => {
 
   let currentId = null
 
@@ -138,6 +153,8 @@ const handleScroll = () => {
     if (rect.top <= 220) {
       currentId =
         grammar.grammarId
+    } else {
+      break
     }
   }
 
@@ -422,6 +439,7 @@ const fetchGrammars =
         )
 
       grammars.value = res.data
+      lessonContentCache.delete(lessonId)
 
     } catch (e) {
 
@@ -476,10 +494,21 @@ const openLesson = async (
   lesson: Lesson
 ) => {
 
+  if (selectedLesson.value?.lessonId === lesson.lessonId && loadingLessonContent.value) return
+  const requestId = ++lessonRequestId
+  lessonContentController?.abort()
+  lessonContentController = null
+
   stopSpeaking()
   speechError.value = ''
   activeSpokenExampleId.value = null
   selectedLesson.value = lesson
+  grammars.value = []
+  examples.value = {}
+  expandedGrammar.value = {}
+  activeGrammarId.value = null
+  lessonContentError.value = ''
+  loadingLessonContent.value = true
   rememberPosition(lesson.lessonId)
   if (Number.isInteger(courseId) && courseId > 0) {
     void router.replace({
@@ -489,28 +518,50 @@ const openLesson = async (
     })
   }
 
-  await fetchGrammars(
-    lesson.lessonId
-  )
+  const cached = lessonContentCache.get(lesson.lessonId)
+  if (cached && Date.now() - cached.loadedAt < 60_000) {
+    lessonContentCache.delete(lesson.lessonId)
+    lessonContentCache.set(lesson.lessonId, cached)
+    grammars.value = cached.grammars
+    examples.value = cached.examples
+    expandedGrammar.value = Object.fromEntries(cached.grammars.map(grammar => [grammar.grammarId, true]))
+    loadingLessonContent.value = false
+    return
+  }
 
-  expandedGrammar.value = {}
-
-  grammars.value.forEach(
-    grammar => {
-      expandedGrammar.value[
-        grammar.grammarId
-        ] = true
+  const controller = new AbortController()
+  lessonContentController = controller
+  try {
+    const [grammarResponse, exampleResponse] = await Promise.all([
+      gatewayUrl.get<Grammar[]>('/api/staff/getAllGrammarByLesson', {
+        params: { lessonId: lesson.lessonId }, signal: controller.signal,
+      }),
+      gatewayUrl.get<Example[]>(`/api/staff/lessons/${lesson.lessonId}/examples`, {
+        signal: controller.signal,
+      }),
+    ])
+    if (requestId !== lessonRequestId) return
+    const lessonExamples: Record<number, Example[]> = {}
+    for (const grammar of grammarResponse.data) lessonExamples[grammar.grammarId] = []
+    for (const example of exampleResponse.data) {
+      if (lessonExamples[example.grammarId]) lessonExamples[example.grammarId]!.push(example)
     }
-  )
-
-  await Promise.all(
-    grammars.value.map(
-      grammar =>
-        fetchExamples(
-          grammar.grammarId
-        )
-    )
-  )
+    const content = { grammars: grammarResponse.data, examples: lessonExamples, loadedAt: Date.now() }
+    if (lessonContentCache.size >= 8) lessonContentCache.delete(lessonContentCache.keys().next().value!)
+    lessonContentCache.set(lesson.lessonId, content)
+    grammars.value = content.grammars
+    examples.value = content.examples
+    expandedGrammar.value = Object.fromEntries(content.grammars.map(grammar => [grammar.grammarId, true]))
+  } catch (error) {
+    if (requestId !== lessonRequestId) return
+    console.error(error)
+    lessonContentError.value = 'Không thể tải nội dung bài học. Vui lòng thử lại.'
+  } finally {
+    if (requestId === lessonRequestId) {
+      loadingLessonContent.value = false
+      lessonContentController = null
+    }
+  }
 }
 
 
@@ -535,6 +586,7 @@ const fetchExamples = async (
 
     examples.value[grammarId] =
       res.data
+    if (selectedLesson.value) lessonContentCache.delete(selectedLesson.value.lessonId)
 
   } catch (e) {
 
@@ -585,6 +637,10 @@ const getStructureImage = (
    MOUNT
 ========================= */
 onUnmounted(() => {
+  disposed = true
+  ++lessonRequestId
+  lessonContentController?.abort()
+  if (scrollFrame !== null) window.cancelAnimationFrame(scrollFrame)
   window.removeEventListener(
     "scroll",
     handleScroll
@@ -596,9 +652,8 @@ onMounted(async () => {
     "scroll",
     handleScroll
   )
-  await fetchBook()
-
-  await fetchLessons()
+  await Promise.all([fetchBook(), fetchLessons()])
+  if (disposed) return
 
   /* AUTO OPEN FIRST LESSON */
 
@@ -753,6 +808,12 @@ const goToExercisePage =
         </div>
 
 
+        <div v-if="loadingLessonContent" class="lesson-content-status" role="status">Đang tải nội dung bài học...</div>
+        <div v-else-if="lessonContentError" class="lesson-content-status" role="alert">
+          {{ lessonContentError }}
+          <button type="button" @click="openLesson(selectedLesson)">Thử lại</button>
+        </div>
+
         <!-- GRAMMAR TABS -->
 
         <div
@@ -861,6 +922,8 @@ const goToExercisePage =
                 "
                 :alt="grammar.title"
                 class="grammar-structure-image"
+                loading="lazy"
+                decoding="async"
                 @click="
                   openImage(
                     grammar.imageUrl
@@ -976,6 +1039,10 @@ const goToExercisePage =
                           role="alert"
                         >{{ speechError }}</p>
 
+                        <small v-if="activeSpokenExampleId === example.exampleId && speechProvider === 'voicevox'" class="example-speech-credit">
+                          Giọng: <a href="https://voicevox.hiroshiba.jp/product/zundamon/" target="_blank" rel="noopener noreferrer">VOICEVOX: ずんだもん</a>
+                        </small>
+
                       </div>
 
                       <button
@@ -983,7 +1050,7 @@ const goToExercisePage =
                         type="button"
                         class="example-speak"
                         :aria-label="`Nghe phát âm câu ví dụ ${exampleIndex + 1}`"
-                        title="Đọc bằng giọng tiếng Nhật trên thiết bị"
+                        title="Nghe giọng VOICEVOX; dùng giọng trình duyệt nếu VOICEVOX chưa sẵn sàng"
                         @click="speakExample(example)"
                       >
                         <i class="bi bi-volume-up" aria-hidden="true"></i>
@@ -1147,6 +1214,8 @@ const goToExercisePage =
 
   color: #64748b;
 }
+.lesson-content-status { margin: 18px 0; padding: 14px 18px; border-radius: 12px; background: #f1f5f9; color: #475569; }
+.lesson-content-status button { margin-left: 10px; border: 0; background: transparent; color: #2563eb; font-weight: 700; cursor: pointer; }
 .empty-icon {
   font-size: 48px;
   margin-bottom: 12px;
@@ -2185,5 +2254,7 @@ const goToExercisePage =
 .example-speak:hover { background: #deeffb; }
 .example-speak:focus-visible { outline: 3px solid #90c5e7; outline-offset: 2px; }
 .example-speech-error { margin: 8px 0 0; color: #a34141; font-size: 12px; }
+.example-speech-credit { display: block; margin-top: 7px; color: #63748a; font-size: 11px; }
+.example-speech-credit a { color: inherit; text-decoration: underline; }
 
 </style>

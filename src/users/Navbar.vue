@@ -4,7 +4,7 @@ import {ref, watch, onMounted, onUnmounted} from "vue"
 import { getWallet, formatMoney } from '@/services/walletApi'
 import NotificationBell from '@/components/common/NotificationBell.vue'
 import BrandLogo from '@/components/common/BrandLogo.vue'
-import {useRouter, useRoute} from "vue-router"
+import {useRouter} from "vue-router"
 import {logout} from "@/services/authState.ts"
 
 
@@ -17,7 +17,6 @@ const props = defineProps<{
 const emit = defineEmits(["toggle"])
 
 const router = useRouter()
-const route = useRoute()
 const balance = ref<number | null>(null)
 const balanceLoading = ref(false)
 let balanceRequest = 0
@@ -40,7 +39,6 @@ watch(() => [props.isLoggedIn, props.email], () => {
   balanceLoading.value = false
   void refreshBalance()
 }, { immediate: true })
-watch(() => route.fullPath, () => { void refreshBalance() })
 onMounted(() => {
   window.addEventListener('wallet:changed', refreshBalance)
   window.addEventListener('focus', refreshBalance)

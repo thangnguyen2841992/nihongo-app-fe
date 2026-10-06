@@ -80,6 +80,7 @@ let request: AbortController | undefined
 let historyRequest: AbortController | undefined
 let chart: Chart | undefined
 let chartRevision = 0
+let chartPoints: PerformancePoint[] = []
 let timer: ReturnType<typeof setInterval> | undefined
 let stopSocket: (() => void) | undefined
 let socketRevision = 0
@@ -198,6 +199,14 @@ async function loadHistory() {
 
 async function renderChart(points: PerformancePoint[]) {
   const revision = ++chartRevision
+  chartPoints = points
+  if (chart && chart.canvas === canvas.value) {
+    chart.data.labels = points.map((p) => new Date(p.timestamp * 1000).toLocaleString('vi-VN'))
+    chart.data.datasets[0]!.data = points.map((p) => p.value)
+    chart.data.datasets[0]!.label = `${object.value?.objectName || 'Object'} (${metric.value?.unit || ''})`
+    chart.update('none')
+    return
+  }
   chart?.destroy()
   chart = undefined
   await nextTick()
@@ -230,7 +239,7 @@ async function renderChart(points: PerformancePoint[]) {
               maxTicksLimit: 5,
               maxRotation: 0,
               callback: (value) => {
-                const point = points[Number(value)]
+                const point = chartPoints[Number(value)]
                 if (!point) return ''
                 const time = new Date(point.timestamp * 1000)
                 return minutes.value > 1440
