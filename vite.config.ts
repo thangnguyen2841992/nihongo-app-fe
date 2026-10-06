@@ -24,16 +24,16 @@ for (const key of publicKeys) {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   define: publicDefines,
   plugins: [
     vue(),
     vueJsx(),
-    vueDevTools(),
+    ...(command === 'serve' ? [vueDevTools()] : []),
   ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
-})
+}))
