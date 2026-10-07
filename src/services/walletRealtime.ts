@@ -1,12 +1,14 @@
 import { Client } from '@stomp/stompjs'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { gatewayUrl } from '@/api/authApi'
+import axios from 'axios'
 
 export interface WalletNotice { eventId: string; depositId: number; type: 'CREATED' | 'APPROVED' | 'REJECTED' }
 export type LiveStatus = 'connecting' | 'live' | 'offline'
 
 export function connectWalletRealtime(admin: boolean, onChange: (event?: WalletNotice) => void, onStatus: (status: LiveStatus) => void) {
   let stopped = false
+  let retryTimer: ReturnType<typeof setTimeout> | undefined
   const seen = new Set<string>()
   const url = new URL('/api/nihongo-user/wallets/ws', gatewayUrl.defaults.baseURL || window.location.origin)
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -17,7 +19,16 @@ export function connectWalletRealtime(admin: boolean, onChange: (event?: WalletN
       onStatus('connecting')
       // HTTP refresh interceptor renews the HttpOnly cookie before the handshake.
       // No bearer token is exposed in browser storage, URL or STOMP headers.
-      try { await gatewayUrl.get('/api/nihongo-user/wallets') } catch { /* handshake/reconnect or auth redirect handles failure */ }
+      try { await gatewayUrl.get('/api/auth/checkLogin') }
+      catch (error) {
+        if (stopped) return
+        onStatus('offline')
+        await client.deactivate()
+        const terminal = axios.isAxiosError(error) && [401, 403].includes(error.response?.status ?? 0)
+        if (terminal) { stop(); return }
+        if (!stopped) retryTimer = setTimeout(() => { if (!stopped) client.activate() }, 10000)
+        return
+      }
       if (stopped) await client.deactivate()
     },
     onConnect: () => {
@@ -37,8 +48,16 @@ export function connectWalletRealtime(admin: boolean, onChange: (event?: WalletN
     onWebSocketClose: () => { if (!stopped) onStatus('offline') },
     onStompError: () => { if (!stopped) onStatus('offline') },
   })
+  const stop = () => {
+    if (stopped) return
+    stopped = true
+    clearTimeout(retryTimer)
+    window.removeEventListener('auth:expired', stop)
+    void client.deactivate()
+  }
+  window.addEventListener('auth:expired', stop)
   client.activate()
-  return () => { stopped = true; void client.deactivate() }
+  return stop
 }
 
 export function useWalletRealtime(admin: boolean, onChange: (event?: WalletNotice) => void) {

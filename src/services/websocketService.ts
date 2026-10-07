@@ -1,7 +1,6 @@
 import {Client} from '@stomp/stompjs'
 import { authSocketUrl } from './endpoints'
-// @ts-ignore
-import SockJS from 'sockjs-client/dist/sockjs'
+import { gatewayUrl } from '@/api/authApi'
 
 type LogoutCallback = () => void
 
@@ -21,10 +20,16 @@ class WebSocketService {
 
     this.logoutCallback = onLogout
 
-    this.client = new Client({
+    const client = new Client({
 
-      webSocketFactory: () =>
-        new SockJS(authSocketUrl),
+      brokerURL: authSocketUrl,
+      connectionTimeout: 10000,
+      beforeConnect: async () => {
+        if (this.client !== client || this.sessionId !== sessionId) { await client.deactivate(); return }
+        try { await gatewayUrl.get('/api/auth/checkLogin') }
+        catch { await client.deactivate() }
+        if (this.client !== client || this.sessionId !== sessionId) await client.deactivate()
+      },
 
       reconnectDelay: 5000,
 
@@ -32,7 +37,7 @@ class WebSocketService {
         if (this.sessionId !== sessionId) return
 
 
-        this.client?.subscribe(
+        client.subscribe(
           '/user/queue/logout',
 
           (msg) => {
@@ -64,21 +69,14 @@ class WebSocketService {
         )
       },
 
-      onStompError: (frame) => {
-
-        console.error(
-          '❌ Broker error:',
-          frame.headers['message']
-        )
+      onStompError: () => {
+        // Polling checks the HTTP session before starting a new connection.
+        void client.deactivate()
       },
 
-      onWebSocketError: (err) => {
-
-        console.error('❌ WS error', err)
-      }
     })
-
-    this.client.activate()
+    this.client = client
+    client.activate()
   }
 
   disconnect() {

@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { connectWalletRealtime } from '../walletRealtime'
+import { AxiosError } from 'axios'
 
 const mocks = vi.hoisted(() => ({
   clients: [] as any[],
@@ -16,6 +17,7 @@ vi.mock('@stomp/stompjs', () => ({
   },
 }))
 beforeEach(() => { mocks.clients.length = 0; vi.clearAllMocks() })
+afterEach(() => window.dispatchEvent(new Event('auth:expired')))
 describe('wallet realtime transport', () => {
   it('subscribes privately, ignores duplicate notices, and resyncs after reconnect', () => {
     const change = vi.fn(), status = vi.fn()
@@ -36,8 +38,25 @@ describe('wallet realtime transport', () => {
     connectWalletRealtime(true, vi.fn(), vi.fn())
     const client = mocks.clients[0]
     await client.options.beforeConnect()
-    expect(mocks.get).toHaveBeenCalledWith('/api/nihongo-user/wallets')
+    expect(mocks.get).toHaveBeenCalledWith('/api/auth/checkLogin')
     client.options.onConnect()
     expect(client.subscribe).toHaveBeenCalledWith('/topic/wallet-admin', expect.any(Function))
+  })
+  it('stops the handshake and further reconnect attempts when the session has been rejected', async () => {
+    mocks.get.mockRejectedValueOnce(new AxiosError('unauthorized', undefined, undefined, undefined, { status: 401 } as any))
+    const stop = connectWalletRealtime(false, vi.fn(), vi.fn())
+    const client = mocks.clients[0]
+    await client.options.beforeConnect()
+    expect(client.deactivate).toHaveBeenCalled()
+    window.dispatchEvent(new Event('auth:expired'))
+    stop()
+    expect(client.activate).toHaveBeenCalledOnce()
+  })
+  it('deactivates a live connection as soon as authentication expires', () => {
+    const stop = connectWalletRealtime(false, vi.fn(), vi.fn())
+    const client = mocks.clients[0]
+    window.dispatchEvent(new Event('auth:expired'))
+    expect(client.deactivate).toHaveBeenCalledOnce()
+    stop()
   })
 })

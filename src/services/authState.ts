@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import axios from 'axios'
-import { gatewayUrl, publicClient } from '@/api/authApi'
+import { gatewayUrl, publicClient, refreshAccessToken } from '@/api/authApi'
 import { wsService } from '@/services/websocketService'
 import { clearAuthenticationStorage } from './authStorage'
 
@@ -14,7 +14,7 @@ let isChecking = false
 let isLoggingOut = false
 let sessionVersion = 0
 
-type Session = { isLoggedIn: boolean; name?: string; email?: string; role?: string; sessionId?: string }
+type Session = { isLoggedIn: boolean; name?: string; email?: string; role?: string; sessionId?: string; accessExpiresAt?: number }
 
 const clearAuth = () => {
   ++sessionVersion
@@ -35,6 +35,7 @@ const applySession = (session: Session) => {
   userEmail.value = session.email ?? ''
   userRole.value = session.role ?? ''
   sessionStorage.setItem('sessionId', session.sessionId)
+  window.dispatchEvent(new CustomEvent('auth:established', { detail: session }))
   wsService.connect(session.sessionId, () => {
     // The server replaced this session; newer shared cookies must remain valid.
     expireAuth()
@@ -70,7 +71,7 @@ const loadAuth = async () => {
   try {
     const { data } = await publicClient.get<Session>('/api/auth/checkLogin').catch(async error => {
       if (!axios.isAxiosError(error) || error.response?.status !== 401) throw error
-      await publicClient.post('/api/auth/refresh')
+      await refreshAccessToken()
       return publicClient.get<Session>('/api/auth/checkLogin')
     })
     if (version === sessionVersion && !isLoggingOut) applySession(data)

@@ -72,8 +72,6 @@ const checkEmail = async () => {
       }
     )
 
-    console.log('checkEmail response:', response.data)
-
     // Email tồn tại thì luôn cho đăng nhập bằng password
     if (response.data?.type === 'LOCAL' ||
       response.data?.type === 'GOOGLE') {

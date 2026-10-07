@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AxiosError } from 'axios'
-const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), privateGet: vi.fn(), connect: vi.fn(), disconnect: vi.fn() }))
-vi.mock('@/api/authApi', () => ({ publicClient: { get: mocks.get, post: mocks.post }, gatewayUrl: { get: mocks.privateGet } }))
+const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), refresh: vi.fn(), privateGet: vi.fn(), connect: vi.fn(), disconnect: vi.fn() }))
+vi.mock('@/api/authApi', () => ({ publicClient: { get: mocks.get, post: mocks.post }, gatewayUrl: { get: mocks.privateGet }, refreshAccessToken: mocks.refresh }))
 vi.mock('@/services/websocketService', () => ({ wsService: { connect: mocks.connect, disconnect: mocks.disconnect } }))
 import { initAuth, useAuthState } from '../authState'
 beforeEach(() => { vi.useFakeTimers(); vi.clearAllMocks(); sessionStorage.clear(); window.dispatchEvent(new Event('auth:expired')); vi.spyOn(console, 'log').mockImplementation(() => {}) })
@@ -9,15 +9,15 @@ afterEach(() => { window.dispatchEvent(new Event('auth:expired')); vi.useRealTim
 const unauthorized = () => new AxiosError('unauthorized', 'ERR_BAD_RESPONSE', undefined, undefined, { status: 401 } as any)
 it('restores the session after access expiration and uses server session ID', async () => {
   mocks.get.mockRejectedValueOnce(unauthorized()).mockResolvedValueOnce({ data: { isLoggedIn: true, name: 'User', email: 'u@example.com', role: 'USER', sessionId: 'server-sid' } })
-  mocks.post.mockResolvedValueOnce({})
+  mocks.refresh.mockResolvedValueOnce(undefined)
   await initAuth()
-  expect(mocks.post).toHaveBeenCalledWith('/api/auth/refresh')
+  expect(mocks.refresh).toHaveBeenCalledOnce()
   expect(useAuthState().isAuthenticated.value).toBe(true)
   expect(sessionStorage.getItem('sessionId')).toBe('server-sid')
   expect(mocks.connect).toHaveBeenCalledWith('server-sid', expect.any(Function))
 })
 it('allows anonymous initialization and does not start realtime connections', async () => {
-  mocks.get.mockRejectedValueOnce(unauthorized()); mocks.post.mockRejectedValueOnce(unauthorized())
+  mocks.get.mockRejectedValueOnce(unauthorized()); mocks.refresh.mockRejectedValueOnce(unauthorized())
   await initAuth()
   expect(useAuthState().isAuthReady.value).toBe(true)
   expect(useAuthState().isAuthenticated.value).toBe(false)
