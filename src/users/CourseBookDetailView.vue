@@ -16,6 +16,7 @@ import { importedAudioUrl } from '@/services/bookImport'
 import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
 import { bookReadingAudioTrack } from '@/services/bookReadingAudio'
 import { japaneseSpeechText, useJapaneseSpeech } from '@/services/japaneseSpeech'
+import { getCards, saveCard, deleteCard, type StudyCard, type CardInput } from '@/api/study'
 
 /* =========================
    ROUTER
@@ -89,10 +90,85 @@ const readingAudioSource = computed(() => importedAudioUrl(selectedLesson.value?
 const isTryN3 = computed(() => book.value?.bookName?.startsWith('TRY! N3') ?? false)
 const { speechError, speechProvider, speakExample: playExample, stopSpeaking } = useJapaneseSpeech()
 const activeSpokenExampleId = ref<number | null>(null)
+const savedCards = ref<StudyCard[]>([])
+const cardsLoading = ref(false)
+const bookmarkError = ref('')
+const bookmarkBusy = ref('')
+const practiceExample = ref<Example | null>(null)
+const recording = ref(false)
+const recordError = ref('')
+const recordedUrl = ref('')
+let recorder: MediaRecorder | null = null
+let microphone: MediaStream | null = null
+let recordingVersion = 0
 
-function speakExample(example: Example) {
+function plain(html: string) { return japaneseSpeechText(html || '') }
+function shortPlain(html: string) { return plain(html).slice(0, 2000) }
+function saved(key: string) { return savedCards.value.find(card => card.sourceKey === key) }
+async function toggleCard(input: CardInput) {
+  bookmarkError.value = ''; bookmarkBusy.value = input.sourceKey
+  try {
+    const existing = saved(input.sourceKey)
+    if (existing) { await deleteCard(existing.id); savedCards.value = savedCards.value.filter(c => c.id !== existing.id) }
+    else savedCards.value.push(await saveCard(input))
+  } catch { bookmarkError.value = 'Không lưu được sổ tay. Vui lòng thử lại.' }
+  finally { bookmarkBusy.value = '' }
+}
+function bookmarkGrammar(grammar: Grammar) {
+  if (!selectedLesson.value) return
+  void toggleCard({ sourceKey: `grammar:${grammar.grammarId}`, kind: 'GRAMMAR', courseId: courseId || null,
+    bookId, lessonId: selectedLesson.value.lessonId, grammarId: grammar.grammarId, exampleId: null,
+    front: shortPlain(grammar.title), back: shortPlain(grammar.description), note: null })
+}
+function bookmarkExample(example: Example) {
+  if (!selectedLesson.value) return
+  void toggleCard({ sourceKey: `example:${example.exampleId}`, kind: 'EXAMPLE', courseId: courseId || null,
+    bookId, lessonId: selectedLesson.value.lessonId, grammarId: example.grammarId, exampleId: example.exampleId,
+    front: shortPlain(example.nihongo), back: shortPlain(example.vietnamese), note: null })
+}
+function stopRecording() {
+  if (recorder?.state === 'recording') recorder.stop()
+  microphone?.getTracks().forEach(track => track.stop())
+  microphone = null
+  recording.value = false
+}
+function clearRecording() {
+  recordingVersion++
+  stopRecording()
+  if (recordedUrl.value) URL.revokeObjectURL(recordedUrl.value)
+  recordedUrl.value = ''
+}
+async function startRecording() {
+  recordError.value = ''
+  if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+    recordError.value = 'Trình duyệt chưa hỗ trợ ghi âm.'; return
+  }
+  try {
+    clearRecording()
+    const version = recordingVersion
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    if (version !== recordingVersion) { stream.getTracks().forEach(track => track.stop()); return }
+    microphone = stream
+    const activeRecorder = new MediaRecorder(stream)
+    recorder = activeRecorder
+    const chunks: Blob[] = []
+    activeRecorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data) }
+    activeRecorder.onstop = () => {
+      if (version === recordingVersion && chunks.length) recordedUrl.value = URL.createObjectURL(new Blob(chunks, { type: activeRecorder.mimeType || 'audio/webm' }))
+      stream.getTracks().forEach(track => track.stop())
+      if (microphone === stream) microphone = null
+    }
+    activeRecorder.start(); recording.value = true
+  } catch { recordError.value = 'Không mở được micro. Kiểm tra quyền micro của trình duyệt.' }
+}
+function showPractice(example: Example) {
+  if (practiceExample.value?.exampleId === example.exampleId) { practiceExample.value = null; clearRecording() }
+  else { clearRecording(); practiceExample.value = example }
+}
+
+function speakExample(example: Example, rate = 1) {
   activeSpokenExampleId.value = example.exampleId
-  if (example.grammarId) void playExample(example.exampleId, example.grammarId, japaneseSpeechText(example.nihongo))
+  if (example.grammarId) void playExample(example.exampleId, example.grammarId, japaneseSpeechText(example.nihongo), rate)
 }
 
 const showLessonModal =
@@ -500,9 +576,20 @@ const openLesson = async (
   lessonContentController = null
 
   stopSpeaking()
+  clearRecording()
+  practiceExample.value = null
   speechError.value = ''
   activeSpokenExampleId.value = null
   selectedLesson.value = lesson
+  savedCards.value = []
+  cardsLoading.value = true
+  void getCards(lesson.lessonId).then(cards => {
+    if (requestId === lessonRequestId && !disposed) savedCards.value = cards
+  }).catch(() => {
+    if (requestId === lessonRequestId && !disposed) bookmarkError.value = 'Không tải được sổ tay.'
+  }).finally(() => {
+    if (requestId === lessonRequestId && !disposed) cardsLoading.value = false
+  })
   grammars.value = []
   examples.value = {}
   expandedGrammar.value = {}
@@ -637,6 +724,7 @@ const getStructureImage = (
    MOUNT
 ========================= */
 onUnmounted(() => {
+  clearRecording()
   disposed = true
   ++lessonRequestId
   lessonContentController?.abort()
@@ -661,8 +749,13 @@ onMounted(async () => {
     lessons.value.length > 0
   ) {
     const requestedLessonId = Number(route.query.lessonId)
+    const requestedGrammarId = Number(route.query.grammarId)
     const requestedLesson = lessons.value.find(lesson => lesson.lessonId === requestedLessonId)
     await openLesson(requestedLesson ?? lessons.value[0]!)
+    if (Number.isInteger(requestedGrammarId) && requestedGrammarId > 0) {
+      await nextTick()
+      document.getElementById(`grammar-${requestedGrammarId}`)?.scrollIntoView({ block: 'center' })
+    }
   } else {
     rememberPosition(null)
   }
@@ -697,6 +790,7 @@ const goToExercisePage =
 
   <div class="grammar-page">
     <p v-if="positionError" role="alert" class="position-error">{{ positionError }}</p>
+    <p v-if="bookmarkError" role="alert" class="position-error">{{ bookmarkError }}</p>
 
     <!-- HEADER -->
 
@@ -903,6 +997,7 @@ const goToExercisePage =
               <div class="grammar-title-text">
                 {{ grammar.title }}
               </div>
+              <button type="button" class="example-speak" :disabled="cardsLoading || bookmarkBusy === `grammar:${grammar.grammarId}`" @click="bookmarkGrammar(grammar)">{{ saved(`grammar:${grammar.grammarId}`) ? 'Đã lưu' : 'Lưu vào sổ tay' }}</button>
 
             </div>
 
@@ -1056,7 +1151,16 @@ const goToExercisePage =
                         <i class="bi bi-volume-up" aria-hidden="true"></i>
                         <span>Nghe phát âm</span>
                       </button>
+                      <button type="button" class="example-speak" :disabled="cardsLoading || bookmarkBusy === `example:${example.exampleId}`" @click="bookmarkExample(example)">{{ saved(`example:${example.exampleId}`) ? 'Đã lưu' : 'Lưu vào sổ tay' }}</button>
+                      <button v-if="example.nihongo?.trim()" type="button" class="example-speak" @click="showPractice(example)">Luyện nghe nói</button>
 
+                    </div>
+                    <div v-if="practiceExample?.exampleId === example.exampleId" class="example-practice">
+                      <p>Nghe câu mẫu, đọc theo rồi nghe lại bản ghi của bạn để tự so sánh.</p>
+                      <div class="study-actions"><button type="button" class="example-speak" @click="speakExample(example)">Nghe lại</button><button type="button" class="example-speak" @click="speakExample(example, 0.75)">Nghe chậm 0,75×</button><button v-if="!recording" type="button" class="example-speak" @click="startRecording">Bắt đầu ghi âm</button><button v-else type="button" class="example-speak" @click="stopRecording">Dừng ghi âm</button></div>
+                      <p v-if="recordError" role="alert" class="example-speech-error">{{ recordError }}</p>
+                      <audio v-if="recordedUrl" :src="recordedUrl" controls aria-label="Bản ghi của bạn"></audio>
+                      <small>Bản ghi chỉ được giữ trong trình duyệt ở phiên này.</small>
                     </div>
 
                   </div>
@@ -2252,6 +2356,14 @@ const goToExercisePage =
 .vn-text::before { display: none; }
 .example-speak { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid #c5d9ea; border-radius: 999px; background: #f0f7fd; color: #275b83; font-size: 12px; font-weight: 650; cursor: pointer; white-space: nowrap; }
 .example-speak:hover { background: #deeffb; }
+.grammar-title, .example-row { flex-wrap: wrap; }
+.grammar-title .example-speak { margin-left: auto; }
+.example-row .example-content { flex: 1 1 230px; }
+.example-row .example-speak { white-space: normal; }
+.example-practice { margin: 12px 0 4px; padding: 14px; border-radius: 12px; background: #f8f3fb; color: #514860; }
+.example-practice .study-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.example-practice audio { display: block; max-width: 100%; margin: 8px 0; }
+.example-practice small { color: #71667a; }
 .example-speak:focus-visible { outline: 3px solid #90c5e7; outline-offset: 2px; }
 .example-speech-error { margin: 8px 0 0; color: #a34141; font-size: 12px; }
 .example-speech-credit { display: block; margin-top: 7px; color: #63748a; font-size: 11px; }

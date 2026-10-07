@@ -39,7 +39,7 @@ export function useJapaneseSpeech() {
     if (supported()) window.speechSynthesis.cancel()
   }
 
-  const speakJapanese = (text: string) => {
+  const speakJapanese = (text: string, rate = 0.9) => {
     stopSpeaking()
     speechError.value = ''
     if (!text.trim()) return
@@ -57,7 +57,7 @@ export function useJapaneseSpeech() {
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.voice = voice
     utterance.lang = voice.lang
-    utterance.rate = 0.9
+    utterance.rate = rate
     utterance.pitch = 1
     utterance.onerror = event => {
       if (current === version && event.error !== 'canceled' && event.error !== 'interrupted') {
@@ -68,7 +68,7 @@ export function useJapaneseSpeech() {
     speechProvider.value = 'browser'
   }
 
-  const speakExample = async (exampleId: number, grammarId: number, text: string) => {
+  const speakExample = async (exampleId: number, grammarId: number, text: string, rate = 1) => {
     stopSpeaking()
     speechError.value = ''
     if (!text.trim()) return
@@ -82,11 +82,12 @@ export function useJapaneseSpeech() {
       request = null
       audioUrl = URL.createObjectURL(response.data)
       audio = new Audio(audioUrl)
+      audio.playbackRate = rate
       audio.onended = () => {
         if (current === version) stopSpeaking()
       }
       audio.onerror = () => {
-        if (current === version) speakJapanese(text)
+        if (current === version) speakJapanese(text, rate)
       }
       await audio.play()
       if (current === version) speechProvider.value = 'voicevox'
@@ -94,7 +95,7 @@ export function useJapaneseSpeech() {
       if (current !== version) return
       request = null
       // The local VOICEVOX engine is optional; keep pronunciation available offline.
-      speakJapanese(text)
+      speakJapanese(text, rate)
     }
   }
 

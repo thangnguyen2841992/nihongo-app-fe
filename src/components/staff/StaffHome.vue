@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue"
-import { useRouter } from "vue-router"
+import { useRoute, useRouter } from "vue-router"
 
 import CreateBookModal from "@/components/staff/CreateBookModal.vue"
 import ImagePreviewModal from "@/components/common/ImagePreviewModal.vue"
 import CreateLessonModal from "@/components/staff/CreateLessonModal.vue"
 
 import { gatewayUrl } from "@/api/authApi.ts"
+import { useAuthState } from "@/services/authState"
 
 /* =========================
    ROUTER
 ========================= */
 
 const router = useRouter()
+const route = useRoute()
+const { userRole } = useAuthState()
 
 /* =========================
    TYPES
@@ -29,6 +32,14 @@ interface Book {
   typeName: string
   levelName: string
   imageUrls: ImageDTO[]
+  publicationStatus: 'DRAFT' | 'IN_REVIEW' | 'PUBLISHED'
+}
+
+interface PublicationReview {
+  bookId: number
+  status: Book['publicationStatus']
+  errors: string[]
+  warnings: string[]
 }
 
 /* =========================
@@ -36,8 +47,38 @@ interface Book {
 ========================= */
 
 const books = ref<Book[]>([])
+const publicationReview = ref<PublicationReview | null>(null)
+const publicationBusy = ref(false)
+const publicationError = ref('')
+const publicationNotice = ref('')
+const statusLabel = (status: Book['publicationStatus']) => ({ DRAFT: 'Bản nháp', IN_REVIEW: 'Chờ duyệt', PUBLISHED: 'Đã xuất bản' })[status]
+
+async function inspectPublication(book: Book) {
+  publicationError.value = ''
+  try {
+    const { data } = await gatewayUrl.get<PublicationReview>(`/api/staff/books/${book.bookId}/publication`)
+    publicationReview.value = data
+  } catch { publicationError.value = 'Không kiểm tra được nội dung sách.' }
+}
+
+async function changePublication(book: Book, action: 'submit' | 'publish' | 'draft') {
+  if (action === 'draft' && !confirm('Chuyển về bản nháp sẽ tạm ẩn sách với học viên. Tiếp tục?')) return
+  publicationBusy.value = true
+  publicationError.value = ''
+  publicationNotice.value = ''
+  try {
+    const { data } = await gatewayUrl.post<PublicationReview>(`/api/staff/books/${book.bookId}/publication/${action}`)
+    publicationReview.value = data
+    publicationNotice.value = action === 'submit' ? 'Đã gửi sách để duyệt.' : action === 'publish' ? 'Đã xuất bản sách.' : 'Đã chuyển sách về bản nháp.'
+    await fetchBooks()
+  } catch {
+    await inspectPublication(book)
+    publicationError.value = 'Không đổi được trạng thái. Hãy kiểm tra nội dung sách và thử lại.'
+  } finally { publicationBusy.value = false }
+}
 
 const showModal = ref(false)
+if (route.query.create === '1') showModal.value = true
 
 /* =========================
    IMAGE MODAL
@@ -113,6 +154,7 @@ const openModal = () => {
 const closeModal = () => {
 
   showModal.value = false
+  if (route.query.create === '1') void router.replace('/staff')
 }
 
 const onCreated = () => {
@@ -153,40 +195,6 @@ const closeLessonModal =
       null
   }
 
-/* =========================
-   DELETE BOOK
-========================= */
-
-const deleteBook = async (
-  bookId: number
-) => {
-
-  const confirmed = confirm(
-    "Bạn có chắc chắn muốn xóa sách này?"
-  )
-
-  if (!confirmed) return
-
-  try {
-
-    await gatewayUrl.delete(
-      `/api/staff/books/${bookId}`
-    )
-
-    books.value =
-      books.value.filter(
-        b => b.bookId !== bookId
-      )
-
-    alert("Xóa sách thành công")
-
-  } catch (e) {
-
-    console.error(e)
-
-    alert("Xóa sách thất bại")
-  }
-}
 </script>
 
 <template>
@@ -229,6 +237,18 @@ const deleteBook = async (
 
     </div>
 
+    <div v-if="publicationError" class="alert alert-danger" role="alert">{{ publicationError }}</div>
+    <div v-if="publicationNotice" class="alert alert-success" role="status">{{ publicationNotice }}</div>
+    <div v-if="publicationReview" class="alert alert-light border d-flex justify-content-between gap-3 align-items-start">
+      <div>
+        <strong>Kiểm tra sách #{{ publicationReview.bookId }}</strong>
+        <p v-if="!publicationReview.errors.length && !publicationReview.warnings.length" class="mb-0">Nội dung đã sẵn sàng để gửi duyệt.</p>
+        <p v-for="message in publicationReview.errors" :key="message" class="text-danger mb-1">{{ message }}</p>
+        <p v-for="message in publicationReview.warnings" :key="message" class="text-warning-emphasis mb-1">{{ message }}</p>
+      </div>
+      <button class="btn-close" aria-label="Đóng kết quả kiểm tra" @click="publicationReview = null"></button>
+    </div>
+
     <!-- TABLE -->
 
     <div
@@ -240,6 +260,8 @@ const deleteBook = async (
     >
 
       <div class="card-body">
+
+        <div class="table-responsive">
 
         <table
           class="
@@ -272,6 +294,8 @@ const deleteBook = async (
             <th width="120">
               Trình độ
             </th>
+
+            <th width="140">Xuất bản</th>
 
             <th width="120">
               Thao tác
@@ -394,6 +418,8 @@ const deleteBook = async (
 
             </td>
 
+            <td><span class="badge" :class="b.publicationStatus === 'PUBLISHED' ? 'bg-success' : b.publicationStatus === 'IN_REVIEW' ? 'bg-info text-dark' : 'bg-secondary'">{{ statusLabel(b.publicationStatus) }}</span></td>
+
             <!-- ACTIONS -->
 
             <td>
@@ -407,6 +433,7 @@ const deleteBook = async (
                 <!-- ADD LESSON -->
 
                 <button
+                  v-if="b.publicationStatus === 'DRAFT'"
                   class="
                     action-btn
                     add-btn
@@ -428,30 +455,13 @@ const deleteBook = async (
 
                 </button>
 
-                <!-- DELETE -->
+              </div>
 
-                <button
-                  class="
-                    action-btn
-                    delete-btn
-                  "
-                  @click="
-                    deleteBook(
-                      b.bookId
-                    )
-                  "
-                  title="Xóa sách"
-                >
-
-                  <i
-                    class="
-                      bi
-                      bi-trash
-                    "
-                  ></i>
-
-                </button>
-
+              <div class="d-flex gap-1 flex-wrap mt-2">
+                <button class="btn btn-sm btn-outline-secondary" :disabled="publicationBusy" @click="inspectPublication(b)">Kiểm tra</button>
+                <button v-if="b.publicationStatus === 'DRAFT'" class="btn btn-sm btn-outline-primary" :disabled="publicationBusy" @click="changePublication(b, 'submit')">Gửi duyệt</button>
+                <button v-if="b.publicationStatus === 'IN_REVIEW' && userRole === 'ADMIN'" class="btn btn-sm btn-success" :disabled="publicationBusy" @click="changePublication(b, 'publish')">Xuất bản</button>
+                <button v-if="b.publicationStatus !== 'DRAFT' && userRole === 'ADMIN'" class="btn btn-sm btn-outline-warning" :disabled="publicationBusy" @click="changePublication(b, 'draft')">Về bản nháp</button>
               </div>
 
             </td>
@@ -461,6 +471,8 @@ const deleteBook = async (
           </tbody>
 
         </table>
+
+        </div>
 
         <!-- EMPTY -->
 
@@ -681,33 +693,6 @@ const deleteBook = async (
       25,
       135,
       84,
-      0.25
-    );
-}
-
-/* DELETE BUTTON */
-
-.delete-btn {
-
-  background: #fdecec;
-
-  color: #dc3545;
-}
-
-.delete-btn:hover {
-
-  background: #dc3545;
-
-  color: white;
-
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 6px 16px
-    rgba(
-      220,
-      53,
-      69,
       0.25
     );
 }

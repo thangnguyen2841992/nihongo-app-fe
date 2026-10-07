@@ -27,6 +27,11 @@ it('explicitly selects a Japanese voice even when the default voice is English',
   expect(speech.speechError.value).toBe('')
 })
 
+it('supports slower playback for sentence practice', () => {
+  speech.speakJapanese('もう一度', 0.75)
+  expect(synth.speak).toHaveBeenCalledWith(expect.objectContaining({ text: 'もう一度', rate: 0.75 }))
+})
+
 it('reads example HTML without markup or duplicate ruby pronunciation', () => {
   expect(japaneseSpeechText('<p><ruby>日本語<rt>にほんご</rt></ruby>を勉強します。<br>頑張ります。</p>'))
     .toBe('日本語を勉強します。頑張ります。')

@@ -1,0 +1,22 @@
+.study-page { max-width: 1120px; margin: 0 auto; padding: 24px 18px 60px; color: #334155; }
+.study-hero { padding: 28px 32px; border: 1px solid #e4d9e3; border-radius: 22px; background: linear-gradient(125deg, #fff9f5ed, #f4edf9ed); box-shadow: 0 12px 30px #73627b16; }
+.study-hero h1 { margin: 0 0 8px; color: #50435e; font-size: clamp(24px, 3vw, 34px); font-weight: 750; }
+.study-hero p { margin: 0; color: #6c6275; }
+.study-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
+.study-panel { padding: 22px; border: 1px solid #e6e1e8; border-radius: 18px; background: #ffffffed; box-shadow: 0 8px 24px #55475e0f; }
+.study-panel h2 { font-size: 18px; font-weight: 720; color: #50435e; margin: 0 0 12px; }
+.study-panel p { color: #697386; margin: 0 0 15px; }
+.study-count { font-size: 32px; color: #80628e; font-weight: 800; line-height: 1; margin: 10px 0; }
+.study-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #80628e; background: #80628e; color: #fff; border-radius: 10px; padding: 9px 15px; font-weight: 650; text-decoration: none; cursor: pointer; }
+.study-button:hover { background: #6c507c; color: #fff; }
+.study-button.secondary { background: #fff; color: #705582; }
+.study-button.secondary:hover { background: #f8f0fb; }
+.study-button:disabled { opacity: .55; cursor: not-allowed; }
+.study-list { display: grid; gap: 12px; margin-top: 18px; }
+.study-meta { font-size: 13px; color: #7a6b86; }
+.study-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.study-error { margin: 14px 0; padding: 12px; border-radius: 10px; background: #fff0ee; color: #a83f3f; }
+.study-empty { padding: 26px; text-align: center; border: 1px dashed #ccbed1; border-radius: 14px; background: #ffffffca; color: #73647c; }
+.study-progress { height: 9px; border-radius: 10px; background: #ede5ef; overflow: hidden; }
+.study-progress span { display: block; height: 100%; background: #a77faf; border-radius: inherit; }
+@media (max-width: 600px) { .study-page { padding: 14px 10px 40px; } .study-hero { padding: 22px; } }

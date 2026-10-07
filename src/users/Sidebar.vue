@@ -2,8 +2,11 @@
 defineProps<{ isOpen: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 const links = [
-  { to: '/courses', icon: 'bi-compass', label: 'Khám phá khóa học' },
+  { to: '/', icon: 'bi-house-heart', label: 'Học hôm nay' },
   { to: '/user/my-courses', icon: 'bi-book', label: 'Khóa học của tôi' },
+  { to: '/user/review', icon: 'bi-arrow-repeat', label: 'Ôn tập' },
+  { to: '/user/notebook', icon: 'bi-journal-bookmark', label: 'Sổ tay' },
+  { to: '/courses', icon: 'bi-compass', label: 'Khám phá khóa học' },
   { to: '/wallet', icon: 'bi-wallet2', label: 'Ví của tôi' },
 ]
 </script>

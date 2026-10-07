@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref} from "vue"
+import {onMounted, onUnmounted, ref} from "vue"
 import {logout, useAuthState} from "@/services/authState.ts"
 import router from "@/router"
 /* =========================
@@ -8,8 +8,16 @@ import router from "@/router"
 
 const {
   userName,
-  userEmail
+  userEmail,
+  userRole,
 } = useAuthState()
+const accountMenuOpen = ref(false)
+const accountDropdown = ref<HTMLElement | null>(null)
+const closeAccountMenuOnOutsideClick = (event: PointerEvent) => {
+  if (!accountDropdown.value?.contains(event.target as Node)) accountMenuOpen.value = false
+}
+onMounted(() => document.addEventListener('pointerdown', closeAccountMenuOnOutsideClick))
+onUnmounted(() => document.removeEventListener('pointerdown', closeAccountMenuOnOutsideClick))
 
 /* =========================
    SEARCH
@@ -51,6 +59,7 @@ const handleSearch = async () => {
 ========================= */
 
 const handleLogout = async () => {
+  accountMenuOpen.value = false
 
   try {
 
@@ -119,28 +128,34 @@ const handleLogout = async () => {
       <!-- RIGHT -->
       <div class="d-flex align-items-center">
 
+        <RouterLink to="/staff" class="workspace-link me-2" aria-label="Về giao diện Staff">
+          <i class="bi bi-person-workspace" aria-hidden="true"></i><span>Staff</span>
+        </RouterLink>
+        <RouterLink v-if="userRole === 'ADMIN'" to="/admin/dashboard" class="workspace-link me-2" aria-label="Về giao diện Admin">
+          <i class="bi bi-shield-check" aria-hidden="true"></i><span>Admin</span>
+        </RouterLink>
+
         <!-- NOTIFICATION -->
-        <button
-          class="btn btn-light position-relative me-3 notification-btn"
+        <RouterLink
+          to="/staff/monitoring/vps/events/realtime"
+          class="btn btn-light me-3 notification-btn"
+          aria-label="Xem sự kiện giám sát realtime"
+          title="Sự kiện giám sát realtime"
         >
-
-          <i class="bi bi-bell"></i>
-
-          <span
-            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-          >
-            3
-          </span>
-
-        </button>
+          <i class="bi bi-bell" aria-hidden="true"></i>
+        </RouterLink>
 
 
         <!-- USER DROPDOWN -->
-        <div class="dropdown">
+        <div ref="accountDropdown" class="dropdown" @keydown.esc="accountMenuOpen = false">
 
           <button
+            type="button"
             class="btn user-dropdown-btn dropdown-toggle"
-            data-bs-toggle="dropdown"
+            aria-haspopup="menu"
+            aria-controls="staff-account-menu"
+            :aria-expanded="accountMenuOpen"
+            @click="accountMenuOpen = !accountMenuOpen"
           >
 
             <!-- AVATAR -->
@@ -172,41 +187,17 @@ const handleLogout = async () => {
 
           <!-- MENU -->
           <ul
-            class="dropdown-menu dropdown-menu-end shadow border-0"
+            v-if="accountMenuOpen"
+            id="staff-account-menu"
+            class="dropdown-menu dropdown-menu-end shadow border-0 show"
+            role="menu"
           >
-
             <li>
 
-              <a class="dropdown-item">
-
-                <i class="bi bi-person me-2"></i>
-
-                Thông tin cá nhân
-
-              </a>
-
-            </li>
-
-            <li>
-
-              <a class="dropdown-item">
-
-                <i class="bi bi-gear me-2"></i>
-
-                Cài đặt
-
-              </a>
-
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li>
-
-              <a
+              <button
+                type="button"
                 class="dropdown-item text-danger"
+                role="menuitem"
                 @click="handleLogout"
               >
 
@@ -214,7 +205,7 @@ const handleLogout = async () => {
 
                 Đăng xuất
 
-              </a>
+              </button>
 
             </li>
 
@@ -249,6 +240,10 @@ const handleLogout = async () => {
 
   background: white;
 }
+
+.workspace-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 11px; border: 1px solid #dbe4ed; border-radius: 10px; background: #f5f8fb; color: #31547c; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.workspace-link:hover, .workspace-link.router-link-active { background: #e5eff9; color: #213f61; }
+@media (max-width: 992px) { .workspace-link span { display: none; } }
 
 
 /* =========================

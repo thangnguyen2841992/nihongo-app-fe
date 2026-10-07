@@ -13,7 +13,7 @@ const ResetPassword = () => import("@/components/auth/ResetPassword.vue")
 const ActiveExpired = () => import("@/components/auth/ActiveExpired.vue")
 const ActiveFailed = () => import("@/components/auth/ActiveFailed.vue")
 const RegisterView = () => import("@/components/auth/RegisterView.vue")
-const AdminHome = () => import("@/components/admin/Admin-home.vue")
+const AdminHome = () => import("@/components/admin/AdminDashboard.vue")
 const AdminLayout = () => import("@/components/admin/AdminLayout.vue")
 const StaffLayout = () => import("@/components/staff/StaffLayout.vue")
 const StaffHome = () => import("@/components/staff/StaffHome.vue")
@@ -38,6 +38,16 @@ const routes = [
         path: 'user/my-courses',
         meta: { requiresAuth: true },
         component: MyCoursesView
+      },
+      {
+        path: 'user/review',
+        meta: { requiresAuth: true },
+        component: () => import('@/users/ReviewView.vue')
+      },
+      {
+        path: 'user/notebook',
+        meta: { requiresAuth: true },
+        component: () => import('@/users/NotebookView.vue')
       },
       {
         path: '/course/:courseId',
@@ -148,13 +158,12 @@ const routes = [
         name: 'AdminWalletDeposits',
         component: () => import('@/components/admin/WalletDeposits.vue'),
         meta: { requiresAuth: true }
+      },
+      {
+        path: 'users',
+        name: 'AdminUsers',
+        component: () => import('@/components/admin/AdminUsers.vue')
       }
-      // {
-      //   path: 'users',
-      //   name: 'AdminUsers',
-      //   component: () =>
-      //     import('@/components/admin/AdminUsers.vue')
-      // }
     ]
   },
   // STAFF
@@ -166,6 +175,10 @@ const routes = [
       {
         path: '',
         component: StaffHome
+      },
+      {
+        path: 'create-book',
+        redirect: '/staff?create=1'
       },
       {
         path: 'books/:bookId',

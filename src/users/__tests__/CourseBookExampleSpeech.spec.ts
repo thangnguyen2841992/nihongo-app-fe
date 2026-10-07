@@ -75,7 +75,7 @@ async function openBook() {
 
 it('plays cached VOICEVOX audio for a TRY! N3 example and shows the voice credit', async () => {
   await openBook()
-  await wrapper!.get('.example-speak').trigger('click')
+  await wrapper!.get('[aria-label^="Nghe phát âm câu ví dụ"]').trigger('click')
   await flushPromises()
   expect(gatewayUrl.get).toHaveBeenCalledWith('/api/staff/grammars/21/examples/31/speech', expect.objectContaining({ responseType: 'blob' }))
   expect(play).toHaveBeenCalledOnce()
@@ -86,7 +86,7 @@ it('plays cached VOICEVOX audio for a TRY! N3 example and shows the voice credit
 it('does not show TRY! N3 pronunciation controls for another book', async () => {
   bookName = 'Minna no Nihongo'
   await openBook()
-  expect(wrapper!.find('.example-speak').exists()).toBe(false)
+  expect(wrapper!.find('[aria-label^="Nghe phát âm câu ví dụ"]').exists()).toBe(false)
 })
 
 it('falls back to the browser voice when VOICEVOX is unavailable', async () => {
@@ -98,7 +98,7 @@ it('falls back to the browser voice when VOICEVOX is unavailable', async () => {
       [{ exampleId: 31, grammarId: 21, nihongo: '<ruby>日本語<rt>にほんご</rt></ruby>を勉強します。' }] } as never
   })
   await openBook()
-  await wrapper!.get('.example-speak').trigger('click')
+  await wrapper!.get('[aria-label^="Nghe phát âm câu ví dụ"]').trigger('click')
   await flushPromises()
   expect(synthesis.speak).toHaveBeenCalledWith(expect.objectContaining({ text: '日本語を勉強します。' }))
 })
@@ -107,7 +107,7 @@ it('explains when neither VOICEVOX nor a Japanese browser voice is available', a
   synthesis.getVoices.mockReturnValue([])
   await openBook()
   vi.mocked(gatewayUrl.get).mockRejectedValueOnce(new Error('engine offline'))
-  await wrapper!.get('.example-speak').trigger('click')
+  await wrapper!.get('[aria-label^="Nghe phát âm câu ví dụ"]').trigger('click')
   await flushPromises()
   expect(wrapper!.get('.example-speech-error').text()).toContain('chưa có giọng đọc tiếng Nhật')
   expect(synthesis.speak).not.toHaveBeenCalled()

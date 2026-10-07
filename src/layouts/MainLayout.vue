@@ -26,7 +26,7 @@ watch([isAuthReady, isAuthenticated, () => route.path], ([ready, authenticated, 
 
 <template>
   <StaffNavbar v-if="isStaff" :isLoggedIn="isAuthenticated" :name="userName" :email="userEmail" @toggle="toggleSidebar" />
-  <Navbar v-else-if="isAuthenticated" :isLoggedIn="isAuthenticated" :name="userName" :email="userEmail" @toggle="toggleSidebar" />
+  <Navbar v-else-if="isAuthenticated" :isLoggedIn="isAuthenticated" :name="userName" :email="userEmail" :role="userRole" @toggle="toggleSidebar" />
   <GuestNavbar v-else :isOpen="isOpen" @toggle="toggleSidebar" />
 
   <div class="layout" :class="{ 'user-background': !isAuthenticated || isUser }">

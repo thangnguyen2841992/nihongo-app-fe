@@ -9,11 +9,15 @@
     </h6>
 
     <router-link to="/admin/users" class="nav-item">
-      <i class="bi bi-people"></i> Users
+      <i class="bi bi-people"></i> Tài khoản
+    </router-link>
+
+    <router-link to="/staff" class="nav-item">
+      <i class="bi bi-journal-check"></i> Duyệt sách
     </router-link>
 
     <router-link to="/admin/dashboard" class="nav-item">
-      <i class="bi bi-speedometer2"></i> Dashboard
+      <i class="bi bi-speedometer2"></i> Tổng quan
     </router-link>
 
   </aside>

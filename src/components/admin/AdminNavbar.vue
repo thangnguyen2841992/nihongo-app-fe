@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import NotificationBell from '@/components/common/NotificationBell.vue'
-import { ref, onMounted } from "vue"
+import { ref, onMounted, onUnmounted } from "vue"
 import { logout } from "@/services/authState.ts"
 import router from "@/router"
 import {gatewayUrl} from "@/api/authApi.ts"
@@ -13,6 +13,13 @@ const isLoggedIn = ref(false)
 
 const userName = ref("")
 const userEmail = ref("")
+const accountMenuOpen = ref(false)
+const accountDropdown = ref<HTMLElement | null>(null)
+const closeAccountMenuOnOutsideClick = (event: PointerEvent) => {
+  if (!accountDropdown.value?.contains(event.target as Node)) accountMenuOpen.value = false
+}
+onMounted(() => document.addEventListener('pointerdown', closeAccountMenuOnOutsideClick))
+onUnmounted(() => document.removeEventListener('pointerdown', closeAccountMenuOnOutsideClick))
 
 /* =========================
    LOAD USER
@@ -49,6 +56,7 @@ onMounted(async () => {
 ========================= */
 
 const handleLogout = async () => {
+  accountMenuOpen.value = false
 
   try {
 
@@ -84,16 +92,28 @@ const handleLogout = async () => {
 
       <!-- RIGHT -->
       <div class="ms-auto d-flex align-items-center">
+        <RouterLink to="/staff" class="workspace-link me-2" aria-label="Về giao diện Staff">
+          <i class="bi bi-person-workspace" aria-hidden="true"></i><span>Staff</span>
+        </RouterLink>
+        <RouterLink to="/" class="workspace-link me-2" aria-label="Về giao diện người dùng">
+          <i class="bi bi-house" aria-hidden="true"></i><span>Người dùng</span>
+        </RouterLink>
         <NotificationBell class="text-warning me-3" />
         <!-- USER -->
         <div
           v-if="isLoggedIn"
+          ref="accountDropdown"
           class="dropdown"
+          @keydown.esc="accountMenuOpen = false"
         >
 
           <button
+            type="button"
             class="btn admin-user-btn dropdown-toggle"
-            data-bs-toggle="dropdown"
+            aria-haspopup="menu"
+            aria-controls="admin-account-menu"
+            :aria-expanded="accountMenuOpen"
+            @click="accountMenuOpen = !accountMenuOpen"
           >
 
             <!-- AVATAR -->
@@ -124,41 +144,17 @@ const handleLogout = async () => {
 
           <!-- DROPDOWN -->
           <ul
-            class="dropdown-menu dropdown-menu-end shadow border-0"
+            v-if="accountMenuOpen"
+            id="admin-account-menu"
+            class="dropdown-menu dropdown-menu-end shadow border-0 show"
+            role="menu"
           >
-
             <li>
 
-              <a class="dropdown-item">
-
-                <i class="bi bi-person me-2"></i>
-
-                Thông tin cá nhân
-
-              </a>
-
-            </li>
-
-            <li>
-
-              <a class="dropdown-item">
-
-                <i class="bi bi-gear me-2"></i>
-
-                Cài đặt
-
-              </a>
-
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li>
-
-              <a
+              <button
+                type="button"
                 class="dropdown-item text-danger"
+                role="menuitem"
                 @click="handleLogout"
               >
 
@@ -166,7 +162,7 @@ const handleLogout = async () => {
 
                 Đăng xuất
 
-              </a>
+              </button>
 
             </li>
 
@@ -207,6 +203,10 @@ const handleLogout = async () => {
 .navbar {
   height: 72px;
 }
+
+.workspace-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 11px; border: 1px solid #685d4c; border-radius: 10px; background: #ffffff14; color: #fff0c4; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.workspace-link:hover { background: #ffffff29; color: white; }
+@media (max-width: 768px) { .workspace-link span { display: none; } }
 
 /* =========================
    USER BUTTON
