@@ -24,7 +24,8 @@ it('sends answers rather than a client score and allows retry after a failed sub
   expect(wrapper.get('.submit-btn').attributes('disabled')).toBeUndefined()
   expect(wrapper.get('.submit-btn').text()).toBe('Nộp lại')
   await wrapper.get('.submit-btn').trigger('click'); await flushPromises()
-  expect(gatewayUrl.post).toHaveBeenLastCalledWith('/api/nihongo-user/userExerciseAttempt', { lessonId: 1, answers: {} })
+  expect(gatewayUrl.post).toHaveBeenLastCalledWith('/api/nihongo-user/userExerciseAttempt', expect.objectContaining({ lessonId: 1, answers: {}, submissionId: expect.any(String) }))
+  expect(vi.mocked(gatewayUrl.post).mock.calls[0]![1]).toEqual(vi.mocked(gatewayUrl.post).mock.calls[1]![1])
   expect(wrapper.get('.submit-btn').text()).toBe('Đã nộp')
   wrapper.unmount()
 })
@@ -45,6 +46,28 @@ it('allows practice but prevents submitting N4 questions whose source answers ar
   expect(wrapper.get('.answer-item').classes()).toContain('selected')
   expect(gatewayUrl.post).not.toHaveBeenCalled()
   wrapper.unmount()
+})
+
+it('uses a new submission ID when starting another attempt and saves the selected answers', async () => {
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/lesson/:lessonId', component: ExerciseView }] })
+  await router.push('/lesson/1'); await router.isReady()
+  const wrapper = mount(ExerciseView, { global: { plugins: [router] } })
+  await flushPromises()
+  vi.mocked(gatewayUrl.post).mockResolvedValue({ data: { totalQuestion: 1, correctCount: 1, wrongCount: 0, unansweredCount: 0, correctAnswers: { 10: 'A' } } })
+  try {
+    await wrapper.get('.start-btn').trigger('click')
+    await wrapper.findAll('.answer-item')[0]!.trigger('click')
+    await wrapper.get('.submit-btn').trigger('click'); await flushPromises()
+    const first = vi.mocked(gatewayUrl.post).mock.calls[0]![1] as { submissionId: string; answers: Record<string, string> }
+    expect(first.submissionId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+    expect(first.answers).toEqual({ 10: 'A' })
+    await wrapper.get('.result-dialog .restart-btn').trigger('click')
+    await wrapper.get('.start-btn').trigger('click')
+    await wrapper.get('.submit-btn').trigger('click'); await flushPromises()
+    const second = vi.mocked(gatewayUrl.post).mock.calls[1]![1] as typeof first
+    expect(second.submissionId).not.toBe(first.submissionId)
+    expect(second.answers).toEqual({})
+  } finally { wrapper.unmount() }
 })
 
 it('distinguishes a loading failure from a lesson with no exercises', async () => {

@@ -91,10 +91,10 @@ onMounted(loadCourses)
     </div>
 
     <!-- LOADING -->
-    <div v-if="loading" class="loading">
+    <p v-if="actionError" role="alert" class="action-error">{{ actionError }}</p>
+    <div v-if="loading" class="loading" role="status">
       Đang tải dữ liệu...
     </div>
-    <p v-if="actionError" role="alert" class="action-error">{{ actionError }}</p>
 
     <!-- EMPTY -->
     <div v-else-if="courses.length === 0" class="empty">
@@ -126,26 +126,26 @@ onMounted(loadCourses)
         <tr v-for="c in courses" :key="c.courseId">
 
           <!-- COURSE -->
-          <td>
+          <td class="course-cell">
             <div class="course-name">
               {{ c.courseName }}
             </div>
           </td>
 
           <!-- PACKAGE -->
-          <td>
+          <td class="detail-cell" data-label="Gói học">
               <span class="badge">
                 {{ c.packageName }}
               </span>
           </td>
 
           <!-- DATE -->
-          <td>
+          <td class="detail-cell" data-label="Ngày đăng ký">
             {{ new Date(c.enrolledAt).toLocaleDateString("vi-VN") }}
           </td>
 
           <!-- REMAINING DAYS -->
-          <td>
+          <td class="detail-cell" data-label="Còn lại">
               <span
                 class="days"
                 :class="{
@@ -163,7 +163,7 @@ onMounted(loadCourses)
           </td>
 
           <!-- PROGRESS -->
-          <td style="width: 200px;">
+          <td class="progress-cell" data-label="Tiến độ">
             <div class="progress-text">
               {{ c.progress }}%
             </div>
@@ -177,7 +177,7 @@ onMounted(loadCourses)
           </td>
 
           <!-- STATUS -->
-          <td>
+          <td class="detail-cell" data-label="Trạng thái">
               <span
                 class="status"
                 :class="{
@@ -195,7 +195,7 @@ onMounted(loadCourses)
           </td>
 
           <!-- ACTION -->
-          <td>
+          <td class="action-cell">
             <button
               class="btn"
               :class="{ 'btn-continue': !!c.startedAt }"
@@ -259,6 +259,7 @@ onMounted(loadCourses)
   padding: 14px;
   border-top: 1px solid #eee;
 }
+.progress-cell { width: 200px; }
 
 /* COURSE */
 .course-name {
@@ -383,4 +384,36 @@ onMounted(loadCourses)
   padding: 40px;
 }
 .action-error { color: #c62828; margin-top: 16px; }
+
+@media (max-width: 1100px) {
+  .page { padding: 20px 16px; min-height: auto; }
+  .table-wrap { background: transparent; box-shadow: none; overflow: visible; }
+  .table, .table tbody { display: block; }
+  .table thead { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .table tbody { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+  .table tr { display: block; min-width: 0; padding: 18px; background: #fff; border: 1px solid #e6e1e8; border-radius: 18px; box-shadow: 0 6px 20px #55475e0b; }
+  .table td { display: block; padding: 10px 0; border: 0; background: transparent; color: #334155; box-shadow: none; }
+  .table .course-cell { padding: 0 0 14px; border-bottom: 1px solid #f0edf3; margin-bottom: 4px; }
+  .course-name { font-size: 18px; line-height: 1.5; color: #50435e; overflow-wrap: anywhere; }
+  .table .detail-cell { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .detail-cell::before, .progress-cell::before { content: attr(data-label); color: #697386; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+  .badge { white-space: normal; text-align: right; line-height: 1.5; overflow-wrap: anywhere; }
+  .status { flex-shrink: 0; }
+  .table .progress-cell { width: auto; display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .progress-text { font-size: 14px; font-weight: 650; }
+  .bar { grid-column: 1 / -1; height: 8px; margin: 0; }
+  .table .action-cell { padding: 12px 0 0; }
+  .btn { width: 100%; height: auto; min-height: 46px; border-radius: 11px; font-weight: 650; }
+}
+
+@media (max-width: 600px) {
+  .page { padding: 8px 0 24px; }
+  .header h1 { font-size: 23px; line-height: 1.4; color: #50435e; }
+  .header p { font-size: 14px; line-height: 1.6; margin: 8px 0 0; }
+  .table-wrap { margin-top: 18px; }
+  .table tbody { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .empty { margin-top: 32px; padding: 24px 16px; background: #fff; border-radius: 18px; }
+  .empty h2 { font-size: 19px; line-height: 1.5; }
+  .btn-primary { min-height: 44px; }
+}
 </style>

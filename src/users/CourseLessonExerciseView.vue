@@ -17,10 +17,20 @@ const started = ref(false)
 const submitted = ref(false)
 const submitting = ref(false)
 const submitFailed = ref(false)
+let pendingSubmission: { submissionId: string; lessonId: number; answers: Record<number, string> } | null = null
+const createSubmissionId = () => {
+  // getRandomValues also works when studying over a local HTTP network on a phone.
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80
+  const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
 const remainSeconds = ref(0)
 let timer: number | null = null
 const showResult = ref(false)
 const showTimeUp = ref(false)
+const unansweredCount = ref(0)
 const score = ref<ScoreResult>({
   total: 0,
   correct: 0,
@@ -177,6 +187,9 @@ const restartExercise = () => {
   submitted.value = false
   submitFailed.value = false
 
+  pendingSubmission = null
+  unansweredCount.value = 0
+
   showResult.value = false
   showTimeUp.value = false
 
@@ -215,10 +228,12 @@ const submitExercise = async (isTimeUp = false) => {
   }
 
   try {
-    const { data } = await gatewayUrl.post("/api/nihongo-user/userExerciseAttempt", {
-      lessonId: lessonId.value, answers: selectedAnswers.value
-    })
+    pendingSubmission ??= {
+      submissionId: createSubmissionId(), lessonId: lessonId.value, answers: { ...selectedAnswers.value }
+    }
+    const { data } = await gatewayUrl.post("/api/nihongo-user/userExerciseAttempt", pendingSubmission)
     score.value = { total: data.totalQuestion, correct: data.correctCount, wrong: data.wrongCount }
+    unansweredCount.value = data.unansweredCount ?? 0
     exercises.value.forEach(e => { e.correctAnswer = data.correctAnswers[e.exerciseKeywordId]; e.aiSolution = data.aiSolutions?.[e.exerciseKeywordId] })
     submitted.value = true
     submitFailed.value = false
@@ -521,7 +536,7 @@ const scrollToGroup =
 
 <template>
 
-  <div class="container-fluid py-4" :class="{ 'book-review': isBookReview }">
+  <div class="container-fluid py-4 exercise-page" :class="{ 'book-review': isBookReview }">
 
     <!-- HEADER -->
 
@@ -831,12 +846,13 @@ const scrollToGroup =
           <span>Sai</span>
           <strong>{{ score.wrong }}</strong>
         </div>
+        <div class="summary-item"><span>Chưa trả lời</span><strong>{{ unansweredCount }}</strong></div>
 
       </div>
 
       <div class="score-circle">
 
-        {{ Math.round(score.correct * 100 / score.total) }}
+        {{ percent }}
 
         <small>điểm</small>
 
@@ -854,7 +870,7 @@ const scrollToGroup =
 
         <button
           class="close-btn"
-          @click="showResult=false">
+          @click="showTimeUp=false">
 
           Đóng
 
@@ -934,6 +950,7 @@ const scrollToGroup =
           <strong>{{ score.wrong }}</strong>
 
         </div>
+        <div class="item"><small>Chưa trả lời</small><strong>{{ unansweredCount }}</strong></div>
 
       </div>
       <div class="progress-box">
@@ -968,7 +985,7 @@ const scrollToGroup =
         </button>
 
         <button
-          class="answer-btn">
+          class="answer-btn" @click="showResult=false">
 
           📖 Xem đáp án
 
@@ -1977,4 +1994,48 @@ const scrollToGroup =
 @media (max-width: 800px) { .book-review .exercise-list { padding: 20px; }.book-review .answer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.book-review .exercise-title { font-size: 16px; } }
 .book-review-title { font-size: 24px; font-weight: 700; color: #24334b; margin: 0 0 30px; }.book-review-title small { font-size: 16px; font-weight: 400; color: #64748b; margin-left: 12px; }
 .listening-instruction { margin: 0 0 24px; font-size: 17px; line-height: 1.9; color: #24334b; }
+.result-grid, .result-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+@media (max-width: 768px) {
+  .exercise-page { padding-left: 0; padding-right: 0; }
+  .page-header { flex-direction: column; gap: 12px; }
+  .page-header > div { min-width: 0; width: 100%; }
+  .page-title { font-size: 22px; line-height: 1.5; overflow-wrap: anywhere; }
+  .header-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  .history-btn, .back-btn { min-height: 44px; padding: 10px 12px; font-size: 13px; white-space: normal; border-radius: 10px; }
+  .exercise-tabs { display: flex; flex-wrap: wrap; top: 64px; gap: 8px; padding: 10px; border-radius: 14px; margin-bottom: 18px; }
+  .tabs-left { flex: 1 1 100%; min-width: 0; gap: 6px; padding-bottom: 4px; }
+  .exercise-tab { flex: 0 0 auto; min-height: 44px; padding: 10px 14px; white-space: nowrap; }
+  .timer { flex: 0 0 auto; min-width: 0; padding: 8px; font-size: 14px; }
+  .submit-wrap { flex: 1 1 0; min-width: 0; gap: 6px; }
+  .start-btn, .submit-btn { flex: 1; min-width: 0; min-height: 44px; margin: 0; padding: 8px; font-size: 13px; line-height: 1.4; border-radius: 10px; }
+  .exercise-tabs .restart-btn { min-height: 44px; padding: 8px 10px; font-size: 13px; }
+  .group-header { padding: 12px; font-size: 18px; line-height: 1.6; overflow-wrap: anywhere; margin-bottom: 14px; }
+  .exercise-group { margin-bottom: 24px; scroll-margin-top: 200px; }
+  .exercise-list { gap: 12px; }
+  .exercise-card { min-width: 0; padding: 14px; border-radius: 14px; }
+  .exercise-card.highlight { transform: none; box-shadow: 0 0 0 3px #4f8cff20; }
+  .exercise-title-wrapper { width: 100%; gap: 8px; }
+  .question-number { flex-shrink: 0; min-width: 48px; padding: 6px 8px; font-size: 12px; }
+  .exercise-title { min-width: 0; font-size: 16px; line-height: 1.9; }
+  .exercise-title :deep(img) { max-width: 100%; height: auto; }
+  .answer-grid, .book-review .answer-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .answer-item, .book-review .answer-item { min-height: 46px; padding: 12px; font-size: 16px; line-height: 1.7; overflow-wrap: anywhere; }
+  .book-review .exercise-list { padding: 14px; }
+  .book-review .exercise-card { padding: 16px 0; }
+  .book-review .exercise-header { gap: 8px; }
+  .book-review-title { font-size: 20px; line-height: 1.6; margin-bottom: 18px; }
+  .book-review-title small { display: block; margin-left: 0; font-size: 14px; }
+  .result-mask { padding: 12px; overflow-y: auto; }
+  .result-dialog { box-sizing: border-box; width: 100%; max-width: 440px; max-height: calc(100dvh - 24px); overflow-y: auto; padding: 22px 16px; border-radius: 20px; }
+  .result-dialog h2 { font-size: 22px; line-height: 1.5; }
+  .result-icon { font-size: 40px; }
+  .score-circle { width: 130px; height: 130px; margin: 18px auto; }
+  .score-number { font-size: 42px; }
+  .result-grid, .result-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 18px 0; }
+  .item, .summary-item { min-width: 0; padding: 12px 6px; border-radius: 12px; }
+  .item small, .summary-item span { font-size: 12px; }
+  .dialog-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 18px; }
+  .dialog-actions button { min-height: 44px; width: 100%; padding: 10px 12px; }
+}
 </style>

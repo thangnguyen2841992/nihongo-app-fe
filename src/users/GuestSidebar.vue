@@ -10,6 +10,9 @@ const emit = defineEmits<{ close: [] }>()
       <button class="close-menu" type="button" aria-label="Đóng menu" @click="emit('close')"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
     </div>
     <nav aria-label="Điều hướng học tập">
+      <RouterLink to="/user/conversation-listening" class="learning-link" @click="emit('close')">
+        <i class="bi bi-headphones" aria-hidden="true"></i><span>Luyện nghe hội thoại</span>
+      </RouterLink>
       <RouterLink to="/courses" class="learning-link" @click="emit('close')">
         <i class="bi bi-compass" aria-hidden="true"></i><span>Khám phá khóa học</span>
       </RouterLink>
