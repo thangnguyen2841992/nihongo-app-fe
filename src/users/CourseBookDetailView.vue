@@ -12,6 +12,7 @@ import ExampleModal from "@/components/staff/ExampleModal.vue"
 import GrammarModal from "@/components/staff/GrammarModal.vue";
 import { saveLearningPosition } from '@/api/learningPosition'
 import GrammarNotes from '@/components/GrammarNotes.vue'
+import GrammarStructure from '@/components/GrammarStructure.vue'
 import { importedAudioUrl } from '@/services/bookImport'
 import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
 import { bookReadingAudioTrack } from '@/services/bookReadingAudio'
@@ -716,7 +717,7 @@ const getStructureImage = (
 
   return imageUrl.replace(
     "/upload/",
-    "/upload/w_1200,h_300,c_pad,b_white/"
+    "/upload/w_1200,c_limit/"
   )
 }
 
@@ -812,7 +813,7 @@ const goToExercisePage =
           </h2>
 
           <div class="sub-title">
-            Quản lý grammar & bài học
+            Bài đọc, ngữ pháp và ví dụ
           </div>
 
         </div>
@@ -837,6 +838,7 @@ const goToExercisePage =
         v-for="(lesson,index) in lessons"
         :key="lesson.lessonId"
         class="lesson-tab"
+        :aria-pressed="selectedLesson?.lessonId === lesson.lessonId"
         :class="{
           active:
             selectedLesson?.lessonId ===
@@ -868,7 +870,7 @@ const goToExercisePage =
         </div>
 
         <div class="empty-desc">
-          Hãy chọn lesson để xem grammar.
+          Hãy chọn bài học để xem nội dung ngữ pháp.
         </div>
 
       </div>
@@ -919,6 +921,7 @@ const goToExercisePage =
             v-for="grammar in grammars"
             :key="grammar.grammarId"
             class="grammar-tab"
+            :aria-pressed="activeGrammarId === grammar.grammarId"
             :class="{
     active:
       activeGrammarId === grammar.grammarId
@@ -1004,34 +1007,12 @@ const goToExercisePage =
 
             <!-- IMAGE -->
 
-            <div
-              v-if="grammar.imageUrl"
-              class="grammar-structure"
-            >
-
-              <img
-                :src="
-                  getStructureImage(
-                    grammar.imageUrl
-                  )
-                "
-                :alt="grammar.title"
-                class="grammar-structure-image"
-                loading="lazy"
-                decoding="async"
-                @click="
-                  openImage(
-                    grammar.imageUrl
-                  )
-                "
-              >
-
-            </div>
+            <GrammarStructure v-if="grammar.imageUrl" :source="getStructureImage(grammar.imageUrl)" :title="grammar.title" @enlarge="openImage(grammar.imageUrl)" />
 
 
             <!-- DESCRIPTION -->
 
-            <GrammarNotes :description="grammar.description" />
+            <GrammarNotes :description="grammar.description" :examples="examples[grammar.grammarId]" />
 
 
             <!-- EXAMPLES -->
@@ -1880,33 +1861,7 @@ const goToExercisePage =
   overflow-wrap: anywhere;
 }
 
-.grammar-structure {
-  width: 100%;
-  max-width: 100%;
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  margin: 20px 0;
-
-  overflow: hidden;
-}
-
-.grammar-structure-image {
-  display: block;
-  width: 100%;
-  max-width: 650px;
-  height: auto;
-  aspect-ratio: 4 / 1;
-  object-fit: contain;
-  margin: 0 auto;
-  border-radius: 12px;
-  background: #fff;
-  cursor: zoom-in;
-}
-
-.grammar-structure-image:hover { box-shadow: 0 0 0 2px #dce5f5; }
 
 .grammar-title {
   display: flex;
@@ -2368,5 +2323,44 @@ const goToExercisePage =
 .example-speech-error { margin: 8px 0 0; color: #a34141; font-size: 12px; }
 .example-speech-credit { display: block; margin-top: 7px; color: #63748a; font-size: 11px; }
 .example-speech-credit a { color: inherit; text-decoration: underline; }
+
+@media (max-width: 768px) {
+  .grammar-page { padding: 8px 0 24px; }
+  .page-header { gap: 12px; }
+  .page-header > div { min-width: 0; width: 100%; }
+  .book-title { font-size: 22px; line-height: 1.5; overflow-wrap: anywhere; }
+  .back-btn { min-height: 44px; padding: 10px 14px; border-radius: 10px; }
+  .lesson-tabs { gap: 8px; margin-bottom: 16px; padding: 4px 0 8px; scroll-padding-inline: 4px; }
+  .lesson-tab { min-height: 44px; padding: 10px 16px; }
+  .grammar-panel { padding: 0; overflow: visible; }
+  .top-actions { gap: 12px; margin-bottom: 16px; }
+  .selected-lesson { font-size: 20px; line-height: 1.5; }
+  .exercise-btn { min-height: 46px; }
+  .grammar-tabs { gap: 8px; padding: 4px 0 12px; margin-bottom: 12px; }
+  .grammar-tab { flex: 0 0 auto; width: auto; max-width: 240px; height: auto; min-height: 44px; padding: 10px 14px; }
+  .grammar-tab-text { white-space: normal; line-height: 1.5; }
+  .grammar-card, .lesson-reading-card { padding: 16px; margin-bottom: 16px; border-radius: 16px; }
+  .lesson-reading-header { padding: 0; gap: 10px; margin-bottom: 14px; }
+  .lesson-reading-header > div:last-child { min-width: 0; }
+  .lesson-reading-content { padding: 0; font-size: 16px; line-height: 1.95; }
+  .lesson-reading-content :deep(table) { display: block; overflow-x: auto; table-layout: auto; }
+  .grammar-title { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 10px; padding: 12px; margin-bottom: 16px; border-left-width: 4px; border-radius: 12px; }
+  .grammar-number { width: 32px; height: 32px; font-size: 16px; border-radius: 10px; }
+  .grammar-title-text { font-size: 20px; line-height: 1.6; }
+  .grammar-title .example-speak { grid-column: 1 / -1; margin-left: 0; justify-self: start; }
+  .expand-btn { min-height: 44px; }
+  .example-card { padding: 14px 12px; }
+  .example-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .example-number { grid-column: 1 / -1; }
+  .example-row .example-content { grid-column: 1 / -1; min-width: 0; }
+  .example-row .example-speak:last-child { grid-column: 1 / -1; }
+  .example-speak { min-height: 44px; justify-content: center; border-radius: 10px; white-space: normal; line-height: 1.5; }
+  .jp-text { font-size: 17px; line-height: 1.9; }
+  .vn-text { font-size: 14px; line-height: 1.8; }
+  .example-practice { padding: 12px; font-size: 14px; }
+  .example-practice .study-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .example-practice audio { width: 100%; min-width: 0; }
+  .grammar-card { scroll-margin-top: 80px; }
+}
 
 </style>

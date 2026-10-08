@@ -1,762 +1,104 @@
 <script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { gatewayUrl } from '@/api/authApi'
+import { Chart, LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js'
 
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref
-} from "vue"
-
-import {
-  useRoute,
-  useRouter
-} from "vue-router"
-
-import { gatewayUrl } from "@/api/authApi"
-
-import {
-  Chart,
-  LineController,
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend
-} from "chart.js"
-
-
-// =====================================================
-// CHART.JS REGISTER
-// =====================================================
-
-Chart.register(
-  LineController,
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend
-)
-
-
-// =====================================================
-// ROUTER
-// =====================================================
-
-const route = useRoute()
-
-const router = useRouter()
-
-
-// =====================================================
-// DATA
-// =====================================================
-
+Chart.register(LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend)
 interface LessonResult {
-
   resultId: number
-
   lessonId: number
-
   lessonName: string
-
   totalQuestion: number
-
   correctCount: number
-
   wrongCount: number
-
+  unansweredCount: number | null
+  chosenAnswers: Record<string, string> | null
+  correctAnswers: Record<string, string> | null
   score: number
-
   submittedAt: string
-
 }
-
-
-const results =
-  ref<LessonResult[]>([])
-
-
-const loading =
-  ref(true)
-
-
-// =====================================================
-// LESSON ID
-// =====================================================
-
-const lessonId = computed(() => {
-
-  return Number(
-    route.params.lessonId
-  )
-
-})
-
-
-// =====================================================
-// CHART CANVAS
-//
-// TEMPLATE CỦA BẠN:
-// <canvas ref="scoreChart"></canvas>
-//
-// Vì vậy ở đây cũng phải là scoreChart.
-// =====================================================
-
-const scoreChart =
-  ref<HTMLCanvasElement | null>(null)
-
-
-let scoreChartInstance:
-  Chart | null = null
-
-
-// =====================================================
-// DRAW SCORE CHART
-// =====================================================
-
-const drawScoreChart = async () => {
-
-  /*
-   * Chờ Vue render lại DOM.
-   */
-
+const route = useRoute()
+const router = useRouter()
+const lessonId = computed(() => Number(route.params.lessonId))
+const results = ref<LessonResult[]>([])
+const loading = ref(true)
+const loadError = ref('')
+const selectedResultId = ref<number | null>(null)
+const selectedResult = computed(() => results.value.find(r => r.resultId === selectedResultId.value))
+const openResult = async (resultId: number) => {
+  selectedResultId.value = resultId
   await nextTick()
-
-
-  console.log(
-    "========== DRAW CHART =========="
-  )
-
-  console.log(
-    "results:",
-    results.value
-  )
-
-  console.log(
-    "canvas:",
-    scoreChart.value
-  )
-
-
-  // ---------------------------------------------------
-  // CANVAS CHƯA TỒN TẠI
-  // ---------------------------------------------------
-
-  if (!scoreChart.value) {
-
-    console.error(
-      "❌ scoreChart.value = null"
-    )
-
-    return
-
-  }
-
-
-  // ---------------------------------------------------
-  // KHÔNG CÓ DATA
-  // ---------------------------------------------------
-
-  if (!results.value.length) {
-
-    console.warn(
-      "⚠ Không có dữ liệu để vẽ chart"
-    )
-
-    return
-
-  }
-
-
-  // ---------------------------------------------------
-  // HỦY CHART CŨ
-  // ---------------------------------------------------
-
-  if (scoreChartInstance) {
-
-    scoreChartInstance.destroy()
-
-    scoreChartInstance = null
-
-  }
-
-
-  // ---------------------------------------------------
-  // ĐẢO DATA
-  //
-  // API:
-  // mới nhất -> cũ nhất
-  //
-  // Chart:
-  // lần 1 -> lần 2 -> lần 3
-  // ---------------------------------------------------
-
-  const chartResults =
-    [...results.value].reverse()
-
-
-  // ---------------------------------------------------
-  // LABEL
-  // ---------------------------------------------------
-
-  const labels =
-    chartResults.map(
-      (_, index) =>
-        `Lần ${index + 1}`
-    )
-
-
-  // ---------------------------------------------------
-  // SCORE
-  // ---------------------------------------------------
-
-  const scores =
-    chartResults.map(
-      result =>
-        Number(
-          result.score || 0
-        )
-    )
-
-
-  // ---------------------------------------------------
-  // CORRECT
-  // ---------------------------------------------------
-
-  const correct =
-    chartResults.map(
-      result =>
-        Number(
-          result.correctCount || 0
-        )
-    )
-
-
-  // ---------------------------------------------------
-  // WRONG
-  // ---------------------------------------------------
-
-  const wrong =
-    chartResults.map(
-      result =>
-        Number(
-          result.wrongCount || 0
-        )
-    )
-
-
-  console.log(
-    "labels:",
-    labels
-  )
-
-  console.log(
-    "scores:",
-    scores
-  )
-
-  console.log(
-    "correct:",
-    correct
-  )
-
-  console.log(
-    "wrong:",
-    wrong
-  )
-
-
-  // ---------------------------------------------------
-  // CANVAS CONTEXT
-  // ---------------------------------------------------
-
-  const ctx =
-    scoreChart.value.getContext(
-      "2d"
-    )
-
-
-  if (!ctx) {
-
-    console.error(
-      "❌ Không lấy được canvas 2D context"
-    )
-
-    return
-
-  }
-
-
-  // ---------------------------------------------------
-  // CREATE CHART
-  // ---------------------------------------------------
-
-  scoreChartInstance =
-    new Chart(
-      ctx,
-      {
-
-        type: "line",
-
-        data: {
-
-          labels,
-
-datasets: [
-
-  {
-    label: "Điểm",
-
-    data: scores,
-
-    borderColor: "#1565C0",
-    backgroundColor: "#1565C0",
-
-    borderWidth: 4,
-
-    tension: 0.35,
-
-    pointRadius: 5,
-
-    pointHoverRadius: 8,
-
-    pointBackgroundColor: "#FFFFFF",
-    pointBorderColor: "#1565C0",
-    pointBorderWidth: 3,
-
-    yAxisID: "score"
-  },
-
-
-  {
-    label: "Câu đúng",
-
-    data: correct,
-
-    borderColor: "#16803C",
-    backgroundColor: "#16803C",
-
-    borderWidth: 3,
-
-    tension: 0.35,
-
-    pointRadius: 4,
-
-    pointHoverRadius: 7,
-
-    pointBackgroundColor: "#FFFFFF",
-    pointBorderColor: "#16803C",
-    pointBorderWidth: 3,
-
-    yAxisID: "question"
-  },
-
-
-  {
-    label: "Câu sai",
-
-    data: wrong,
-
-    borderColor: "#C62828",
-    backgroundColor: "#C62828",
-
-    borderWidth: 3,
-
-    tension: 0.35,
-
-    pointRadius: 4,
-
-    pointHoverRadius: 7,
-
-    pointBackgroundColor: "#FFFFFF",
-    pointBorderColor: "#C62828",
-    pointBorderWidth: 3,
-
-    yAxisID: "question"
-  }
-
-]
-
-
-      },
-
-
-        options: {
-
-          responsive: true,
-
-          maintainAspectRatio: false,
-
-
-          interaction: {
-
-            mode: "index",
-
-            intersect: false
-
-          },
-
-
-          plugins: {
-
-            legend: {
-
-              display: true,
-
-              position: "top"
-
-            },
-
-
-            tooltip: {
-
-              callbacks: {
-
-                label: context => {
-
-                  if (
-                    context.dataset.label ===
-                    "Điểm"
-                  ) {
-
-                    return (
-                      `Điểm: ` +
-                      `${context.parsed.y}%`
-                    )
-
-                  }
-
-
-                  return (
-                    `${context.dataset.label}: ` +
-                    `${context.parsed.y}`
-                  )
-
-                }
-
-              }
-
-            }
-
-          },
-
-
-          scales: {
-
-            // =======================================
-            // SCORE AXIS
-            // =======================================
-
-            score: {
-
-              type: "linear",
-
-              position: "left",
-
-              min: 0,
-
-              max: 100,
-
-              ticks: {
-
-                stepSize: 10,
-
-                callback: value => {
-
-                  return `${value}%`
-
-                }
-
-              },
-
-              title: {
-
-                display: true,
-
-                text: "Điểm"
-
-              }
-
-            },
-
-
-            // =======================================
-            // QUESTION AXIS
-            // =======================================
-
-            question: {
-
-              type: "linear",
-
-              position: "right",
-
-              beginAtZero: true,
-
-              ticks: {
-
-                precision: 0
-
-              },
-
-              grid: {
-
-                drawOnChartArea: false
-
-              },
-
-              title: {
-
-                display: true,
-
-                text: "Số câu"
-
-              }
-
-            }
-
-          }
-
-        }
-
-      }
-    )
-
-
-  console.log(
-    "✅ CHART CREATED",
-    scoreChartInstance
-  )
-
+  document.getElementById('attempt-details')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
 }
+const scoreChart = ref<HTMLCanvasElement | null>(null)
+let scoreChartInstance: Chart | null = null
+let requestId = 0
+let disposed = false
+let controller: AbortController | null = null
+const destroyChart = () => { scoreChartInstance?.destroy(); scoreChartInstance = null }
 
-
-// =====================================================
-// LOAD HISTORY
-//
-// API GIỮ NGUYÊN CỦA BẠN
-// =====================================================
+const drawScoreChart = async (id: number) => {
+  await nextTick()
+  if (disposed || id !== requestId || !scoreChart.value || !results.value.length) return
+  const ctx = scoreChart.value.getContext('2d')
+  if (!ctx) return
+  const chronological = [...results.value].reverse()
+  scoreChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chronological.map((_, i) => `Lần ${i + 1}`),
+      datasets: [
+        { label: 'Điểm', data: chronological.map(r => r.score), borderColor: '#1565C0', yAxisID: 'score' },
+        { label: 'Câu đúng', data: chronological.map(r => r.correctCount), borderColor: '#16803C', yAxisID: 'question' },
+        { label: 'Câu sai', data: chronological.map(r => r.wrongCount), borderColor: '#C62828', yAxisID: 'question' },
+        { label: 'Chưa trả lời', data: chronological.map(r => r.unansweredCount ?? null), borderColor: '#d97706', yAxisID: 'question' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        score: { type: 'linear', position: 'left', min: 0, max: 100, title: { display: true, text: 'Điểm (%)' } },
+        question: { type: 'linear', position: 'right', beginAtZero: true, ticks: { precision: 0 }, grid: { drawOnChartArea: false } }
+      }
+    }
+  })
+}
 
 const loadHistory = async () => {
-
+  const id = ++requestId
+  controller?.abort()
+  controller = new AbortController()
+  destroyChart()
+  results.value = []
+  selectedResultId.value = null
+  loadError.value = ''
+  loading.value = true
   try {
-
-    loading.value = true
-
-
-    const res =
-      await gatewayUrl.get(
-        `/api/nihongo-user/lesson-result/${lessonId.value}`
-      )
-
-
-    // GIỮ NGUYÊN
-
-    results.value =
-      res.data
-
-
-    /*
-     * Quan trọng:
-     *
-     * 1. loading = false
-     * 2. Vue render template v-else
-     * 3. nextTick()
-     * 4. canvas tồn tại
-     * 5. draw chart
-     */
-
-    loading.value = false
-
-
-    await nextTick()
-
-
-    await drawScoreChart()
-
+    if (!Number.isSafeInteger(lessonId.value) || lessonId.value <= 0) throw new Error('Invalid lesson')
+    const { data } = await gatewayUrl.get<LessonResult[]>(`/api/nihongo-user/lesson-result/${lessonId.value}`, { signal: controller.signal })
+    if (disposed || id !== requestId) return
+    results.value = [...data].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt) || b.resultId - a.resultId)
+  } catch {
+    if (disposed || id !== requestId) return
+    loadError.value = 'Không tải được lịch sử làm bài. Vui lòng thử lại.'
+  } finally {
+    if (!disposed && id === requestId) loading.value = false
   }
-  catch (error) {
-
-    console.error(
-      "Không tải được lịch sử làm bài:",
-      error
-    )
-
-    loading.value = false
-
-  }
-
+  if (!disposed && id === requestId && !loadError.value) await drawScoreChart(id)
 }
-
-
-// =====================================================
-// SUMMARY
-// =====================================================
-
-const totalExam =
-  computed(() =>
-    results.value.length
-  )
-
-
-const totalQuestion =
-  computed(() =>
-    results.value.reduce(
-      (sum, r) =>
-        sum +
-        Number(
-          r.totalQuestion || 0
-        ),
-      0
-    )
-  )
-
-
-const totalCorrect =
-  computed(() =>
-    results.value.reduce(
-      (sum, r) =>
-        sum +
-        Number(
-          r.correctCount || 0
-        ),
-      0
-    )
-  )
-
-
-const totalWrong =
-  computed(() =>
-    results.value.reduce(
-      (sum, r) =>
-        sum +
-        Number(
-          r.wrongCount || 0
-        ),
-      0
-    )
-  )
-
-
-const totalUnanswered =
-  computed(() => {
-
-    return Math.max(
-      totalQuestion.value -
-      totalCorrect.value -
-      totalWrong.value,
-      0
-    )
-
-  })
-
-
-const averageScore =
-  computed(() => {
-
-    if (
-      !results.value.length
-    ) {
-
-      return 0
-
-    }
-
-
-    const total =
-      results.value.reduce(
-        (sum, r) =>
-          sum +
-          Number(
-            r.score || 0
-          ),
-        0
-      )
-
-
-    return Math.round(
-      total /
-      results.value.length
-    )
-
-  })
-
-
-// =====================================================
-// SCORE CLASS
-// =====================================================
-
-const getScoreClass = (
-  score: number
-) => {
-
-  if (score >= 90) {
-
-    return "excellent"
-
-  }
-
-
-  if (score >= 80) {
-
-    return "good"
-
-  }
-
-
-  if (score >= 60) {
-
-    return "normal"
-
-  }
-
-
-  return "bad"
-
-}
-
-
-// =====================================================
-// BACK
-// =====================================================
-
-const goBack = () => {
-
-  router.back()
-
-}
-
-
-// =====================================================
-// MOUNT
-// =====================================================
-
-onMounted(() => {
-
-  loadHistory()
-
-})
-
-
-// =====================================================
-// UNMOUNT
-// =====================================================
-
-onBeforeUnmount(() => {
-
-  if (scoreChartInstance) {
-
-    scoreChartInstance.destroy()
-
-    scoreChartInstance = null
-
-  }
-
-})
-
+const totalExam = computed(() => results.value.length)
+const totalQuestion = computed(() => results.value.reduce((sum, r) => sum + r.totalQuestion, 0))
+const totalCorrect = computed(() => results.value.reduce((sum, r) => sum + r.correctCount, 0))
+const totalWrong = computed(() => results.value.reduce((sum, r) => sum + r.wrongCount, 0))
+const hasLegacyResults = computed(() => results.value.some(r => r.unansweredCount == null))
+const totalUnanswered = computed(() => hasLegacyResults.value ? '—' : results.value.reduce((sum, r) => sum + (r.unansweredCount ?? 0), 0))
+const averageScore = computed(() => results.value.length ? Math.round(results.value.reduce((sum, r) => sum + r.score, 0) / results.value.length) : 0)
+const getScoreClass = (score: number) => score >= 90 ? 'excellent' : score >= 80 ? 'good' : score >= 60 ? 'normal' : 'bad'
+const goBack = () => router.back()
+watch(lessonId, () => { void loadHistory() }, { immediate: true })
+onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destroyChart() })
 </script>
 
 
@@ -814,6 +156,10 @@ onBeforeUnmount(() => {
     </div>
 
 
+    <div v-else-if="loadError" class="empty" role="alert">
+      <p>{{ loadError }}</p>
+      <button type="button" class="back-btn" @click="loadHistory">Thử lại</button>
+    </div>
     <template v-else>
 
       <!-- =========================
@@ -842,6 +188,18 @@ onBeforeUnmount(() => {
 
 
       <template v-else>
+        <p v-if="hasLegacyResults" class="legacy-note">Lần làm cũ chưa lưu riêng câu bỏ trống; số câu sai của những lần đó bao gồm cả câu bỏ trống. Dấu — nghĩa là chưa có dữ liệu.</p>
+
+        <section v-if="selectedResult" id="attempt-details" class="attempt-details" aria-label="Chi tiết lần làm bài">
+          <div class="detail-heading"><h2>Chi tiết lần làm {{ totalExam - results.findIndex(r => r.resultId === selectedResultId) }}</h2><button type="button" class="back-btn" @click="selectedResultId = null">Đóng chi tiết</button></div>
+          <p>Đáp án được lưu tại thời điểm nộp bài. Mã câu hỏi dùng để đối chiếu với dữ liệu bài tập.</p>
+          <div v-for="(answer, questionId) in selectedResult.correctAnswers" :key="questionId" class="answer-detail">
+            <strong>Mã câu hỏi {{ questionId }}</strong>
+            <span>Bạn chọn: {{ selectedResult.chosenAnswers?.[questionId] ?? 'Chưa trả lời' }}</span>
+            <span>Đáp án đúng: {{ answer }}</span>
+            <span>{{ !selectedResult.chosenAnswers?.[questionId] ? 'Chưa trả lời' : selectedResult.chosenAnswers[questionId] === answer ? 'Đúng' : 'Sai' }}</span>
+          </div>
+        </section>
 
         <!-- =========================
              SUMMARY
@@ -1079,6 +437,7 @@ onBeforeUnmount(() => {
                 <th>
                   Tỷ lệ (%)
                 </th>
+                <th>Chi tiết</th>
 
               </tr>
 
@@ -1177,9 +536,7 @@ onBeforeUnmount(() => {
 
 
                     {{
-                      r.totalQuestion -
-                      r.correctCount -
-                      r.wrongCount
+                      r.unansweredCount ?? '—'
                     }}
 
                   </span>
@@ -1206,6 +563,8 @@ onBeforeUnmount(() => {
 
                 </td>
 
+                <td><button v-if="r.correctAnswers && r.chosenAnswers" type="button" class="detail-button" :aria-pressed="selectedResultId === r.resultId" @click="openResult(r.resultId)">Xem đáp án</button><span v-else>Chưa lưu chi tiết</span></td>
+
               </tr>
 
               </tbody>
@@ -1226,6 +585,12 @@ onBeforeUnmount(() => {
 
 
 <style scoped>
+.legacy-note { padding: 12px; border-radius: 10px; background: #fff7e6; color: #785019; font-size: 14px; }
+.attempt-details { padding: 18px; margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; scroll-margin-top: 80px; }
+.detail-heading { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.detail-heading h2 { font-size: 20px; margin: 0; }
+.answer-detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; padding: 12px 0; border-top: 1px solid #e2e8f0; }
+.detail-button { min-height: 44px; padding: 8px 12px; border: 1px solid #dbe7ff; border-radius: 10px; background: #eef4ff; color: #2454a6; white-space: nowrap; }
 
 .history-page {
 

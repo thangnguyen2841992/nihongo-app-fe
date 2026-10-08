@@ -59,6 +59,7 @@ watch([isAuthReady, isAuthenticated, () => route.path], ([ready, authenticated, 
 .main-content.with-sidebar { margin-left: 220px; }
 .main-content.with-sidebar:not(.signed-in) { margin-top: 64px; background: #f6f7fb; }
 @media (max-width: 768px) {
+  .main-content.signed-in { padding: 20px 12px 16px; }
   .layout.user-background::before { left: 0; }
   .main-content.with-sidebar, .main-content.with-sidebar:not(.signed-in) { margin-left: 0; }
 }

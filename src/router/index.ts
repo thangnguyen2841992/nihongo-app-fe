@@ -31,6 +31,11 @@ const routes = [
     children: [
       {path: '', component: Home},
       {
+        path: 'user/conversation-listening',
+        name: 'conversation-listening',
+        component: () => import('@/users/ConversationListeningView.vue')
+      },
+      {
         path: '/courses',
         component: CourseView
       },

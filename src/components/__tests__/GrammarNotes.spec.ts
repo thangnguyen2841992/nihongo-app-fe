@@ -21,3 +21,28 @@ it('removes executable content before rendering stored notes', () => {
   expect(wrapper.get('.note-body').html()).not.toContain('script')
   expect(wrapper.get('.note-body').text()).toBe('Cách dùng')
 })
+
+it.each(['V bỏ ます', 'V bỏ masu', 'Vます（bỏ ます）', 'Vます (bỏ masu)'])('displays %s as compact Japanese notation without changing usage notes', (form) => {
+  const description = `<p>Cấu trúc: ${form} + 始める</p><p>Giải thích: V bỏ ます.</p>`
+  const wrapper = mount(GrammarNotes, { props: { description } })
+  expect(wrapper.get('.formula-expression').text()).toBe('Vます形（−ます） + 始める')
+  expect(wrapper.get('.formula-help').text()).toContain('読みます → 読み')
+  expect(wrapper.get('.note-body').text()).toBe('Giải thích: V bỏ ます.')
+})
+
+it('keeps Vない and already-written formulas intact', () => {
+  const wrapper = mount(GrammarNotes, { props: { description: '<p>Cấu trúc: Vない + うちに</p><p>Trong khi chưa…</p>' } })
+  expect(wrapper.get('.formula-expression').text()).toBe('Vない + うちに')
+  expect(wrapper.find('.formula-help').exists()).toBe(false)
+})
+
+it('shows the saved sentence for a conversational structure while removing active content', () => {
+  const wrapper = mount(GrammarNotes, { props: {
+    description: '<p>Cấu trúc: ～ている → ～てる</p><p>Dạng rút gọn trong hội thoại.</p>',
+    examples: [{ nihongo: '<p>何してる？</p><script>bad()</script>', vietnamese: '<p>Bạn đang làm gì?</p>' }]
+  } })
+  expect(wrapper.get('.sentence-jp').text()).toBe('何してる？')
+  expect(wrapper.get('.sentence-vn').text()).toBe('Bạn đang làm gì?')
+  expect(wrapper.find('.sentence-jp script').exists()).toBe(false)
+  expect(wrapper.find('.connection-card').exists()).toBe(false)
+})

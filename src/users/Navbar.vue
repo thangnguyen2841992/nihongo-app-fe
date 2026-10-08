@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {ref, watch, onMounted, onUnmounted} from "vue"
+import {computed, ref, watch, onMounted, onUnmounted} from "vue"
 import { getWallet, formatMoney } from '@/services/walletApi'
 import { getUserProfile, type UserProfile } from '@/services/userProfile'
 import NotificationBell from '@/components/common/NotificationBell.vue'
@@ -26,6 +26,7 @@ const accountDropdown = ref<HTMLElement | null>(null)
 const profile = ref<UserProfile | null>(null)
 const profileLoading = ref(false)
 const profileError = ref('')
+const profileFieldStatus = computed(() => profile.value ? 'Chưa cập nhật' : profileLoading.value ? 'Đang tải…' : 'Chưa tải được')
 let profileRequest: AbortController | null = null
 let balanceRequest = 0
 let disposed = false
@@ -326,8 +327,8 @@ const goToWallet = () => {
             <dl class="account-details">
               <div><dt>Họ và tên</dt><dd>{{ profile?.fullName || name || 'Chưa cập nhật' }}</dd></div>
               <div><dt>Email</dt><dd>{{ profile?.email || email || 'Chưa cập nhật' }}</dd></div>
-              <div><dt>Số điện thoại</dt><dd>{{ profile?.phoneNumber || 'Chưa cập nhật' }}</dd></div>
-              <div><dt>Địa chỉ</dt><dd>{{ profile?.address || 'Chưa cập nhật' }}</dd></div>
+              <div><dt>Số điện thoại</dt><dd>{{ profile?.phoneNumber || profileFieldStatus }}</dd></div>
+              <div><dt>Địa chỉ</dt><dd>{{ profile?.address || profileFieldStatus }}</dd></div>
             </dl>
             <p v-if="profileLoading" class="account-status" role="status">Đang tải thông tin bổ sung...</p>
             <p v-if="profileError" class="account-status account-error" role="alert">
