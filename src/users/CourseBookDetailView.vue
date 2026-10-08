@@ -12,6 +12,7 @@ import ExampleModal from "@/components/staff/ExampleModal.vue"
 import GrammarModal from "@/components/staff/GrammarModal.vue";
 import { saveLearningPosition } from '@/api/learningPosition'
 import GrammarNotes from '@/components/GrammarNotes.vue'
+import GrammarStructure from '@/components/GrammarStructure.vue'
 import { importedAudioUrl } from '@/services/bookImport'
 import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
 import { bookReadingAudioTrack } from '@/services/bookReadingAudio'
@@ -716,7 +717,7 @@ const getStructureImage = (
 
   return imageUrl.replace(
     "/upload/",
-    "/upload/w_1200,h_300,c_pad,b_white/"
+    "/upload/w_1200,c_limit/"
   )
 }
 
@@ -1006,34 +1007,12 @@ const goToExercisePage =
 
             <!-- IMAGE -->
 
-            <div
-              v-if="grammar.imageUrl"
-              class="grammar-structure"
-            >
-
-              <img
-                :src="
-                  getStructureImage(
-                    grammar.imageUrl
-                  )
-                "
-                :alt="grammar.title"
-                class="grammar-structure-image"
-                loading="lazy"
-                decoding="async"
-                @click="
-                  openImage(
-                    grammar.imageUrl
-                  )
-                "
-              >
-
-            </div>
+            <GrammarStructure v-if="grammar.imageUrl" :source="getStructureImage(grammar.imageUrl)" :title="grammar.title" @enlarge="openImage(grammar.imageUrl)" />
 
 
             <!-- DESCRIPTION -->
 
-            <GrammarNotes :description="grammar.description" />
+            <GrammarNotes :description="grammar.description" :examples="examples[grammar.grammarId]" />
 
 
             <!-- EXAMPLES -->
@@ -1882,33 +1861,7 @@ const goToExercisePage =
   overflow-wrap: anywhere;
 }
 
-.grammar-structure {
-  width: 100%;
-  max-width: 100%;
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  margin: 20px 0;
-
-  overflow: hidden;
-}
-
-.grammar-structure-image {
-  display: block;
-  width: 100%;
-  max-width: 650px;
-  height: auto;
-  aspect-ratio: 4 / 1;
-  object-fit: contain;
-  margin: 0 auto;
-  border-radius: 12px;
-  background: #fff;
-  cursor: zoom-in;
-}
-
-.grammar-structure-image:hover { box-shadow: 0 0 0 2px #dce5f5; }
 
 .grammar-title {
   display: flex;

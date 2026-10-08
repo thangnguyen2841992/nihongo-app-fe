@@ -9,6 +9,7 @@ import {gatewayUrl} from "@/api/authApi.ts"
 import ExampleModal from "@/components/staff/ExampleModal.vue"
 import GrammarModal from "@/components/staff/GrammarModal.vue";
 import GrammarNotes from '@/components/GrammarNotes.vue'
+import GrammarStructure from '@/components/GrammarStructure.vue'
 import { importedAudioUrl } from '@/services/bookImport'
 import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
 import { bookReadingAudioTrack } from '@/services/bookReadingAudio'
@@ -537,7 +538,7 @@ const getStructureImage = (
 
   return imageUrl.replace(
     "/upload/",
-    "/upload/w_1200,h_300,c_pad,b_white/"
+    "/upload/w_1200,c_limit/"
   )
 }
 
@@ -868,17 +869,8 @@ const goToExercisePage =
 
                 </div>
 
-                <div
-                  v-if="grammar.imageUrl"
-                  class="grammar-structure"
-                >
-                  <img
-                    :src="getStructureImage(grammar.imageUrl)"
-                    :alt="grammar.title"
-                    class="grammar-structure-image"
-                    @click="openImage(grammar.imageUrl)">
-                </div>
-                <GrammarNotes :description="grammar.description" />
+                <GrammarStructure v-if="grammar.imageUrl" :source="getStructureImage(grammar.imageUrl)" :title="grammar.title" @enlarge="openImage(grammar.imageUrl)" />
+                <GrammarNotes :description="grammar.description" :examples="examples[grammar.grammarId]" />
                 <!-- EXAMPLE ACTION -->
 
                 <div class="example-section">
@@ -1690,41 +1682,7 @@ const goToExercisePage =
   font-weight: 700;
 }
 
-.grammar-structure {
 
-  height: 140px;
-
-  border-radius: 16px;
-
-  background: #f8fafc;
-
-  border: 1px solid #e2e8f0;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  padding: 12px;
-
-  overflow: hidden;
-}
-
-.grammar-structure-image {
-  display: block;
-  width: 100%;
-  max-width: 650px;
-  height: auto;
-  aspect-ratio: 4 / 1;
-  object-fit: contain;
-  margin: 0 auto;
-  border-radius: 12px;
-  background: #fff;
-  cursor: zoom-in;
-}
-
-.grammar-structure-image:hover { box-shadow: 0 0 0 2px #dce5f5; }
 
 .grammar-header {
   display: flex;
