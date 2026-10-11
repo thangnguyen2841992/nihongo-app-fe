@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import StaffSidebar from "@/components/staff/StaffSidebar.vue";
 import StaffNavbar from "@/components/staff/StaffNavbar.vue";
 const route = useRoute()
-const importing = computed(() => route.path === '/staff/imports/books')
+const importing = computed(() => ['/staff/imports/books','/staff/insights','/staff/editorial','/staff/question-bank','/staff/revisions'].includes(route.path))
 const menuOpen = ref(false)
 watch(() => route.fullPath, () => { menuOpen.value = false })
 </script>
@@ -57,5 +57,10 @@ watch(() => route.fullPath, () => { menuOpen.value = false })
   .importing :deep(.navbar-brand) { display: none; }
   .importing :deep(.navbar-search) { margin-left: 135px; }
   .import-mobile-menu { display: block; position: fixed; top: 18px; left: 14px; z-index: 1100; border: 1px solid #cad5e6; border-radius: 8px; padding: 8px 10px; background: white; color: #31547c; }
+}
+@media (max-width: 576px) {
+  .importing :deep(.user-info) { display: none; }
+  .importing :deep(.user-dropdown-btn) { padding: 4px; gap: 0; }
+  .importing :deep(.avatar-circle) { width: 34px; height: 34px; }
 }
 </style>

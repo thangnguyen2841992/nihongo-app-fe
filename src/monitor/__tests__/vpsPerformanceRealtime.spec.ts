@@ -71,7 +71,7 @@ it('subscribes to the selected metric, filters duplicate/wrong frames and refres
   const client = mocks.clients[0]
   expect(client.options.brokerURL).toBe('wss://app.example.com/api/staff/vps-performance/ws')
   await client.options.beforeConnect()
-  expect(mocks.get).toHaveBeenCalledWith('/api/staff/vps-metrics')
+  expect(mocks.get).toHaveBeenCalledWith('/api/auth/checkLogin', { signal: expect.any(AbortSignal) })
   client.options.onConnect()
   expect(client.subscribe).toHaveBeenCalledWith(
     '/topic/vps-performance/2/CPU_USAGE',

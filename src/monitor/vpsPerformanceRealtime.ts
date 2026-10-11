@@ -1,5 +1,4 @@
-import { Client } from '@stomp/stompjs'
-import { gatewayUrl } from '@/api/authApi'
+import { connectAuthenticatedRealtime } from '@/services/authenticatedRealtime'
 import type { VpsPerformance } from './vpsPerformanceService'
 
 export type PerformanceLiveStatus = 'connecting' | 'live' | 'offline'
@@ -10,35 +9,10 @@ export function connectVpsPerformance(
   onUpdate: (value?: VpsPerformance) => void,
   onStatus: (status: PerformanceLiveStatus) => void,
 ) {
-  let stopped = false
   let sequence = 0
-  const url = new URL(
-    '/api/staff/vps-performance/ws',
-    gatewayUrl.defaults.baseURL || window.location.origin,
-  )
-  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
-  const client = new Client({
-    brokerURL: url.toString(),
-    reconnectDelay: 3000,
-    connectionTimeout: 10000,
-    heartbeatIncoming: 10000,
-    heartbeatOutgoing: 10000,
-    beforeConnect: async () => {
-      if (stopped) return
-      onStatus('connecting')
-      // Refresh the HttpOnly access cookie through the existing HTTP interceptor.
-      try {
-        await gatewayUrl.get('/api/staff/vps-metrics')
-      } catch {
-        /* Authentication/connection failure is shown by the UI. */
-      }
-      if (stopped) await client.deactivate()
-    },
-    onConnect: () => {
-      if (stopped) return
+  return connectAuthenticatedRealtime('/api/staff/vps-performance/ws', subscribe => {
       sequence = 0
-      client.subscribe(`/topic/vps-performance/${vpsId}/${code}`, (message) => {
-        if (stopped) return
+      subscribe(`/topic/vps-performance/${vpsId}/${code}`, (message) => {
         try {
           const update = JSON.parse(message.body)
           const data = update.performance as VpsPerformance
@@ -89,22 +63,6 @@ export function connectVpsPerformance(
           /* Ignore malformed frames. */
         }
       })
-      onStatus('live')
       onUpdate() // HTTP snapshot/history resync after every connect, including reconnects.
-    },
-    onWebSocketClose: () => {
-      if (!stopped) onStatus('offline')
-    },
-    onStompError: () => {
-      if (!stopped) onStatus('offline')
-    },
-    onWebSocketError: () => {
-      if (!stopped) onStatus('offline')
-    },
-  })
-  client.activate()
-  return () => {
-    stopped = true
-    void client.deactivate()
-  }
+  }, onStatus)
 }

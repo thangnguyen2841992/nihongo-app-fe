@@ -17,14 +17,15 @@ if (existsSync(sharedSettingsPath)) {
   }
 }
 
-const publicDefines: Record<string, string> = {}
-for (const key of publicKeys) {
-  const value = process.env[key] ?? publicSettings[key]
-  if (value !== undefined) publicDefines[`import.meta.env.${key}`] = JSON.stringify(value)
-}
-
 // https://vite.dev/config/
-export default defineConfig(({ command }) => ({
+export default defineConfig(({ command, mode }) => {
+ const publicDefines: Record<string, string> = {}
+ for (const key of publicKeys) {
+   // Deployment builds must not inherit this workstation's localhost URLs.
+   const value = process.env[key] ?? (mode === 'development' ? publicSettings[key] : undefined)
+   if (value !== undefined) publicDefines[`import.meta.env.${key}`] = JSON.stringify(value)
+ }
+ return ({
   define: publicDefines,
   plugins: [
     vue(),
@@ -36,4 +37,5 @@ export default defineConfig(({ command }) => ({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
-}))
+ })
+})

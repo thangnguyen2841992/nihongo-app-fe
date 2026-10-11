@@ -53,6 +53,27 @@ export const deleteCard = async (id: number) => gatewayUrl.delete(`${base}/cards
 export const reviewCard = async (id: number, remembered: boolean) => (await gatewayUrl.post<StudyCard>(`${base}/cards/${id}/review`, null, { params: { remembered } })).data
 export const getWrongAnswers = async (lessonId?: number) => (await gatewayUrl.get<WrongAnswer[]>(`${base}/wrong-answers`, { params: lessonId ? { lessonId } : {} })).data
 
+export interface StudyPage<T> { content: T[]; totalElements: number; number: number; totalPages: number }
+export interface StudyGoal { dailyCards: number; dailyAttempts: number; remindersEnabled: boolean }
+export interface StudyDashboard {
+  dueCards: number; weakLessons: number; attempts: number; lessons: number; averageScore: number
+  cardsToday: number; attemptsToday: number; practiceToday: number; goalCompleted: boolean
+  streak: number; longestStreak: number; today: string; timeZone: string; goal: StudyGoal
+  trend: Array<{ day: string; attempts: number; averageScore: number }>
+  reminders: Array<{ key: string; message: string; courseId: number | null; expiresAt: string | null }>
+}
+export type ReviewRating = 'AGAIN' | 'HARD' | 'GOOD' | 'EASY'
+export interface WeakLesson { lessonId: number; score: number; submittedAt: string }
+export const getDashboard = async () => (await gatewayUrl.get<StudyDashboard>(`${base}/dashboard`)).data
+export const saveStudyGoal = async (goal: StudyGoal) => (await gatewayUrl.put<StudyGoal>(`${base}/goal`, goal)).data
+export const getCardPage = async (page = 0, kind?: StudyCard['kind']) => (await gatewayUrl.get<StudyPage<StudyCard>>(`${base}/cards/page`, { params: { page, size: 20, kind } })).data
+export const getDueBatch = async () => (await gatewayUrl.get<StudyCard[]>(`${base}/cards/due/batch`)).data
+export const rateCard = async (id: number, rating: ReviewRating) => (await gatewayUrl.post<StudyCard>(`${base}/cards/${id}/rating`, { rating })).data
+export const getWrongPage = async (page = 0) => (await gatewayUrl.get<StudyPage<WrongAnswer>>(`${base}/wrong-answers/page`, { params: { page, size: 20 } })).data
+export const getWeakPage = async (page = 0) => (await gatewayUrl.get<StudyPage<WeakLesson>>(`${base}/weak-lessons/page`, { params: { page, size: 20 } })).data
+export const practiceWrong = async (id: number, answer: string) => (await gatewayUrl.post<{ correct: boolean; correctAnswer: string }>(`${base}/wrong-answers/${id}/practice`, { answer })).data
+export const masterWrong = async (id: number) => gatewayUrl.delete(`${base}/wrong-answers/${id}`)
+
 export function latestResults(results: LessonResult[]) {
   const latest = new Map<number, LessonResult>()
   for (const result of [...results].sort((a, b) => Date.parse(b.submittedAt) - Date.parse(a.submittedAt))) {

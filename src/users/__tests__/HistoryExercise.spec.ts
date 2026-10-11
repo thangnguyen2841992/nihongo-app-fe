@@ -22,7 +22,7 @@ async function openHistory() {
 const result = { resultId: 1, lessonId: 1, lessonName: 'Bài 1', totalQuestion: 3, correctCount: 1, wrongCount: 1, unansweredCount: 1, score: 100 / 3, submittedAt: '2026-10-08T10:00:00', chosenAnswers: { '10': 'A', '11': 'B' }, correctAnswers: { '10': 'A', '11': 'C', '12': 'D' } }
 
 it('shows a retryable load error instead of pretending history is empty', async () => {
-  vi.mocked(gatewayUrl.get).mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce({ data: [] })
+  vi.mocked(gatewayUrl.get).mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce({ data: { content: [], totalPages: 0, totalElements: 0 } })
   await openHistory()
   expect(wrapper!.get('[role="alert"]').text()).toContain('Không tải được lịch sử')
   expect(wrapper!.text()).not.toContain('Bạn chưa làm bài tập này')
@@ -31,7 +31,7 @@ it('shows a retryable load error instead of pretending history is empty', async 
 })
 
 it('shows saved choices including skipped questions and keeps chronological attempt numbers', async () => {
-  vi.mocked(gatewayUrl.get).mockResolvedValue({ data: [{ ...result, resultId: 2, submittedAt: '2026-10-08T11:00:00' }, result] })
+  vi.mocked(gatewayUrl.get).mockResolvedValue({ data: { content: [{ ...result, resultId: 2, submittedAt: '2026-10-08T11:00:00' }, result], totalPages: 1, totalElements: 2 } })
   await openHistory()
   expect(wrapper!.findAll('.unanswered-count').map(cell => cell.text())).toEqual(['1', '1'])
   await wrapper!.findAll('.detail-button')[1]!.trigger('click')
@@ -42,7 +42,7 @@ it('shows saved choices including skipped questions and keeps chronological atte
 })
 
 it('marks missing legacy counts as unknown instead of zero', async () => {
-  vi.mocked(gatewayUrl.get).mockResolvedValue({ data: [{ ...result, unansweredCount: null, correctAnswers: null, chosenAnswers: null }] })
+  vi.mocked(gatewayUrl.get).mockResolvedValue({ data: { content: [{ ...result, unansweredCount: null, correctAnswers: null, chosenAnswers: null }], totalPages: 1, totalElements: 1 } })
   await openHistory()
   expect(wrapper!.get('.unanswered-count').text()).toBe('—')
   expect(wrapper!.text()).toContain('Chưa lưu chi tiết')
@@ -50,12 +50,23 @@ it('marks missing legacy counts as unknown instead of zero', async () => {
 })
 
 it('reloads when the lesson changes and ignores a late response from the previous lesson', async () => {
-  let resolveFirst!: (value: { data: typeof result[] }) => void
+  let resolveFirst!: (value: { data: { content: typeof result[]; totalPages: number; totalElements: number } }) => void
   vi.mocked(gatewayUrl.get).mockImplementationOnce(() => new Promise(resolve => { resolveFirst = resolve }))
-    .mockResolvedValueOnce({ data: [{ ...result, lessonId: 2, lessonName: 'Bài 2' }] })
+    .mockResolvedValueOnce({ data: { content: [{ ...result, lessonId: 2, lessonName: 'Bài 2' }], totalPages: 1, totalElements: 1 } })
   const router = await openHistory()
   await router.push('/history/2'); await flushPromises()
-  resolveFirst({ data: [result] }); await flushPromises()
+  resolveFirst({ data: { content: [result], totalPages: 1, totalElements: 1 } }); await flushPromises()
   expect(wrapper!.text()).toContain('Bài 2')
   expect(wrapper!.text()).not.toContain('📘 Bài 1')
+})
+
+it('requests the next page and keeps attempt numbers relative to the entire history', async () => {
+  vi.mocked(gatewayUrl.get).mockResolvedValueOnce({ data: { content: [{ ...result, resultId: 21 }], totalPages: 2, totalElements: 21 } })
+    .mockResolvedValueOnce({ data: { content: [result], totalPages: 2, totalElements: 21 } })
+  await openHistory()
+  expect(wrapper!.get('.attempt-badge').text()).toBe('21')
+  await wrapper!.findAll('.history-pagination button')[1]!.trigger('click'); await flushPromises()
+  expect(gatewayUrl.get).toHaveBeenLastCalledWith('/api/nihongo-user/lesson-result/1/page', expect.objectContaining({ params: { page: 1, size: 20 } }))
+  expect(wrapper!.get('.attempt-badge').text()).toBe('1')
+  expect(wrapper!.text()).toContain('21 lượt tổng cộng')
 })

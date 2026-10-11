@@ -42,10 +42,27 @@ const isRenewMode = ref(false)
 const showPackageModal = ref(false)
 const selectedCourse = ref<Course | null>(null)
 const myCourses = ref<MyCourse[]>([])
+const couponCode = ref('')
+const couponBusy = ref(false)
+const couponError = ref('')
+const couponQuotes = ref<Record<number, { originalPrice: number; discount: number; payable: number }>>({})
+watch(couponCode, () => { couponQuotes.value = {}; couponError.value = '' })
+async function applyCoupon() {
+  if (!selectedCourse.value || !couponCode.value.trim() || couponBusy.value) return
+  couponBusy.value = true; couponError.value = ''; couponQuotes.value = {}
+  const course = selectedCourse.value, code = couponCode.value.trim().toUpperCase()
+  const quotes = await Promise.allSettled(course.packages.map(async p => ({ packageId: p.packageId, quote: (await gatewayUrl.get<{ originalPrice: number; discount: number; payable: number }>('/api/nihongo-user/promotions/quote', { params: { courseId: course.courseId, packageId: p.packageId, code } })).data })))
+  if (selectedCourse.value?.courseId === course.courseId && couponCode.value.trim().toUpperCase() === code) {
+    for (const result of quotes) if (result.status === 'fulfilled') couponQuotes.value[result.value.packageId] = result.value.quote
+    if (!Object.keys(couponQuotes.value).length) couponError.value = 'Mã không áp dụng được. Kiểm tra thời hạn, lượt dùng và khóa học.'
+  }
+  couponBusy.value = false
+}
 
 const openPackageModal = (course: Course, renew = false) => {
   if (!isAuthenticated.value) { void goToLogin(); return }
   selectedCourse.value = course
+  couponCode.value = ''; couponQuotes.value = {}; couponError.value = ''
   isRenewMode.value = renew
   showPackageModal.value = true
 }
@@ -57,7 +74,7 @@ const subscribe = async (packageId: number) => {
   try {
     registering.value = selectedCourse.value.courseId
 
-    await purchaseCourse(userEmail?.value || "current", selectedCourse.value.courseId, packageId, false)
+    await purchaseCourse(userEmail?.value || "current", selectedCourse.value.courseId, packageId, false, couponCode.value.trim() || undefined, couponQuotes.value[packageId]?.payable ?? selectedCourse.value.packages.find(p => p.packageId === packageId)?.price)
 
     await loadMyCourses();
 
@@ -119,7 +136,7 @@ const renewSubscription = async (packageId: number) => {
 
     registering.value = selectedCourse.value.courseId
 
-    await purchaseCourse(userEmail?.value || "current", selectedCourse.value.courseId, packageId, true)
+    await purchaseCourse(userEmail?.value || "current", selectedCourse.value.courseId, packageId, true, couponCode.value.trim() || undefined, couponQuotes.value[packageId]?.payable ?? selectedCourse.value.packages.find(p => p.packageId === packageId)?.price)
 
     alert("Gia hạn thành công!")
 
@@ -323,6 +340,7 @@ watch(isAuthenticated, async authenticated => {
         </p>
 
         <p class="sub">Thanh toán bằng số dư ví. Số tiền của gói sẽ được trừ khi đăng ký hoặc gia hạn thành công.</p>
+        <form class="coupon-form" @submit.prevent="applyCoupon"><label for="purchase-coupon">Mã giảm giá (nếu có)</label><div class="d-flex gap-2"><input id="purchase-coupon" v-model="couponCode" class="form-control" maxlength="32" :disabled="couponBusy || registering !== null" placeholder="Nhập mã giảm giá"><button class="btn btn-outline-primary" :disabled="couponBusy || registering !== null || !couponCode.trim()">{{ couponBusy ? 'Đang kiểm tra...' : 'Kiểm tra mã' }}</button></div><small>Mỗi mã dùng một lần cho mỗi tài khoản. Kiểm tra mã để xem số tiền thanh toán.</small><p v-if="couponError" role="alert" class="text-danger">{{ couponError }}</p></form>
         <div class="package-grid">
 
           <div
@@ -340,12 +358,13 @@ watch(isAuthenticated, async authenticated => {
             </div>
 
             <div class="pkg-price">
-              {{ p.price.toLocaleString("vi-VN") }}đ
+              <del v-if="couponQuotes[p.packageId]" class="d-block small text-muted">{{ p.price.toLocaleString('vi-VN') }}đ</del>
+              {{ (couponQuotes[p.packageId]?.payable ?? p.price).toLocaleString("vi-VN") }}đ
             </div>
 
             <button
               class="buy-btn"
-              :disabled="registering === selectedCourse?.courseId"
+              :disabled="registering === selectedCourse?.courseId || couponBusy || (Boolean(couponCode.trim()) && !couponQuotes[p.packageId])"
               @click="
       isRenewMode
         ? renewSubscription(p.packageId)

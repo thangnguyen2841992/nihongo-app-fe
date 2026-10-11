@@ -20,3 +20,13 @@ it('scopes retries to the owner and the selected package', async () => {
  const keys = post.mock.calls.map(c => c[2]!.headers!['Idempotency-Key'])
  expect(new Set(keys).size).toBe(3)
 })
+it('keeps the original coupon and price on an ambiguous payment and prevents a changed coupon retry', async () => {
+ post.mockRejectedValueOnce(new Error('connection lost')).mockResolvedValue({ data: { id: 1 } })
+ await expect(purchaseCourse('owner',1,2,true,'promo',9000)).rejects.toThrow('connection lost')
+ await expect(purchaseCourse('owner',1,2,true,'other',8000)).rejects.toThrow('mã giảm giá ban đầu')
+ expect(post).toHaveBeenCalledTimes(1)
+ await purchaseCourse('owner',1,2,true,'PROMO',10000)
+ expect(post.mock.calls[1]![2]!.params).toEqual({ courseId:1,packageId:2,couponCode:'PROMO',expectedAmount:9000 })
+ expect(post.mock.calls[1]![2]!.headers!['Idempotency-Key']).toBe(post.mock.calls[0]![2]!.headers!['Idempotency-Key'])
+ expect(sessionStorage.length).toBe(0)
+})

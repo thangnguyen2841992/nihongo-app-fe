@@ -22,6 +22,20 @@ beforeEach(() => {
   vi.mocked(api.depositWallet).mockResolvedValue(request)
 })
 describe('manual wallet deposits', () => {
+  it('loads independent wallet data together and does not replay a queued refresh after leaving', async () => {
+    let finish!: (wallet: api.WalletResponse) => void
+    vi.mocked(api.getWallet).mockReturnValueOnce(new Promise(resolve => { finish = resolve }))
+    const wrapper = mount(Wallet)
+    expect(api.getWallet).toHaveBeenCalledOnce()
+    expect(api.getDeposits).toHaveBeenCalledOnce()
+    expect(api.getBankInfo).toHaveBeenCalledOnce()
+    realtime.change?.()
+    wrapper.unmount()
+    finish({ walletId: 1, userId: 'uuid-owner', balance: 0 })
+    await flushPromises()
+    expect(api.getWallet).toHaveBeenCalledOnce()
+    expect(api.getDeposits).toHaveBeenCalledOnce()
+  })
   it('keeps history hidden until requested and allows closing it', async () => {
     vi.mocked(api.getDeposits).mockResolvedValue([request])
     const wrapper = mount(Wallet); await flushPromises()

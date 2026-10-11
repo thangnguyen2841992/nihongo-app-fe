@@ -12,6 +12,8 @@ import ExampleModal from "@/components/staff/ExampleModal.vue"
 import GrammarModal from "@/components/staff/GrammarModal.vue";
 import { saveLearningPosition } from '@/api/learningPosition'
 import GrammarNotes from '@/components/GrammarNotes.vue'
+import LessonCompletionButton from '@/users/LessonCompletionButton.vue'
+import ContentReport from '@/components/operations/ContentReport.vue'
 import GrammarStructure from '@/components/GrammarStructure.vue'
 import { importedAudioUrl } from '@/services/bookImport'
 import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
@@ -788,6 +790,7 @@ const goToExercisePage =
 </script>
 
 <template>
+  <ContentReport v-if="selectedLesson" :lesson-id="selectedLesson.lessonId" style="margin:12px 24px" />
 
   <div class="grammar-page">
     <p v-if="positionError" role="alert" class="position-error">{{ positionError }}</p>
@@ -887,6 +890,7 @@ const goToExercisePage =
             <div class="selected-lesson">
               {{ selectedLesson.name }}
             </div>
+            <LessonCompletionButton :key="selectedLesson.lessonId" :lesson-id="selectedLesson.lessonId" />
 
           </div>
 

@@ -1,5 +1,4 @@
-import { Client } from '@stomp/stompjs'
-import { gatewayUrl } from '@/api/authApi'
+import { connectAuthenticatedRealtime } from '@/services/authenticatedRealtime'
 import type { MonitorEvent } from './monitorEventService'
 import type { PerformanceLiveStatus } from './vpsPerformanceRealtime'
 
@@ -8,34 +7,10 @@ export function connectVpsEvents(
   onEvents: (events?: MonitorEvent[]) => void,
   onStatus: (status: PerformanceLiveStatus) => void,
 ) {
-  let stopped = false,
-    sequence = 0
-  const url = new URL(
-    '/api/staff/vps-performance/ws',
-    gatewayUrl.defaults.baseURL || window.location.origin,
-  )
-  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
-  const client = new Client({
-    brokerURL: url.toString(),
-    reconnectDelay: 3000,
-    connectionTimeout: 10000,
-    heartbeatIncoming: 10000,
-    heartbeatOutgoing: 10000,
-    beforeConnect: async () => {
-      if (stopped) return
-      onStatus('connecting')
-      try {
-        await gatewayUrl.get('/api/staff/vps-metrics')
-      } catch {
-        /* Socket status reports failure. */
-      }
-      if (stopped) await client.deactivate()
-    },
-    onConnect: () => {
-      if (stopped) return
+  let sequence = 0
+  return connectAuthenticatedRealtime('/api/staff/vps-performance/ws', subscribe => {
       sequence = 0
-      client.subscribe(`/topic/vps-events/${vpsId}`, (message) => {
-        if (stopped) return
+      subscribe(`/topic/vps-events/${vpsId}`, (message) => {
         try {
           const data = JSON.parse(message.body)
           if (
@@ -69,22 +44,6 @@ export function connectVpsEvents(
           /* Malformed frames must not corrupt the feed. */
         }
       })
-      onStatus('live')
       onEvents() // Reconnect always resyncs recent events from DB.
-    },
-    onWebSocketClose: () => {
-      if (!stopped) onStatus('offline')
-    },
-    onWebSocketError: () => {
-      if (!stopped) onStatus('offline')
-    },
-    onStompError: () => {
-      if (!stopped) onStatus('offline')
-    },
-  })
-  client.activate()
-  return () => {
-    stopped = true
-    void client.deactivate()
-  }
+  }, onStatus)
 }

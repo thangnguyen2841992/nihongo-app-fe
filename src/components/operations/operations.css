@@ -1,0 +1,23 @@
+.ops-page { max-width: 1280px; margin: 0 auto; padding: 24px 16px 60px; color: #334155; }
+.ops-heading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+.ops-heading h1 { margin: 0 0 8px; font-size: 28px; color: #263c62; } .ops-heading p { margin: 0; color: #64748b; }
+.ops-panel { background: white; border: 1px solid #dce4f0; border-radius: 16px; padding: 22px; margin-bottom: 18px; }
+.ops-panel h2 { font-size: 19px; margin: 0 0 15px; } .ops-panel h3 { font-size: 17px; }
+.ops-actions, .ops-pager { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 14px 0; }
+.ops-button { min-height: 40px; border: 1px solid #315ba0; border-radius: 9px; padding: 8px 14px; background: #315ba0; color: white; text-decoration: none; font-weight: 600; cursor: pointer; }
+.ops-button.secondary { background: white; color: #315ba0; } .ops-button:disabled { opacity: .5; cursor: not-allowed; }
+.ops-button:focus-visible { outline: 3px solid #a5c1ef; outline-offset: 2px; }
+.ops-form { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 14px; align-items: end; }
+.ops-form label { display: grid; gap: 6px; } .ops-form .wide { grid-column: 1 / -1; }
+.ops-form input:not([type=checkbox]), .ops-form select, .ops-form textarea { width: 100%; min-width: 0; border: 1px solid #ccd7e7; border-radius: 8px; padding: 9px 11px; background: #fff; color: #334155; }
+.ops-error { padding: 13px; background: #fff0ed; color: #9b3434; border-radius: 9px; margin-bottom: 15px; }
+.ops-notice { padding: 13px; background: #edf7f1; color: #236d46; border-radius: 9px; margin-bottom: 15px; }
+.ops-muted { color: #64748b; font-size: 13px; } .ops-badge { display: inline-block; border-radius: 7px; padding: 4px 8px; background: #eef3fc; color: #315ba0; font-size: 12px; }
+.ops-table-wrap { overflow-x: auto; } .ops-table { width: 100%; border-collapse: collapse; }
+.ops-table th, .ops-table td { padding: 12px; border-bottom: 1px solid #e3eaf4; text-align: left; vertical-align: top; } .ops-table th { background: #f4f7fc; font-size: 13px; }
+.ops-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 16px; }
+.ops-number { font-size: 27px; font-weight: 700; color: #315ba0; } .ops-empty { padding: 24px; color: #64748b; text-align: center; border: 1px dashed #ccd7e7; border-radius: 12px; }
+.ops-content { white-space: pre-wrap; overflow-wrap: anywhere; } .ops-snapshot { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 420px; overflow: auto; padding: 14px; background: #f5f7fa; border-radius: 9px; font-size: 13px; }
+.ops-select-line { display: flex; gap: 10px; align-items: flex-start; } .ops-exam-question { break-inside: avoid; margin-bottom: 18px; }
+@media (max-width:600px) { .ops-page { padding: 16px 8px 40px; } .ops-panel { padding: 16px; } .ops-heading h1 { font-size: 24px; } .ops-table { min-width: 540px; } }
+@media print { body * { visibility: hidden; } .ops-print, .ops-print * { visibility: visible; } .ops-print { position: absolute; left: 0; top: 0; width: 100%; } .ops-print button { display: none; } }

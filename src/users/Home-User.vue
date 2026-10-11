@@ -2,13 +2,15 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { saveLearningPosition } from '@/api/learningPosition'
-import { getMyCourses, getOverview, type MyCourse } from '@/api/study'
+import { getMyCourses, getDashboard, type MyCourse, type StudyDashboard as DashboardData } from '@/api/study'
+import StudyDashboard from './StudyDashboard.vue'
 import './studyPages.css'
 
 const router = useRouter()
 const courses = ref<MyCourse[]>([])
 const dueCount = ref(0)
 const weakCount = ref(0)
+const dashboard = ref<DashboardData | null>(null)
 const loading = ref(true)
 const error = ref('')
 const opening = ref(false)
@@ -17,9 +19,9 @@ const recent = computed(() => [...courses.value].filter(c => Date.parse(c.expire
 
 async function load() {
   loading.value = true; error.value = ''
-  const [courseResult, overviewResult] = await Promise.allSettled([getMyCourses(), getOverview()])
+  const [courseResult, overviewResult] = await Promise.allSettled([getMyCourses(), getDashboard()])
   if (courseResult.status === 'fulfilled') courses.value = courseResult.value
-  if (overviewResult.status === 'fulfilled') { dueCount.value = overviewResult.value.dueCards; weakCount.value = overviewResult.value.weakLessons }
+  if (overviewResult.status === 'fulfilled') { dashboard.value = overviewResult.value; dueCount.value = overviewResult.value.dueCards; weakCount.value = overviewResult.value.weakLessons }
   if ([courseResult, overviewResult].some(r => r.status === 'rejected')) error.value = 'Một số dữ liệu học tập chưa tải được. Hãy thử tải lại.'
   loading.value = false
 }
@@ -47,7 +49,8 @@ onMounted(load)
         <template v-else><p>Bạn chưa có khóa học đang hoạt động.</p><RouterLink class="study-button" to="/courses">Khám phá khóa học</RouterLink></template>
       </section>
       <section class="study-panel"><h2>Thẻ cần ôn</h2><div class="study-count">{{ dueCount }}</div><p>Thẻ đã đến lịch ôn tập.</p><RouterLink class="study-button secondary" to="/user/review">Ôn tập ngay</RouterLink></section>
-      <section class="study-panel"><h2>Bài cần luyện lại</h2><div class="study-count">{{ weakCount }}</div><p>Bài có lần làm gần nhất dưới 80 điểm.</p><RouterLink class="study-button secondary" to="/user/review">Xem bài yếu</RouterLink></section>
+      <section class="study-panel"><h2>Bài cần luyện lại</h2><div class="study-count">{{ weakCount }}</div><p>Bài có lần làm gần nhất dưới 80 điểm.</p><RouterLink class="study-button secondary" :to="{ path: '/user/review', query: { tab: 'lessons' } }">Xem bài yếu</RouterLink></section>
     </div>
+    <StudyDashboard v-if="!loading && dashboard" :dashboard="dashboard" :courses="courses" @saved="load" />
   </div>
 </template>

@@ -1,11 +1,21 @@
 <script setup lang="ts">
 import {ref, nextTick, onMounted} from 'vue'
-import {useRouter} from 'vue-router'
+import {useRoute,useRouter} from 'vue-router'
 import {gatewayUrl} from '@/api/authApi'
 import {setAuth} from '@/services/authState.ts'
 
 type LoginType = 'LOCAL' | 'GOOGLE' | null
 const router = useRouter()
+const route = useRoute()
+const mfaRequired = ref(route.query.mfa === '1'), mfaCode = ref('')
+const verifyMfa = async () => {
+  if (loading.value) return
+  loading.value = true; error.value = ''
+  try { await gatewayUrl.post('/api/auth/mfa/verify', { code: mfaCode.value }); mfaCode.value = ''; const session = await gatewayUrl.get('/api/auth/checkLogin'); await setAuth(); await redirectByRole(session.data.role) }
+  catch (cause: any) { error.value = cause.response?.data?.message || 'Mã xác thực không hợp lệ hoặc đã hết hạn.' }
+  finally { loading.value = false }
+}
+const cancelMfa = async () => { try { await gatewayUrl.post('/api/auth/mfa/cancel'); mfaRequired.value = false; mfaCode.value = ''; await resetLogin() } catch { error.value = 'Chưa hủy được phiên xác minh.' } }
 const email = ref('')
 const password = ref('')
 const loginType = ref<LoginType>(null)
@@ -89,7 +99,7 @@ const checkEmail = async () => {
 
   } catch (e: any) {
 
-    console.error('Check email error:', e)
+
 
     if (e.response?.status === 404) {
       error.value = 'Email chưa tồn tại'
@@ -135,6 +145,7 @@ const login = async () => {
     )
 
     const tokenResponse = loginResponse.data
+    if (tokenResponse?.mfaRequired) { mfaRequired.value = true; password.value = ''; return }
 
     if (!tokenResponse) {
       error.value = 'Không nhận được thông tin đăng nhập'
@@ -155,7 +166,7 @@ const login = async () => {
 
   } catch (e: any) {
 
-    console.error('Login error:', e)
+
 
     if (e.response?.status === 401) {
 
@@ -296,6 +307,7 @@ onMounted(async () => {
       <!-- FORM -->
 
       <form
+        v-if="!mfaRequired"
         @submit.prevent="handleSubmit"
         autocomplete="off"
       >
@@ -527,6 +539,8 @@ onMounted(async () => {
         </div>
 
       </form>
+      <form v-if="mfaRequired" @submit.prevent="verifyMfa"><p>Nhập mã 6 chữ số từ ứng dụng xác thực hoặc một mã dự phòng.</p><input v-model="mfaCode" class="form-control mb-3" autocomplete="one-time-code" maxlength="40" required aria-label="Mã xác thực hai bước"><button class="btn btn-next w-100" :disabled="loading">Xác minh và đăng nhập</button><button type="button" class="btn-back" :disabled="loading" @click="cancelMfa">Hủy xác minh</button></form>
+      <p class="mt-3"><RouterLink to="/forgot-password">Quên mật khẩu?</RouterLink></p>
 
 
       <!-- DIVIDER -->

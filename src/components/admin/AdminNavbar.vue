@@ -318,6 +318,8 @@ const handleLogout = async () => {
 ========================= */
 
 @media (max-width: 768px) {
+  .navbar { height: auto; min-height: 72px; padding-top: 12px; padding-bottom: 12px; }
+  .navbar > .container-fluid { gap: 8px; }
 
   .user-email {
     display: none;

@@ -30,6 +30,10 @@ const routes = [
     component: MainLayout,
     children: [
       {path: '', component: Home},
+      {path: 'account', meta: {requiresAuth: true}, component: () => import('@/users/AccountView.vue')},
+      {path: 'user/assignments', meta: {requiresAuth: true}, component: () => import('@/users/AssignmentsView.vue')},
+      {path: 'user/attempts/:id', meta: {requiresAuth: true}, component: () => import('@/users/OnlineAttemptView.vue')},
+      {path: 'user/learning-plan', meta: {requiresAuth: true}, component: () => import('@/users/LearningPlanView.vue')},
       {
         path: 'user/conversation-listening',
         name: 'conversation-listening',
@@ -54,6 +58,7 @@ const routes = [
         meta: { requiresAuth: true },
         component: () => import('@/users/NotebookView.vue')
       },
+      { path: 'user/content-reports', meta: { requiresAuth: true }, component: () => import('@/components/operations/MyContentReports.vue') },
       {
         path: '/course/:courseId',
         name: 'course-learning',
@@ -110,6 +115,8 @@ const routes = [
     path: '/login',
     component: LoginView
   },
+  {path: '/forgot-password', component: () => import('@/components/auth/RecoveryView.vue')},
+  {path: '/recover-password', component: () => import('@/components/auth/RecoveryView.vue')},
   {
     path: '/register',
     component: RegisterView
@@ -149,6 +156,13 @@ const routes = [
     meta: { requiresAuth: true, roles: ['ADMIN'] },
     component: AdminLayout,
     children: [
+      { path: 'operations', component: () => import('@/components/operations/OperationsCenter.vue') },
+      { path: 'refunds', component: () => import('@/components/operations/RefundManagement.vue') },
+      { path: 'revenue', component: () => import('@/components/operations/RevenueReport.vue') },
+      { path: 'catalog', component: () => import('@/components/operations/CatalogManagement.vue') },
+      { path: 'promotions', component: () => import('@/components/operations/PromotionManagement.vue') },
+      { path: 'reviews', component: () => import('@/components/operations/EditorialWorkspace.vue'), props: { initialTab: 'reviews' } },
+      { path: 'audit', component: () => import('@/components/operations/AdminAuditLog.vue') },
       {
         path: '',
         redirect: '/admin/dashboard'
@@ -177,6 +191,11 @@ const routes = [
     meta: { requiresAuth: true, roles: ['ADMIN', 'STAFF'] },
     component: StaffLayout,
     children: [
+      { path: 'classrooms', component: () => import('@/components/operations/ClassroomsView.vue') },
+      { path: 'insights', component: () => import('@/components/operations/LearningInsights.vue') },
+      { path: 'editorial', component: () => import('@/components/operations/EditorialWorkspace.vue') },
+      { path: 'question-bank', component: () => import('@/components/operations/QuestionBank.vue') },
+      { path: 'revisions', component: () => import('@/components/operations/ContentRevisions.vue') },
       {
         path: '',
         component: StaffHome

@@ -34,7 +34,7 @@ class WebSocketService {
       reconnectDelay: 5000,
 
       onConnect: () => {
-        if (this.sessionId !== sessionId) return
+        if (this.client !== client || this.sessionId !== sessionId) return
 
 
         client.subscribe(
@@ -50,6 +50,7 @@ class WebSocketService {
               // ✅ chỉ logout đúng session/tab
               if (
                 data.type === 'FORCE_LOGOUT' &&
+                this.client === client &&
                 this.sessionId === sessionId &&
                 data.sessionId === sessionId
               ) {

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { getAdminDeposits, reviewDeposit, walletError, formatMoney, depositStatus, type WalletDeposit } from '@/services/walletApi'
 import { useWalletRealtime } from '@/services/walletRealtime'
 const liveStatus = useWalletRealtime(true, () => { void load() })
 let reloadPending = false
+let disposed = false
+onUnmounted(() => { disposed = true; reloadPending = false })
 const items = ref<WalletDeposit[]>([])
 const loading = ref(false)
 const busy = ref(false)
@@ -14,10 +16,13 @@ const reference = ref('')
 const note = ref('')
 const checked = ref(false)
 async function load() {
+  if (disposed) return
   if (loading.value || busy.value) { reloadPending = true; return }
   loading.value = true; error.value = ''
   try {
-    items.value = await getAdminDeposits()
+    const result = await getAdminDeposits()
+    if (disposed) return
+    items.value = result
     if (selected.value && items.value.some(item => item.id === selected.value?.id && item.status !== 'PENDING')) selected.value = null
   }
   catch (e) { error.value = walletError(e, 'Không thể tải yêu cầu. Chỉ ADMIN có quyền đối soát.') }

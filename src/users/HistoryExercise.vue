@@ -22,6 +22,7 @@ const route = useRoute()
 const router = useRouter()
 const lessonId = computed(() => Number(route.params.lessonId))
 const results = ref<LessonResult[]>([])
+const page = ref(0), totalPages = ref(0), totalElements = ref(0)
 const loading = ref(true)
 const loadError = ref('')
 const selectedResultId = ref<number | null>(null)
@@ -47,7 +48,7 @@ const drawScoreChart = async (id: number) => {
   scoreChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: chronological.map((_, i) => `Lần ${i + 1}`),
+      labels: chronological.map((_, i) => `Lần ${totalElements.value - page.value * 20 - results.value.length + i + 1}`),
       datasets: [
         { label: 'Điểm', data: chronological.map(r => r.score), borderColor: '#1565C0', yAxisID: 'score' },
         { label: 'Câu đúng', data: chronological.map(r => r.correctCount), borderColor: '#16803C', yAxisID: 'question' },
@@ -77,9 +78,10 @@ const loadHistory = async () => {
   loading.value = true
   try {
     if (!Number.isSafeInteger(lessonId.value) || lessonId.value <= 0) throw new Error('Invalid lesson')
-    const { data } = await gatewayUrl.get<LessonResult[]>(`/api/nihongo-user/lesson-result/${lessonId.value}`, { signal: controller.signal })
+    const { data } = await gatewayUrl.get<{ content: LessonResult[]; totalPages: number; totalElements: number }>(`/api/nihongo-user/lesson-result/${lessonId.value}/page`, { signal: controller.signal, params: { page: page.value, size: 20 } })
     if (disposed || id !== requestId) return
-    results.value = [...data].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt) || b.resultId - a.resultId)
+    results.value = [...data.content].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt) || b.resultId - a.resultId)
+    totalPages.value = data.totalPages; totalElements.value = data.totalElements
   } catch {
     if (disposed || id !== requestId) return
     loadError.value = 'Không tải được lịch sử làm bài. Vui lòng thử lại.'
@@ -97,7 +99,8 @@ const totalUnanswered = computed(() => hasLegacyResults.value ? '—' : results.
 const averageScore = computed(() => results.value.length ? Math.round(results.value.reduce((sum, r) => sum + r.score, 0) / results.value.length) : 0)
 const getScoreClass = (score: number) => score >= 90 ? 'excellent' : score >= 80 ? 'good' : score >= 60 ? 'normal' : 'bad'
 const goBack = () => router.back()
-watch(lessonId, () => { void loadHistory() }, { immediate: true })
+watch(lessonId, () => { page.value = 0; void loadHistory() }, { immediate: true })
+function changePage(next: number) { page.value = next; void loadHistory() }
 onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destroyChart() })
 </script>
 
@@ -191,7 +194,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
         <p v-if="hasLegacyResults" class="legacy-note">Lần làm cũ chưa lưu riêng câu bỏ trống; số câu sai của những lần đó bao gồm cả câu bỏ trống. Dấu — nghĩa là chưa có dữ liệu.</p>
 
         <section v-if="selectedResult" id="attempt-details" class="attempt-details" aria-label="Chi tiết lần làm bài">
-          <div class="detail-heading"><h2>Chi tiết lần làm {{ totalExam - results.findIndex(r => r.resultId === selectedResultId) }}</h2><button type="button" class="back-btn" @click="selectedResultId = null">Đóng chi tiết</button></div>
+          <div class="detail-heading"><h2>Chi tiết lần làm {{ totalElements - page * 20 - results.findIndex(r => r.resultId === selectedResultId) }}</h2><button type="button" class="back-btn" @click="selectedResultId = null">Đóng chi tiết</button></div>
           <p>Đáp án được lưu tại thời điểm nộp bài. Mã câu hỏi dùng để đối chiếu với dữ liệu bài tập.</p>
           <div v-for="(answer, questionId) in selectedResult.correctAnswers" :key="questionId" class="answer-detail">
             <strong>Mã câu hỏi {{ questionId }}</strong>
@@ -205,6 +208,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
              SUMMARY
         ========================== -->
 
+        <p class="legacy-note">Thống kê và biểu đồ của {{ totalExam }} lượt trên trang này · {{ totalElements }} lượt tổng cộng.</p>
         <div class="summary">
 
           <!-- Số lần làm -->
@@ -457,7 +461,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
                   <div class="attempt-badge">
 
-                    {{ totalExam - index }}
+                    {{ totalElements - page * 20 - index }}
 
                   </div>
 
@@ -575,6 +579,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
         </div>
 
+        <nav v-if="totalPages > 1" class="history-pagination" aria-label="Trang lịch sử"><button class="back-btn" :disabled="loading || page === 0" @click="changePage(page - 1)">Trước</button><span>{{ page + 1 }} / {{ totalPages }}</span><button class="back-btn" :disabled="loading || page + 1 >= totalPages" @click="changePage(page + 1)">Sau</button></nav>
       </template>
 
     </template>
@@ -585,6 +590,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
 
 <style scoped>
+.history-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; margin-top: 20px; }
 .legacy-note { padding: 12px; border-radius: 10px; background: #fff7e6; color: #785019; font-size: 14px; }
 .attempt-details { padding: 18px; margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; scroll-margin-top: 80px; }
 .detail-heading { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }

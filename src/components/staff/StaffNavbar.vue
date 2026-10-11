@@ -152,6 +152,7 @@ const handleLogout = async () => {
           <button
             type="button"
             class="btn user-dropdown-btn dropdown-toggle"
+            :aria-label="`Tài khoản ${userName || 'nhân viên'}`"
             aria-haspopup="menu"
             aria-controls="staff-account-menu"
             :aria-expanded="accountMenuOpen"

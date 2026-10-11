@@ -238,6 +238,12 @@ const isBooksLoading = (levelId: number, typeId: number) => {
     ========================= -->
 
     <div class="sidebar-menu">
+        <button class="menu-item" :class="{ active: isActive('/staff/classrooms') }" @click="go('/staff/classrooms')"><div><i class="bi bi-mortarboard me-2"></i> Lớp học & giao đề</div></button>
+        <button class="menu-item" @click="go('/account')"><div><i class="bi bi-shield-lock me-2"></i> Tài khoản & bảo mật</div></button>
+      <button class="menu-item" :class="{ active: isActive('/staff/insights') }" @click="go('/staff/insights')"><div><i class="bi bi-graph-up me-2"></i> Chất lượng & học viên</div></button>
+      <button class="menu-item" :class="{ active: isActive('/staff/editorial') }" @click="go('/staff/editorial')"><div><i class="bi bi-inbox me-2"></i> Báo lỗi & duyệt bài</div></button>
+      <button class="menu-item" :class="{ active: isActive('/staff/question-bank') }" @click="go('/staff/question-bank')"><div><i class="bi bi-ui-checks me-2"></i> Ngân hàng câu hỏi</div></button>
+      <button class="menu-item" :class="{ active: isActive('/staff/revisions') }" @click="go('/staff/revisions')"><div><i class="bi bi-clock-history me-2"></i> Phiên bản nội dung</div></button>
       <!-- =========================
            DASHBOARD
       ========================= -->

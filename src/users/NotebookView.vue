@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { deleteCard, getCards, saveCard, type StudyCard } from '@/api/study'
+import { computed, onMounted, ref, watch } from 'vue'
+import { deleteCard, getCardPage, saveCard, type StudyCard } from '@/api/study'
 import './studyPages.css'
 
 const cards = ref<StudyCard[]>([])
@@ -12,13 +12,24 @@ const error = ref('')
 const newWord = ref('')
 const newMeaning = ref('')
 const adding = ref(false)
-const visible = computed(() => filter.value === 'ALL' ? cards.value : cards.value.filter(c => c.kind === filter.value))
+const page = ref(0), totalPages = ref(0), total = ref(0)
+const visible = computed(() => cards.value)
+let request = 0
 async function load() {
+  const id = ++request
   loading.value = true; error.value = ''
-  try { cards.value = await getCards(); notes.value = Object.fromEntries(cards.value.map(c => [c.id, c.note || ''])) }
-  catch { error.value = 'Không tải được sổ tay.' }
-  finally { loading.value = false }
+  try {
+    const result = await getCardPage(page.value, filter.value === 'ALL' ? undefined : filter.value)
+    if (id !== request) return
+    if (!result.content.length && page.value > 0) { page.value = Math.max(0, result.totalPages - 1); return load() }
+    cards.value = result.content; totalPages.value = result.totalPages; total.value = result.totalElements
+    notes.value = Object.fromEntries(cards.value.map(c => [c.id, c.note || '']))
+  }
+  catch { if (id === request) error.value = 'Không tải được sổ tay.' }
+  finally { if (id === request) loading.value = false }
 }
+watch(filter, () => { page.value = 0; void load() })
+function changePage(next: number) { page.value = next; void load() }
 async function saveNote(card: StudyCard) {
   busyId.value = card.id; error.value = ''
   try {
@@ -30,7 +41,7 @@ async function saveNote(card: StudyCard) {
 async function remove(card: StudyCard) {
   if (!confirm('Xóa thẻ này khỏi sổ tay?')) return
   busyId.value = card.id; error.value = ''
-  try { await deleteCard(card.id); cards.value = cards.value.filter(c => c.id !== card.id) }
+  try { await deleteCard(card.id); await load() }
   catch { error.value = 'Chưa xóa được thẻ.' }
   finally { busyId.value = null }
 }
@@ -40,7 +51,9 @@ async function addWord() {
   try {
     const card = await saveCard({ sourceKey: `vocab:${crypto.randomUUID()}`, kind: 'VOCAB', courseId: null,
       bookId: null, lessonId: null, grammarId: null, exampleId: null, front: newWord.value.trim(), back: newMeaning.value.trim(), note: null })
-    cards.value.unshift(card); notes.value[card.id] = ''; newWord.value = ''; newMeaning.value = ''
+    notes.value[card.id] = ''; newWord.value = ''; newMeaning.value = ''; page.value = 0
+    if (filter.value !== 'ALL' && filter.value !== 'VOCAB') filter.value = 'VOCAB'
+    else await load()
   } catch { error.value = 'Chưa lưu được từ vựng.' }
   finally { adding.value = false }
 }
@@ -60,5 +73,6 @@ onMounted(load)
     <p v-if="loading" role="status">Đang tải sổ tay...</p>
     <div v-else-if="visible.length" class="study-list"><article v-for="card in visible" :key="card.id" class="study-panel"><p class="study-meta">{{ card.kind === 'EXAMPLE' ? 'Câu ví dụ' : card.kind === 'GRAMMAR' ? 'Ngữ pháp' : 'Từ vựng' }} · Ôn tiếp {{ new Date(card.dueAt).toLocaleString('vi-VN') }}</p><h2 lang="ja">{{ card.front }}</h2><p>{{ card.back }}</p><label :for="`note-${card.id}`" class="study-meta">Ghi chú cá nhân</label><textarea :id="`note-${card.id}`" v-model="notes[card.id]" maxlength="2000" rows="2" class="form-control" style="margin-top:5px"></textarea><div class="study-actions"><button class="study-button" :disabled="busyId === card.id" @click="saveNote(card)">Lưu ghi chú</button><RouterLink v-if="source(card)" class="study-button secondary" :to="source(card)!">Về bài học</RouterLink><button class="study-button secondary" :disabled="busyId === card.id" @click="remove(card)">Bỏ lưu</button></div></article></div>
     <p v-else class="study-empty" style="margin-top:20px">Chưa có nội dung nào. Hãy mở bài học và bấm “Lưu vào sổ tay”.</p>
+    <nav v-if="!loading && totalPages > 1" class="study-pagination" aria-label="Trang sổ tay"><button class="study-button secondary" :disabled="page === 0 || busyId !== null" @click="changePage(page - 1)">Trước</button><span>{{ page + 1 }} / {{ totalPages }} · {{ total }} thẻ</span><button class="study-button secondary" :disabled="page + 1 >= totalPages || busyId !== null" @click="changePage(page + 1)">Sau</button></nav>
   </div>
 </template>

@@ -596,6 +596,7 @@ const goToExercisePage =
   <div class="container-fluid py-4">
 
     <div class="mb-4">
+      <div class="d-flex gap-2 flex-wrap mb-3"><RouterLink class="btn btn-sm btn-outline-primary" :to="{ path: '/staff/revisions', query: { kind: 'BOOK', id: bookId } }">Lịch sử sửa sách</RouterLink><RouterLink v-if="selectedLesson" class="btn btn-sm btn-outline-primary" :to="{ path: '/staff/revisions', query: { kind: 'LESSON', id: selectedLesson.lessonId } }">Lịch sử sửa bài</RouterLink><RouterLink class="btn btn-sm btn-outline-primary" to="/staff/editorial">Phản hồi duyệt</RouterLink></div>
 
       <div
         class="
@@ -845,6 +846,7 @@ const goToExercisePage =
                   </div>
 
                   <div class="grammar-actions">
+                    <RouterLink class="btn btn-sm btn-outline-secondary" :to="{ path: '/staff/revisions', query: { kind: 'GRAMMAR', id: grammar.grammarId } }">Lịch sử sửa</RouterLink>
 
                     <button
                       class="edit-btn"
@@ -945,6 +947,7 @@ const goToExercisePage =
                           </div>
 
                           <div class="example-content">
+                            <RouterLink class="btn btn-sm btn-outline-secondary mb-2" :to="{ path: '/staff/revisions', query: { kind: 'EXAMPLE', id: example.exampleId } }">Lịch sử sửa ví dụ</RouterLink>
 
                             <div
                               class="jp-text"

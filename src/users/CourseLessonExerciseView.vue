@@ -4,6 +4,7 @@ import {useRoute, useRouter} from "vue-router"
 import {gatewayUrl} from "@/api/authApi.ts";
 
 import BookExerciseHeading from '@/components/BookExerciseHeading.vue'
+import ContentReport from '@/components/operations/ContentReport.vue'
 import BookAiSolution from '@/components/BookAiSolution.vue'
 import type { AiAnswer } from '@/services/bookAiAnswers'
 import BookListeningPreview from '@/components/BookListeningPreview.vue'
@@ -537,6 +538,7 @@ const scrollToGroup =
 <template>
 
   <div class="container-fluid py-4 exercise-page" :class="{ 'book-review': isBookReview }">
+    <ContentReport :lesson-id="lessonId" style="margin-bottom:16px" />
 
     <!-- HEADER -->
 

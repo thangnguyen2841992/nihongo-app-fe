@@ -36,3 +36,21 @@ it('cancels the handshake when HTTP authentication fails', async () => {
   await client.options.beforeConnect()
   expect(client.deactivate).toHaveBeenCalledOnce()
 })
+it('ignores a late logout from a replaced socket even when the session ID is unchanged', () => {
+  const previous = vi.fn(), current = vi.fn()
+  wsService.connect('sid', previous)
+  const oldClient = mocks.clients[0]
+  oldClient.options.onConnect()
+  const receiveOld = oldClient.subscribe.mock.calls[0][1]
+  wsService.disconnect()
+  wsService.connect('sid', current)
+  oldClient.options.onConnect()
+  receiveOld({ body: JSON.stringify({ type: 'FORCE_LOGOUT', sessionId: 'sid' }) })
+  expect(oldClient.subscribe).toHaveBeenCalledOnce()
+  expect(previous).not.toHaveBeenCalled()
+  expect(current).not.toHaveBeenCalled()
+  const newClient = mocks.clients[1]
+  newClient.options.onConnect()
+  newClient.subscribe.mock.calls[0][1]({ body: JSON.stringify({ type: 'FORCE_LOGOUT', sessionId: 'sid' }) })
+  expect(current).toHaveBeenCalledOnce()
+})

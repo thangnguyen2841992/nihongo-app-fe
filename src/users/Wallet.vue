@@ -46,6 +46,8 @@ const retryRequest = ref<DepositWalletRequest | null>(null)
 const storageKey = () => `wallet-deposit-retry:${wallet.value?.userId}`
 
 let reloadPending = false
+let disposed = false
+onUnmounted(() => { disposed = true; reloadPending = false })
 const liveStatus = useWalletRealtime(false, (event?: WalletNotice) => {
   if (event?.type === 'APPROVED') {
     error.value = ''
@@ -58,12 +60,14 @@ const liveStatus = useWalletRealtime(false, (event?: WalletNotice) => {
 })
 
 async function load(background = false) {
+  if (disposed) return
   if (loading.value || submitting.value) { reloadPending = true; return }
   loading.value = true
   if (!background) error.value = ''
   try {
-    wallet.value = await getWallet()
-    const [history, info] = await Promise.all([getDeposits(), getBankInfo()])
+    const [balance, history, info] = await Promise.all([getWallet(), getDeposits(), getBankInfo()])
+    if (disposed) return
+    wallet.value = balance
     deposits.value = history
     bank.value = info
     const saved = sessionStorage.getItem(storageKey())

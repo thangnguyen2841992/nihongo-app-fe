@@ -19,4 +19,19 @@
 .study-empty { padding: 26px; text-align: center; border: 1px dashed #ccbed1; border-radius: 14px; background: #ffffffca; color: #73647c; }
 .study-progress { height: 9px; border-radius: 10px; background: #ede5ef; overflow: hidden; }
 .study-progress span { display: block; height: 100%; background: #a77faf; border-radius: inherit; }
+.study-goal-form { display: grid; gap: 12px; margin-top: 18px; }
+.study-reminder-toggle { display: flex; align-items: center; gap: 10px; }
+.study-trend { height: 180px; display: flex; gap: 3px; align-items: stretch; border-bottom: 1px solid #d9cddd; margin: 20px 0; }
+.study-trend-column { flex: 1; display: flex; align-items: flex-end; min-width: 0; background: #f7f2f8; }
+.study-trend-column span { width: 100%; background: #a77faf; border-radius: 4px 4px 0 0; }
+.study-trend-details { margin-top: 16px; }
+.study-table { width: 100%; margin-top: 12px; }
+.study-table th, .study-table td { padding: 8px; border-bottom: 1px solid #e6e1e8; }
+.study-reminders { margin-top: 20px; }
+.study-reminder { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-top: 1px solid #e6e1e8; }
+.study-reminder p { margin: 0; }
+.study-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.study-options { display: grid; gap: 8px; margin-top: 12px; }
+.study-options button { text-align: left; justify-content: flex-start; }
+.study-feedback { padding: 12px; background: #f5edf8; border-radius: 10px; margin-top: 12px; }
 @media (max-width: 600px) { .study-page { padding: 14px 10px 40px; } .study-hero { padding: 22px; } }

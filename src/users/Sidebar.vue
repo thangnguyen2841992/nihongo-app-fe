@@ -4,11 +4,15 @@ const emit = defineEmits<{ close: [] }>()
 const links = [
   { to: '/', icon: 'bi-house-heart', label: 'Học hôm nay' },
   { to: '/user/my-courses', icon: 'bi-book', label: 'Khóa học của tôi' },
+  { to: '/user/assignments', icon: 'bi-pencil-square', label: 'Bài được giao & thi' },
+  { to: '/user/learning-plan', icon: 'bi-signpost', label: 'Lộ trình của tôi' },
   { to: '/user/review', icon: 'bi-arrow-repeat', label: 'Ôn tập' },
   { to: '/user/conversation-listening', icon: 'bi-headphones', label: 'Luyện nghe hội thoại' },
   { to: '/user/notebook', icon: 'bi-journal-bookmark', label: 'Sổ tay' },
+  { to: '/user/content-reports', icon: 'bi-flag', label: 'Báo lỗi của tôi' },
   { to: '/courses', icon: 'bi-compass', label: 'Khám phá khóa học' },
   { to: '/wallet', icon: 'bi-wallet2', label: 'Ví của tôi' },
+  { to: '/account', icon: 'bi-shield-lock', label: 'Tài khoản & bảo mật' },
 ]
 </script>
 

@@ -38,7 +38,7 @@ describe('wallet realtime transport', () => {
     connectWalletRealtime(true, vi.fn(), vi.fn())
     const client = mocks.clients[0]
     await client.options.beforeConnect()
-    expect(mocks.get).toHaveBeenCalledWith('/api/auth/checkLogin')
+    expect(mocks.get).toHaveBeenCalledWith('/api/auth/checkLogin', { signal: expect.any(AbortSignal) })
     client.options.onConnect()
     expect(client.subscribe).toHaveBeenCalledWith('/topic/wallet-admin', expect.any(Function))
   })
