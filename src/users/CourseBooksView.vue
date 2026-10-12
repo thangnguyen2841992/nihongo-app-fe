@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
 import { useRoute } from "vue-router"
 import { gatewayUrl } from "@/api/authApi"
 import router from "@/router";
@@ -22,6 +22,7 @@ const route = useRoute()
 
 const books = ref<Book[]>([])
 const loading = ref(true)
+const isN3 = computed(() => books.value.some(book => book.levelName.toUpperCase() === 'N3'))
 
 const loadBooks = async () => {
 
@@ -60,6 +61,8 @@ onMounted(loadBooks)
 
 <template>
   <div class="page">
+    <RouterLink v-if="isN3" :to="`/course/${route.params.courseId}/vocabulary-flashcards`" class="btn btn-outline-success mb-3 me-2">🃏 Flashcard từ vựng N3</RouterLink>
+    <RouterLink :to="`/course/${route.params.courseId}/conversation-listening`" class="btn btn-outline-primary mb-3">🎧 Luyện nghe hội thoại · VIP</RouterLink>
 
     <h2 class="title">📚 Danh sách giáo trình</h2>
 

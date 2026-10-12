@@ -277,6 +277,7 @@ watch(isAuthenticated, async authenticated => {
             class="pkg"
           >
             <span class="pkg-name">{{ p.packageName }}</span>
+            <small v-if="p.packageName.toUpperCase() === 'VIP'">Bao gồm luyện nghe hội thoại theo khóa học</small>
             <span class="pkg-price">
               {{ p.price.toLocaleString("vi-VN") }}đ
             </span>

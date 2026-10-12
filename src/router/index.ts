@@ -44,7 +44,20 @@ const routes = [
       {
         path: 'user/conversation-listening',
         name: 'conversation-listening',
+        meta: { requiresAuth: true },
         component: () => import('@/users/ConversationListeningView.vue')
+      },
+      {
+        path: '/course/:courseId/conversation-listening',
+        name: 'course-conversation-listening',
+        meta: { requiresAuth: true },
+        component: () => import('@/users/ConversationListeningView.vue')
+      },
+      {
+        path: '/course/:courseId/vocabulary-flashcards',
+        name: 'course-vocabulary-flashcards',
+        meta: { requiresAuth: true },
+        component: () => import('@/users/VocabularyFlashcardsView.vue')
       },
       {
         path: '/courses',
