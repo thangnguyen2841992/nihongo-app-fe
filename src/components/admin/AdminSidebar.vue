@@ -1,9 +1,12 @@
+<script setup lang="ts">
+import AccountMenu from '@/components/common/AccountMenu.vue'
+</script>
 <template>
   <aside class="col-md-2 sidebar d-flex flex-column p-3">
     <router-link to="/admin/operations" class="nav-item"><i class="bi bi-activity"></i> Trung tâm vận hành</router-link>
     <router-link to="/admin/refunds" class="nav-item"><i class="bi bi-arrow-return-left"></i> Hoàn tiền khóa học</router-link>
     <router-link to="/staff/classrooms" class="nav-item"><i class="bi bi-mortarboard"></i> Lớp học & giao đề</router-link>
-    <router-link to="/account" class="nav-item"><i class="bi bi-shield-lock"></i> Bảo mật tài khoản</router-link>
+    <AccountMenu />
     <router-link to="/admin/wallet-deposits" class="nav-item">
       <i class="bi bi-wallet2"></i> Đối soát nạp tiền
     </router-link>

@@ -1,5 +1,6 @@
 import {createRouter, createWebHistory, type RouteLocation} from 'vue-router'
 import { authorizeRoute } from '@/services/routeAuthorization'
+import { accountSections } from '@/services/accountSections'
 
 const MainLayout = () => import("@/layouts/MainLayout.vue")
 const Home = () => import("@/users/Home-User.vue")
@@ -30,7 +31,13 @@ const routes = [
     component: MainLayout,
     children: [
       {path: '', component: Home},
-      {path: 'account', meta: {requiresAuth: true}, component: () => import('@/users/AccountView.vue')},
+      {
+        path: 'account', meta: { requiresAuth: true }, component: () => import('@/users/AccountLayout.vue'),
+        children: [
+          { path: '', redirect: '/account/profile' },
+          ...accountSections.map(section => ({ path: section.id, name: `account-${section.id}`, component: () => import('@/users/AccountView.vue'), props: { section: section.id } }))
+        ]
+      },
       {path: 'user/assignments', meta: {requiresAuth: true}, component: () => import('@/users/AssignmentsView.vue')},
       {path: 'user/attempts/:id', meta: {requiresAuth: true}, component: () => import('@/users/OnlineAttemptView.vue')},
       {path: 'user/learning-plan', meta: {requiresAuth: true}, component: () => import('@/users/LearningPlanView.vue')},

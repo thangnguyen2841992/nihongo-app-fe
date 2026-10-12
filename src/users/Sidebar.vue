@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AccountMenu from '@/components/common/AccountMenu.vue'
 defineProps<{ isOpen: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 const links = [
@@ -12,7 +13,6 @@ const links = [
   { to: '/user/content-reports', icon: 'bi-flag', label: 'Báo lỗi của tôi' },
   { to: '/courses', icon: 'bi-compass', label: 'Khám phá khóa học' },
   { to: '/wallet', icon: 'bi-wallet2', label: 'Ví của tôi' },
-  { to: '/account', icon: 'bi-shield-lock', label: 'Tài khoản & bảo mật' },
 ]
 </script>
 
@@ -23,6 +23,7 @@ const links = [
       <RouterLink v-for="link in links" :key="link.to" :to="link.to" class="learning-link" @click="emit('close')">
         <i class="bi" :class="link.icon" aria-hidden="true"></i><span>{{ link.label }}</span>
       </RouterLink>
+      <AccountMenu @navigate="emit('close')" />
     </nav>
   </aside>
   <button v-if="isOpen" class="sidebar-overlay" aria-label="Đóng menu" @click="emit('close')"></button>
