@@ -40,16 +40,16 @@ onMounted(load)
 
 <template>
   <div class="study-page">
-    <header class="study-hero"><h1>Học hôm nay</h1><p>Tiếp tục bài đang học và ôn lại đúng phần bạn cần.</p></header>
-    <p v-if="error" class="study-error" role="alert">{{ error }} <button type="button" @click="load">Tải lại</button></p>
-    <p v-if="loading" role="status">Đang tải hành trình học...</p>
+    <header class="study-hero"><p class="study-eyebrow">Tổng quan cá nhân</p><h1>Học hôm nay</h1><p>Tiếp tục bài đang học, hoàn thành mục tiêu và ôn lại đúng phần bạn cần.</p></header>
+    <p v-if="error" class="study-error" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ error }} <button type="button" @click="load">Tải lại</button></p>
+    <div v-if="loading" class="study-loading" role="status"><span class="study-spinner" aria-hidden="true"></span><span>Đang tải hành trình học...</span></div>
     <div v-else class="study-grid">
-      <section class="study-panel"><h2>Tiếp tục học</h2>
+      <section class="study-panel"><span class="study-icon"><i class="bi bi-play-circle" aria-hidden="true"></i></span><h2>Tiếp tục học</h2>
         <template v-if="recent"><p>{{ recent.courseName }}</p><div class="study-progress"><span :style="{ width: `${Math.max(0, Math.min(100, recent.progress || 0))}%` }"></span></div><p class="study-meta">Đã hoàn thành {{ recent.progress || 0 }}%</p><button class="study-button" :disabled="opening" @click="continueCourse(recent)">{{ opening ? 'Đang mở...' : 'Học tiếp' }}</button></template>
         <template v-else><p>Bạn chưa có khóa học đang hoạt động.</p><RouterLink class="study-button" to="/courses">Khám phá khóa học</RouterLink></template>
       </section>
-      <section class="study-panel"><h2>Thẻ cần ôn</h2><div class="study-count">{{ dueCount }}</div><p>Thẻ đã đến lịch ôn tập.</p><RouterLink class="study-button secondary" to="/user/review">Ôn tập ngay</RouterLink></section>
-      <section class="study-panel"><h2>Bài cần luyện lại</h2><div class="study-count">{{ weakCount }}</div><p>Bài có lần làm gần nhất dưới 80 điểm.</p><RouterLink class="study-button secondary" :to="{ path: '/user/review', query: { tab: 'lessons' } }">Xem bài yếu</RouterLink></section>
+      <section class="study-panel"><span class="study-icon"><i class="bi bi-arrow-repeat" aria-hidden="true"></i></span><h2>Thẻ cần ôn</h2><div class="study-count">{{ dueCount }}</div><p>Thẻ đã đến lịch ôn tập.</p><RouterLink class="study-button secondary" to="/user/review">Ôn tập ngay</RouterLink></section>
+      <section class="study-panel"><span class="study-icon"><i class="bi bi-graph-down" aria-hidden="true"></i></span><h2>Bài cần luyện lại</h2><div class="study-count">{{ weakCount }}</div><p>Bài có lần làm gần nhất dưới 80 điểm.</p><RouterLink class="study-button secondary" :to="{ path: '/user/review', query: { tab: 'lessons' } }">Xem bài yếu</RouterLink></section>
     </div>
     <StudyDashboard v-if="!loading && dashboard" :dashboard="dashboard" :courses="courses" @saved="load" />
   </div>

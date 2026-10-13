@@ -206,14 +206,14 @@ watch(isAuthenticated, async authenticated => {
 </script>
 
 <template>
-  <div class="page">
+  <div class="page" :class="{ 'authenticated-page': isAuthenticated }">
 
     <div v-if="!isAuthenticated" class="guest-intro">
       <span class="intro-label">HỌC TIẾNG NHẬT CÙNG NIHONGO</span>
       <h1>Bắt đầu hành trình tiếng Nhật của bạn</h1>
       <p>Khám phá khóa học và chọn gói học phù hợp. Đăng nhập khi bạn sẵn sàng đăng ký.</p>
     </div>
-    <h2 class="title">📚 Khóa học tiếng Nhật</h2>
+    <div class="catalog-heading"><span class="catalog-icon"><i class="bi bi-compass" aria-hidden="true"></i></span><div><p class="catalog-eyebrow">LỘ TRÌNH THEO TRÌNH ĐỘ</p><h2 class="title">Khóa học tiếng Nhật</h2><p>Chọn khóa học và gói phù hợp với mục tiêu của bạn.</p></div></div>
     <p v-if="loading" role="status" class="empty">Đang tải khóa học...</p>
     <div v-else-if="loadError" role="alert" class="alert alert-warning">
       {{ loadError }} <button type="button" class="btn btn-link" @click="loadCourses">Thử lại</button>
@@ -229,7 +229,7 @@ watch(isAuthenticated, async authenticated => {
 
         <!-- TOP BADGE -->
         <div class="badge" v-if="course.active">
-          {{ course.active }}
+          {{ course.active === 'ACTIVE' ? 'Đang mở' : course.active }}
         </div>
 
         <!-- TITLE -->
@@ -276,7 +276,7 @@ watch(isAuthenticated, async authenticated => {
             :key="p.packageId"
             class="pkg"
           >
-            <span class="pkg-name">{{ p.packageName }}</span>
+            <span class="pkg-name pkg-copy"><strong>{{ p.packageName }}</strong><small>{{ p.durationDays }} ngày truy cập</small></span>
             <small v-if="p.packageName.toUpperCase() === 'VIP'">Bao gồm luyện nghe hội thoại theo khóa học</small>
             <span class="pkg-price">
               {{ p.price.toLocaleString("vi-VN") }}đ
@@ -324,11 +324,11 @@ watch(isAuthenticated, async authenticated => {
     </div>
 
     <!-- MODAL -->
-    <div v-if="showPackageModal" class="modal">
+    <div v-if="showPackageModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="package-modal-title" @click.self="showPackageModal = false">
 
       <div class="modal-box">
 
-        <h3>
+        <h3 id="package-modal-title">
           {{ selectedCourse?.courseName }}
         </h3>
 
@@ -379,7 +379,7 @@ watch(isAuthenticated, async authenticated => {
 
         </div>
 
-        <button class="close" @click="showPackageModal = false">
+        <button class="close" aria-label="Đóng cửa sổ chọn gói" @click="showPackageModal = false">
           Đóng
         </button>
 
@@ -391,21 +391,27 @@ watch(isAuthenticated, async authenticated => {
 
 <style scoped>
 .guest-intro { padding: 36px 0 30px; max-width: 760px; }
-.intro-label { color: #2563eb; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; }
-.guest-intro h1 { color: #172554; font-size: clamp(28px, 4vw, 42px); font-weight: 750; margin: 14px 0; line-height: 1.25; }
+.intro-label { color: #866692; font-size: 11px; font-weight: 750; letter-spacing: 1.5px; }
+.guest-intro h1 { color: #50435e; font-size: clamp(28px, 4vw, 42px); font-weight: 750; margin: 14px 0; line-height: 1.25; }
 .guest-intro p { color: #64748b; font-size: 16px; line-height: 1.7; }
 .page {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 24px;
-  background: #f6f7fb;
-  min-height: 100vh;
+  padding: 24px 18px 60px;
+  background: transparent;
+  min-height: calc(100vh - 64px);
 }
 
+.catalog-heading { display: flex; align-items: flex-start; gap: 13px; margin-bottom: 22px; }
+.catalog-icon { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; background: #eee5f1; color: #80628e; font-size: 20px; }
+.catalog-eyebrow { margin: 0 0 3px; color: #9a84a2; font-size: 9px; font-weight: 750; letter-spacing: .13em; }
+.catalog-heading > div > p:last-child { margin: 6px 0 0; color: #887b90; font-size: 13px; }
+
 .title {
-  font-size: 26px;
-  font-weight: 700;
-  margin-bottom: 20px;
+  color: #50435e;
+  font-size: 27px;
+  font-weight: 750;
+  margin: 0;
 }
 
 .grid {
@@ -416,18 +422,20 @@ watch(isAuthenticated, async authenticated => {
 
 /* CARD */
 .card {
-  background: white;
+  background: #fffffff0;
+  border: 1px solid #e5dce8;
   border-radius: 18px;
-  padding: 18px;
+  padding: 20px;
   position: relative;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  transition: 0.25s;
+  box-shadow: 0 8px 24px #55475e0c;
+  transition: transform .18s, box-shadow .18s, border-color .18s;
   overflow: hidden;
 }
 
 .card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
+  transform: translateY(-3px);
+  border-color: #d9c9df;
+  box-shadow: 0 14px 34px #55475e16;
 }
 
 /* BADGE */
@@ -435,7 +443,7 @@ watch(isAuthenticated, async authenticated => {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: linear-gradient(135deg, #4f8cff, #1677ff);
+  background: #80628e;
   color: white;
   padding: 5px 10px;
   font-size: 12px;
@@ -444,6 +452,8 @@ watch(isAuthenticated, async authenticated => {
 
 /* TEXT */
 .course-name {
+  padding-right: 78px;
+  color: #50435e;
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 8px;
@@ -451,8 +461,9 @@ watch(isAuthenticated, async authenticated => {
 
 .desc {
   font-size: 13px;
-  color: #666;
-  min-height: 40px;
+  color: #81758a;
+  min-height: 44px;
+  line-height: 1.65;
 }
 
 /* PACKAGES */
@@ -464,13 +475,20 @@ watch(isAuthenticated, async authenticated => {
 }
 
 .pkg {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
   font-size: 13px;
   padding: 6px 10px;
-  background: #f8f9ff;
-  border-radius: 8px;
+  background: #f8f4f9;
+  border: 1px solid #eee6f0;
+  border-radius: 10px;
 }
+.pkg-copy { display: grid; gap: 2px; min-width: 0; }
+.pkg-copy strong { color: #695973; font-size: 12px; }
+.pkg-copy small, .pkg > small { color: #998aa1; font-size: 9px; }
+.pkg > small { grid-column: 1 / -1; }
 
 /* FOOTER */
 .footer {
@@ -488,12 +506,12 @@ watch(isAuthenticated, async authenticated => {
 }
 
 .btn.primary {
-  background: linear-gradient(135deg, #1677ff, #4f8cff);
+  background: #80628e;
   color: white;
 }
 
 .btn.success {
-  background: linear-gradient(135deg, #20c997, #198754);
+  background: #5f8b70;
   color: white;
 }
 
@@ -512,19 +530,31 @@ watch(isAuthenticated, async authenticated => {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 2000;
+  padding: 16px;
+  backdrop-filter: blur(4px);
 }
 
 .modal-box {
   background: white;
-  width: 650px;
-  padding: 22px;
-  border-radius: 16px;
+  width: min(680px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 26px;
+  border: 1px solid #e7dfea;
+  border-radius: 20px;
+  box-shadow: 0 24px 80px #30253a42;
 }
+.modal-box h3 { margin: 0 0 8px; color: #50435e; font-size: 22px; }
 
 .sub {
   color: #666;
   margin-bottom: 16px;
 }
+.coupon-form { padding: 14px; margin-bottom: 16px; border: 1px solid #ece4ef; border-radius: 12px; background: #faf7fb; }
+.coupon-form > label { display: block; margin-bottom: 7px; color: #675a70; font-size: 12px; font-weight: 650; }
+.coupon-form .btn { width: auto; flex-shrink: 0; border: 1px solid #80628e; color: #705582; background: white; }
+.coupon-form small { display: block; margin-top: 7px; color: #968a9c; font-size: 10px; line-height: 1.5; }
 
 .package-grid {
   display: grid;
@@ -533,7 +563,7 @@ watch(isAuthenticated, async authenticated => {
 }
 
 .package-card {
-  border: 1px solid #eee;
+  border: 1px solid #e7dfea;
   border-radius: 12px;
   padding: 12px;
   text-align: center;
@@ -541,8 +571,8 @@ watch(isAuthenticated, async authenticated => {
 }
 
 .package-card:hover {
-  transform: scale(1.05);
-  border-color: #1677ff;
+  transform: translateY(-2px);
+  border-color: #bba5c5;
 }
 
 .pkg-title {
@@ -555,7 +585,7 @@ watch(isAuthenticated, async authenticated => {
 }
 
 .pkg-price {
-  color: #dc3545;
+  color: #71547f;
   font-weight: 700;
   margin: 6px 0;
 }
@@ -565,7 +595,7 @@ watch(isAuthenticated, async authenticated => {
   padding: 6px;
   border: none;
   border-radius: 8px;
-  background: #1677ff;
+  background: #80628e;
   color: white;
 }
 
@@ -574,7 +604,8 @@ watch(isAuthenticated, async authenticated => {
   width: 100%;
   padding: 10px;
   border: none;
-  background: #eee;
+  background: #f1edf3;
+  color: #6f6277;
   border-radius: 10px;
 }
 
@@ -593,13 +624,19 @@ watch(isAuthenticated, async authenticated => {
 }
 
 .btn.warning{
-  background:#fa8c16;
+  background:#a77542;
   color:white;
 }
 @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 600px) {
   .grid, .package-grid { grid-template-columns: 1fr; }
-  .page { padding: 20px; }
-  .modal-box { width: calc(100% - 32px); max-height: 85vh; overflow-y: auto; }
+  .page { padding: 14px 0 40px; }
+  .modal { align-items: flex-end; padding: 0; }
+  .modal-box { width: 100%; max-height: 90dvh; padding: 22px 18px max(22px,env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; }
+  .catalog-heading { margin-top: 4px; }
+  .title { font-size: 23px; }
+  .card { padding: 18px; }
+  .coupon-form .d-flex { flex-direction: column; }
+  .coupon-form .btn { width: 100%; }
 }
 </style>

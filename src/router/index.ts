@@ -83,8 +83,7 @@ const routes = [
         path: '/course/:courseId',
         name: 'course-learning',
         meta: { requiresAuth: true },
-        component: () =>
-          import('@/users/CourseLearningView.vue')
+        redirect: (to: RouteLocation) => ({ name: 'CourseBooks', params: { courseId: to.params.courseId }, query: to.query })
       },
       {
         path: "/course/:courseId/books",

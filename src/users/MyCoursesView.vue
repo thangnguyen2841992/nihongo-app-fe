@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue"
+import {computed, onMounted, ref} from "vue"
 import {gatewayUrl} from "@/api/authApi"
 import { useRouter } from "vue-router"
 import { saveLearningPosition } from '@/api/learningPosition'
+import './studyPages.css'
 
 interface MyCourse {
   courseId: number
@@ -20,14 +21,24 @@ const courses = ref<MyCourse[]>([])
 const loading = ref(true)
 const openingCourseId = ref<number | null>(null)
 const actionError = ref('')
+const loadError = ref('')
 const router = useRouter()
 
+const sortedCourses = computed(() => [...courses.value].sort((a, b) => {
+  const activeDifference = Number(isExpired(a.expiredAt)) - Number(isExpired(b.expiredAt))
+  return activeDifference || Date.parse(b.enrolledAt) - Date.parse(a.enrolledAt)
+}))
+const activeCount = computed(() => courses.value.filter(course => !isExpired(course.expiredAt)).length)
+
 const loadCourses = async () => {
+  loading.value = true
+  loadError.value = ''
   try {
     const res = await gatewayUrl.get("/api/nihongo-user/my-courses-dto")
     courses.value = res.data
   } catch (e) {
     console.error(e)
+    loadError.value = 'Không tải được danh sách khóa học. Vui lòng thử lại.'
   } finally {
     loading.value = false
   }
@@ -78,342 +89,80 @@ const isExpired = (expiredAt: string) => {
   return getRemainingDays(expiredAt) <= 0
 }
 
+const progressValue = (value: number) => Math.max(0, Math.min(100, Number(value) || 0))
+const formatDate = (value: string) => new Date(value).toLocaleDateString('vi-VN')
+
 onMounted(loadCourses)
 </script>
 
 <template>
-  <div class="page">
+  <div class="study-page">
+    <header class="study-hero course-hero">
+      <div>
+        <p class="study-eyebrow">Không gian học tập</p>
+        <h1>Khóa học của tôi</h1>
+        <p>Theo dõi tiến độ, thời hạn và tiếp tục đúng nơi bạn đã dừng lại.</p>
+      </div>
+      <div v-if="!loading && courses.length" class="course-summary" aria-label="Tổng quan khóa học">
+        <strong>{{ activeCount }}</strong><span>khóa đang hoạt động</span>
+      </div>
+    </header>
 
-    <!-- HEADER -->
-    <div class="header">
-      <h1>📚 Khóa học của tôi</h1>
-      <p>Theo dõi tiến độ & thời hạn khóa học</p>
+    <p v-if="actionError" role="alert" class="study-error"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ actionError }}</p>
+    <p v-if="loadError" role="alert" class="study-error"><i class="bi bi-wifi-off" aria-hidden="true"></i>{{ loadError }} <button type="button" @click="loadCourses">Tải lại</button></p>
+
+    <div v-if="loading" class="study-loading" role="status"><span class="study-spinner" aria-hidden="true"></span><span>Đang tải khóa học...</span></div>
+
+    <section v-else-if="!loadError && courses.length === 0" class="study-empty empty-courses">
+      <span class="empty-icon"><i class="bi bi-journals" aria-hidden="true"></i></span>
+      <h2>Bắt đầu khóa học đầu tiên</h2>
+      <p>Bạn chưa đăng ký khóa học nào. Hãy chọn trình độ và gói học phù hợp.</p>
+      <RouterLink to="/courses" class="study-button"><i class="bi bi-compass" aria-hidden="true"></i>Khám phá khóa học</RouterLink>
+    </section>
+
+    <div v-else-if="!loadError" class="course-grid">
+      <article v-for="course in sortedCourses" :key="course.courseId" class="course-card" :class="{ expired: isExpired(course.expiredAt) }">
+        <header class="course-card-heading">
+          <div>
+            <span class="study-badge" :class="{ danger: isExpired(course.expiredAt) }">{{ course.packageName }}</span>
+            <h2>{{ course.courseName }}</h2>
+          </div>
+          <span class="course-status" :class="{ complete: progressValue(course.progress) >= 100, active: course.startedAt && progressValue(course.progress) < 100 }">
+            {{ isExpired(course.expiredAt) ? 'Đã hết hạn' : progressValue(course.progress) >= 100 ? 'Hoàn thành' : course.startedAt ? 'Đang học' : 'Chưa bắt đầu' }}
+          </span>
+        </header>
+
+        <dl class="course-details">
+          <div><dt>Đăng ký</dt><dd>{{ formatDate(course.enrolledAt) }}</dd></div>
+          <div><dt>Thời hạn</dt><dd :class="{ urgent: !isExpired(course.expiredAt) && getRemainingDays(course.expiredAt) <= 3 }">{{ isExpired(course.expiredAt) ? 'Đã hết hạn' : `${getRemainingDays(course.expiredAt)} ngày còn lại` }}</dd></div>
+        </dl>
+
+        <div class="course-progress-copy"><span>Tiến độ học</span><strong>{{ progressValue(course.progress) }}%</strong></div>
+        <div class="study-progress" role="progressbar" :aria-label="`Tiến độ ${course.courseName}`" :aria-valuenow="progressValue(course.progress)" aria-valuemin="0" aria-valuemax="100"><span :style="{ width: `${progressValue(course.progress)}%` }"></span></div>
+
+        <div class="study-actions mobile-stack">
+          <RouterLink v-if="isExpired(course.expiredAt)" to="/courses" class="study-button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i>Gia hạn khóa học</RouterLink>
+          <button v-else class="study-button" :disabled="openingCourseId !== null" @click="openCourse(course)">
+            <i class="bi" :class="course.startedAt ? 'bi-play-circle' : 'bi-book'" aria-hidden="true"></i>{{ openingCourseId === course.courseId ? 'Đang mở...' : course.startedAt ? 'Học tiếp' : 'Bắt đầu học' }}
+          </button>
+          <RouterLink v-if="course.packageName.toUpperCase() === 'VIP' && !isExpired(course.expiredAt)" class="study-button secondary" :to="`/course/${course.courseId}/conversation-listening`"><i class="bi bi-headphones" aria-hidden="true"></i>Luyện nghe</RouterLink>
+        </div>
+      </article>
     </div>
-
-    <!-- LOADING -->
-    <p v-if="actionError" role="alert" class="action-error">{{ actionError }}</p>
-    <div v-if="loading" class="loading" role="status">
-      Đang tải dữ liệu...
-    </div>
-
-    <!-- EMPTY -->
-    <div v-else-if="courses.length === 0" class="empty">
-      <div class="emoji">📖</div>
-      <h2>Bạn chưa đăng ký khóa học nào</h2>
-      <a href="/courses" class="btn-primary">
-        Khám phá khóa học
-      </a>
-    </div>
-
-    <!-- TABLE -->
-    <div v-else class="table-wrap">
-
-      <table class="table">
-
-        <thead>
-        <tr>
-          <th>Khóa học</th>
-          <th>Gói</th>
-          <th>Ngày đăng ký</th>
-          <th>Còn lại</th>
-          <th>Tiến độ</th>
-          <th>Trạng thái</th>
-          <th></th>
-        </tr>
-        </thead>
-
-        <tbody>
-        <tr v-for="c in courses" :key="c.courseId">
-
-          <!-- COURSE -->
-          <td class="course-cell">
-            <div class="course-name">
-              {{ c.courseName }}
-            </div>
-          </td>
-
-          <!-- PACKAGE -->
-          <td class="detail-cell" data-label="Gói học">
-              <span class="badge">
-                {{ c.packageName }}
-              </span>
-          </td>
-
-          <!-- DATE -->
-          <td class="detail-cell" data-label="Ngày đăng ký">
-            {{ new Date(c.enrolledAt).toLocaleDateString("vi-VN") }}
-          </td>
-
-          <!-- REMAINING DAYS -->
-          <td class="detail-cell" data-label="Còn lại">
-              <span
-                class="days"
-                :class="{
-                  danger: getRemainingDays(c.expiredAt) <= 3,
-                  expired: isExpired(c.expiredAt)
-                }"
-              >
-                <template v-if="isExpired(c.expiredAt)">
-                  Hết hạn
-                </template>
-                <template v-else>
-                  {{ getRemainingDays(c.expiredAt) }} ngày
-                </template>
-              </span>
-          </td>
-
-          <!-- PROGRESS -->
-          <td class="progress-cell" data-label="Tiến độ">
-            <div class="progress-text">
-              {{ c.progress }}%
-            </div>
-
-            <div class="bar">
-              <div
-                class="fill"
-                :style="{ width: c.progress + '%' }"
-              />
-            </div>
-          </td>
-
-          <!-- STATUS -->
-          <td class="detail-cell" data-label="Trạng thái">
-              <span
-                class="status"
-                :class="{
-                  done: c.progress >= 100,
-                  active: c.progress < 100 && !!c.startedAt,
-                  waiting: !c.startedAt
-                }"
-              >
-                {{
-                  c.progress >= 100
-                    ? "Hoàn thành"
-                    : c.startedAt ? "Đang học" : "Chưa học"
-                }}
-              </span>
-          </td>
-
-          <!-- ACTION -->
-          <td class="action-cell">
-            <button
-              class="btn"
-              :class="{ 'btn-continue': !!c.startedAt }"
-              @click="openCourse(c)"
-              :disabled="isExpired(c.expiredAt) || openingCourseId !== null"
-            >
-              {{ c.startedAt ? '▶ Học tiếp' : '📖 Bắt đầu học' }}
-            </button>
-          </td>
-
-        </tr>
-        </tbody>
-
-      </table>
-
-    </div>
-
   </div>
 </template>
 
 <style scoped>
-.page {
-  padding: 24px;
-  background: #f6f7fb;
-  min-height: 100vh;
-}
-
-/* HEADER */
-.header h1 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 800;
-}
-
-.header p {
-  color: #666;
-}
-
-/* TABLE */
-.table-wrap {
-  margin-top: 20px;
-  background: white;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table th {
-  background: #f5f7fa;
-  padding: 14px;
-  text-align: left;
-  font-size: 13px;
-}
-
-.table td {
-  padding: 14px;
-  border-top: 1px solid #eee;
-}
-.progress-cell { width: 200px; }
-
-/* COURSE */
-.course-name {
-  font-weight: 600;
-}
-
-/* BADGE */
-.badge {
-  background: #eef4ff;
-  color: #1677ff;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-}
-
-/* DAYS */
-.days {
-  font-weight: 600;
-}
-
-.days.danger {
-  color: #fa8c16;
-}
-
-.days.expired {
-  color: #ff4d4f;
-}
-
-/* PROGRESS */
-.bar {
-  height: 6px;
-  background: #eee;
-  border-radius: 999px;
-  overflow: hidden;
-  margin-top: 4px;
-}
-
-.fill {
-  height: 100%;
-  background: linear-gradient(90deg, #52c41a, #95de64);
-}
-
-/* STATUS */
-.status {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-}
-
-.status.active {
-  background: #e6f4ff;
-  color: #1677ff;
-}
-.status.waiting {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-.status.done {
-  background: #f6ffed;
-  color: #389e0d;
-}
-
-/* BUTTON */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  width: 150px;
-  height: 40px;
-  white-space: nowrap;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  background: #1677ff;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.btn:hover:not(:disabled) {
-  background: #0f5fd6;
-}
-
-.btn.btn-continue {
-  background: #389e0d;
-}
-
-.btn.btn-continue:hover:not(:disabled) {
-  background: #237804;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* EMPTY */
-.empty {
-  text-align: center;
-  margin-top: 80px;
-}
-
-.emoji {
-  font-size: 60px;
-}
-
-.btn-primary {
-  display: inline-block;
-  margin-top: 12px;
-  padding: 10px 16px;
-  background: #1677ff;
-  color: white;
-  border-radius: 10px;
-  text-decoration: none;
-}
-
-/* LOADING */
-.loading {
-  text-align: center;
-  padding: 40px;
-}
-.action-error { color: #c62828; margin-top: 16px; }
-
-@media (max-width: 1100px) {
-  .page { padding: 20px 16px; min-height: auto; }
-  .table-wrap { background: transparent; box-shadow: none; overflow: visible; }
-  .table, .table tbody { display: block; }
-  .table thead { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .table tbody { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; }
-  .table tr { display: block; min-width: 0; padding: 18px; background: #fff; border: 1px solid #e6e1e8; border-radius: 18px; box-shadow: 0 6px 20px #55475e0b; }
-  .table td { display: block; padding: 10px 0; border: 0; background: transparent; color: #334155; box-shadow: none; }
-  .table .course-cell { padding: 0 0 14px; border-bottom: 1px solid #f0edf3; margin-bottom: 4px; }
-  .course-name { font-size: 18px; line-height: 1.5; color: #50435e; overflow-wrap: anywhere; }
-  .table .detail-cell { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .detail-cell::before, .progress-cell::before { content: attr(data-label); color: #697386; font-size: 13px; font-weight: 500; flex-shrink: 0; }
-  .badge { white-space: normal; text-align: right; line-height: 1.5; overflow-wrap: anywhere; }
-  .status { flex-shrink: 0; }
-  .table .progress-cell { width: auto; display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-  .progress-text { font-size: 14px; font-weight: 650; }
-  .bar { grid-column: 1 / -1; height: 8px; margin: 0; }
-  .table .action-cell { padding: 12px 0 0; }
-  .btn { width: 100%; height: auto; min-height: 46px; border-radius: 11px; font-weight: 650; }
-}
-
-@media (max-width: 600px) {
-  .page { padding: 8px 0 24px; }
-  .header h1 { font-size: 23px; line-height: 1.4; color: #50435e; }
-  .header p { font-size: 14px; line-height: 1.6; margin: 8px 0 0; }
-  .table-wrap { margin-top: 18px; }
-  .table tbody { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .empty { margin-top: 32px; padding: 24px 16px; background: #fff; border-radius: 18px; }
-  .empty h2 { font-size: 19px; line-height: 1.5; }
-  .btn-primary { min-height: 44px; }
-}
+.course-hero { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.course-summary { position: relative; z-index: 1; display: grid; flex: 0 0 154px; padding: 16px 18px; border: 1px solid #e2d6e6; border-radius: 16px; background: #ffffffa8; }
+.course-summary strong { color: #745782; font-size: 28px; line-height: 1; }.course-summary span { margin-top: 7px; color: #8c7c94; font-size: 11px; line-height: 1.5; }
+.course-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-top: 20px; }
+.course-card { display: flex; flex-direction: column; min-width: 0; padding: 22px; border: 1px solid #e5dce8; border-radius: 18px; background: #fffffff0; box-shadow: 0 8px 24px #55475e0c; }.course-card.expired { background: #fbfafbde; }
+.course-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }.course-card-heading > div { min-width: 0; }.course-card h2 { margin: 10px 0 0; color: #50435e; font-size: 19px; line-height: 1.45; overflow-wrap: anywhere; }
+.course-status { flex-shrink: 0; padding: 5px 9px; border-radius: 999px; background: #f1eef3; color: #817489; font-size: 10px; font-weight: 700; }.course-status.active { background: #eaf5ef; color: #4e8065; }.course-status.complete { background: #eee8f7; color: #705690; }
+.course-details { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 22px 0; }.course-details div { padding: 12px; border-radius: 11px; background: #f8f5f9; }.course-details dt { color: #9b8ca2; font-size: 10px; }.course-details dd { margin: 4px 0 0; color: #695d72; font-size: 12px; font-weight: 650; }.course-details dd.urgent { color: #ad762c; }
+.course-progress-copy { display: flex; justify-content: space-between; margin-bottom: 8px; color: #817489; font-size: 12px; }.course-progress-copy strong { color: #71567e; }.course-card .study-progress { height: 8px; }.course-card .study-actions { margin-top: auto; padding-top: 22px; }
+.empty-courses { display: grid; justify-items: center; max-width: 620px; margin: 24px auto 0; }.empty-courses h2 { margin: 0; color: #584b62; font-size: 20px; }.empty-courses p { max-width: 450px; margin: 0; }.empty-icon { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 17px; background: #efe5f2; color: #856793; font-size: 24px; }
+@media(max-width:850px) { .course-grid { grid-template-columns: minmax(0,1fr); } }
+@media(max-width:600px) { .course-hero { align-items: stretch; flex-direction: column; }.course-summary { display: flex; align-items: baseline; gap: 7px; flex-basis: auto; }.course-summary strong { font-size: 23px; }.course-card { padding: 18px; }.course-card-heading { flex-direction: column; }.course-details { margin: 18px 0; } }
 </style>

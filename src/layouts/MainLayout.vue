@@ -55,11 +55,11 @@ watch([isAuthReady, isAuthenticated, () => route.path], ([ready, authenticated, 
 .user-background .main-content.with-sidebar:not(.signed-in) { background: transparent; }
 .user-background .main-content > :deep(.page) { background: transparent; }
 .main-content { flex: 1; min-width: 0; }
-.main-content.signed-in { margin-top: 15px; padding: 40px 20px 20px; }
+.main-content.signed-in { margin-top: 64px; padding: 0 20px 20px; }
 .main-content.with-sidebar { margin-left: 220px; }
 .main-content.with-sidebar:not(.signed-in) { margin-top: 64px; background: #f6f7fb; }
 @media (max-width: 768px) {
-  .main-content.signed-in { padding: 20px 12px 16px; }
+  .main-content.signed-in { padding: 0 12px 16px; }
   .layout.user-background::before { left: 0; }
   .main-content.with-sidebar, .main-content.with-sidebar:not(.signed-in) { margin-left: 0; }
 }

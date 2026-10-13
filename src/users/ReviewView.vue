@@ -98,15 +98,15 @@ onBeforeUnmount(() => { disposed = true; questionRequest++ })
 
 <template>
   <div class="study-page">
-    <header class="study-hero"><h1>Ôn tập</h1><p>Ôn thẻ đến hạn, luyện bài yếu và chinh phục từng câu từng làm sai.</p></header>
+    <header class="study-hero"><p class="study-eyebrow">Luyện tập thích ứng</p><h1>Ôn tập</h1><p>Ôn thẻ đến hạn, luyện bài yếu và chinh phục từng câu từng làm sai.</p></header>
     <div class="study-actions" role="tablist" aria-label="Nội dung ôn tập">
       <button class="study-button" :class="{ secondary: tab !== 'cards' }" role="tab" :aria-selected="tab === 'cards'" @click="tab = 'cards'">Thẻ ôn</button>
       <button class="study-button" :class="{ secondary: tab !== 'lessons' }" role="tab" :aria-selected="tab === 'lessons'" @click="tab = 'lessons'">Bài yếu ({{ weakTotal }})</button>
       <button class="study-button" :class="{ secondary: tab !== 'wrong' }" role="tab" :aria-selected="tab === 'wrong'" @click="tab = 'wrong'">Câu sai ({{ wrongTotal }})</button>
     </div>
-    <p v-if="error" class="study-error" role="alert">{{ error }} <button :disabled="busy || loading" type="button" @click="load">Tải lại</button></p>
+    <p v-if="error" class="study-error" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ error }} <button :disabled="busy || loading" type="button" @click="load">Tải lại</button></p>
     <p v-if="feedback" class="study-feedback" role="status">{{ feedback }}</p>
-    <p v-if="loading" role="status">Đang tải...</p>
+    <div v-if="loading" class="study-loading" role="status"><span class="study-spinner" aria-hidden="true"></span><span>Đang tải dữ liệu ôn tập...</span></div>
     <template v-else-if="tab === 'cards'">
       <section v-if="current" class="study-panel" style="margin-top:20px;max-width:720px">
         <p class="study-meta">{{ current.kind === 'EXAMPLE' ? 'Câu ví dụ' : current.kind === 'GRAMMAR' ? 'Ngữ pháp' : 'Từ vựng' }} · {{ cards.length }} thẻ trong lượt này</p>

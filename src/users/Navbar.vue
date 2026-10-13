@@ -180,10 +180,13 @@ const goToWallet = () => {
     <!-- MOBILE SIDEBAR -->
 
     <button
-      class="btn btn-light me-2 d-md-none"
+      type="button"
+      class="mobile-menu-btn d-md-none"
+      aria-label="Mở menu học tập"
+      aria-controls="user-sidebar"
       @click="emit('toggle')"
     >
-      ☰
+      <i class="bi bi-list" aria-hidden="true"></i>
     </button>
 
 
@@ -275,6 +278,7 @@ const goToWallet = () => {
         <!-- WALLET -->
 
         <button
+          type="button"
           class="wallet-btn"
           @click="goToWallet"
         >
@@ -350,6 +354,7 @@ const goToWallet = () => {
       <div v-else>
 
         <button
+          type="button"
           @click="
             router.push('/login')
           "
@@ -364,6 +369,7 @@ const goToWallet = () => {
         </button>
 
         <button
+          type="button"
           @click="
             router.push('/register')
           "
@@ -410,6 +416,8 @@ const goToWallet = () => {
 
   box-shadow: 0 2px 12px rgba(0, 0, 0, .04);
 }
+.mobile-menu-btn { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; margin-right: 10px; border: 1px solid #e2d7df; border-radius: 11px; background: #ffffff90; color: #665b73; font-size: 22px; }
+.mobile-menu-btn:hover { background: #eee7ee; }
 
 
 .brand {
@@ -881,6 +889,10 @@ const goToWallet = () => {
 
 @media (max-width: 768px) {
 
+  .navbar-custom { padding: 0 12px; }
+  .navbar-right { gap: 8px; }
+  .brand :deep(.logo-type) { display: none; }
+
   .ai-search {
 
     display: none;
@@ -910,6 +922,7 @@ const goToWallet = () => {
 
   .account-trigger { gap: 5px; padding: 4px; }
   .account-chevron { display: none; }
+  .avatar { width: 38px; height: 38px; }
 
 }
 

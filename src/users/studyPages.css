@@ -1,22 +1,37 @@
-.study-page { max-width: 1120px; margin: 0 auto; padding: 24px 18px 60px; color: #334155; }
-.study-hero { padding: 28px 32px; border: 1px solid #e4d9e3; border-radius: 22px; background: linear-gradient(125deg, #fff9f5ed, #f4edf9ed); box-shadow: 0 12px 30px #73627b16; }
+.study-page { --study-accent: #80628e; --study-accent-strong: #664b75; --study-border: #e4dbe7; max-width: 1120px; margin: 0 auto; padding: 24px 18px 60px; color: #4c4355; }
+.study-hero { position: relative; overflow: hidden; padding: 30px 32px; border: 1px solid #e4d9e3; border-radius: 22px; background: linear-gradient(125deg, #fffaf7f2, #f3ebf9f2); box-shadow: 0 12px 30px #73627b12; }
+.study-hero::after { content: ''; position: absolute; right: -48px; top: -72px; width: 180px; height: 180px; border: 28px solid #b69ac014; border-radius: 50%; pointer-events: none; }
 .study-hero h1 { margin: 0 0 8px; color: #50435e; font-size: clamp(24px, 3vw, 34px); font-weight: 750; }
-.study-hero p { margin: 0; color: #6c6275; }
+.study-hero p { position: relative; z-index: 1; max-width: 720px; margin: 0; color: #74697d; line-height: 1.7; }
+.study-eyebrow { margin: 0 0 8px !important; color: #9a7da5 !important; font-size: 10px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
 .study-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
-.study-panel { padding: 22px; border: 1px solid #e6e1e8; border-radius: 18px; background: #ffffffed; box-shadow: 0 8px 24px #55475e0f; }
+.study-panel { min-width: 0; padding: 22px; border: 1px solid #e6e1e8; border-radius: 18px; background: #ffffffed; box-shadow: 0 8px 24px #55475e0c; }
 .study-panel h2 { font-size: 18px; font-weight: 720; color: #50435e; margin: 0 0 12px; }
-.study-panel p { color: #697386; margin: 0 0 15px; }
+.study-panel p { color: #746d7c; margin: 0 0 15px; line-height: 1.65; }
+.study-section-heading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 18px; }
+.study-section-heading h2 { margin-bottom: 5px; }.study-section-heading p { margin: 0; font-size: 13px; }
+.study-icon { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: #f2eaf5; color: #8d6c9b; font-size: 18px; }
+.study-panel > .study-icon + h2 { margin-top: 14px; }
+.study-heading-copy { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
 .study-count { font-size: 32px; color: #80628e; font-weight: 800; line-height: 1; margin: 10px 0; }
-.study-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #80628e; background: #80628e; color: #fff; border-radius: 10px; padding: 9px 15px; font-weight: 650; text-decoration: none; cursor: pointer; }
+.study-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; border: 1px solid #80628e; background: #80628e; color: #fff; border-radius: 10px; padding: 9px 15px; font-size: 13px; font-weight: 650; text-decoration: none; cursor: pointer; transition: background .15s, border-color .15s, transform .15s; }
 .study-button:hover { background: #6c507c; color: #fff; }
 .study-button.secondary { background: #fff; color: #705582; }
 .study-button.secondary:hover { background: #f8f0fb; }
+.study-button.ghost { border-color: transparent; background: transparent; color: #796386; }
+.study-button.ghost:hover { background: #f4edf7; }
 .study-button:disabled { opacity: .55; cursor: not-allowed; }
+.study-button:focus-visible, .study-panel a:focus-visible, .study-panel button:focus-visible { outline: 3px solid #bda8c8; outline-offset: 3px; }
 .study-list { display: grid; gap: 12px; margin-top: 18px; }
 .study-meta { font-size: 13px; color: #7a6b86; }
 .study-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-.study-error { margin: 14px 0; padding: 12px; border-radius: 10px; background: #fff0ee; color: #a83f3f; }
+.study-error { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 14px 0; padding: 13px 15px; border: 1px solid #f1d7d4; border-radius: 12px; background: #fff3f1; color: #a84f4f; }
+.study-error button { padding: 0; border: 0; background: transparent; color: inherit; font-weight: 750; text-decoration: underline; }
 .study-empty { padding: 26px; text-align: center; border: 1px dashed #ccbed1; border-radius: 14px; background: #ffffffca; color: #73647c; }
+.study-loading { display: grid; justify-items: center; gap: 12px; padding: 52px 20px; color: #84778d; }
+.study-spinner { width: 28px; height: 28px; border: 3px solid #e7dce9; border-top-color: #8d6c9b; border-radius: 50%; animation: study-spin .7s linear infinite; }
+.study-badge { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 5px 9px; border-radius: 999px; background: #f0e8f3; color: #765684; font-size: 11px; font-weight: 700; }
+.study-badge.success { background: #eaf5ef; color: #4e8065; }.study-badge.warning { background: #fff4df; color: #9b702c; }.study-badge.danger { background: #fae9eb; color: #a25667; }
 .study-progress { height: 9px; border-radius: 10px; background: #ede5ef; overflow: hidden; }
 .study-progress span { display: block; height: 100%; background: #a77faf; border-radius: inherit; }
 .study-goal-form { display: grid; gap: 12px; margin-top: 18px; }
@@ -34,4 +49,6 @@
 .study-options { display: grid; gap: 8px; margin-top: 12px; }
 .study-options button { text-align: left; justify-content: flex-start; }
 .study-feedback { padding: 12px; background: #f5edf8; border-radius: 10px; margin-top: 12px; }
-@media (max-width: 600px) { .study-page { padding: 14px 10px 40px; } .study-hero { padding: 22px; } }
+@keyframes study-spin { to { transform: rotate(360deg); } }
+@media (max-width: 600px) { .study-page { padding: 14px 0 40px; } .study-hero { padding: 22px 18px; border-radius: 18px; } .study-panel { padding: 18px; border-radius: 16px; } .study-grid { grid-template-columns: minmax(0,1fr); gap: 12px; } .study-button { min-height: 44px; } .study-actions.mobile-stack .study-button { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .study-spinner { animation: none; } .study-button { transition: none; } }
