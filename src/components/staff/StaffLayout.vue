@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import StaffSidebar from "@/components/staff/StaffSidebar.vue";
 import StaffNavbar from "@/components/staff/StaffNavbar.vue";
+import StaffSupportLauncher from '@/components/staff/StaffSupportLauncher.vue'
+import { startStaffSupportNotifications } from '@/services/staffSupportNotifications'
 const route = useRoute()
-const importing = computed(() => ['/staff/imports/books','/staff/insights','/staff/editorial','/staff/question-bank','/staff/revisions'].includes(route.path))
+const importing = computed(() => ['/staff/imports/books','/staff/insights','/staff/editorial','/staff/question-bank','/staff/revisions','/staff/support'].includes(route.path))
 const menuOpen = ref(false)
 watch(() => route.fullPath, () => { menuOpen.value = false })
+let stopSupportNotifications: (() => void) | undefined
+onMounted(() => { stopSupportNotifications = startStaffSupportNotifications() })
+onUnmounted(() => { stopSupportNotifications?.() })
 </script>
 
 <template>
@@ -26,6 +31,8 @@ watch(() => route.fullPath, () => { menuOpen.value = false })
       </div>
 
     </div>
+
+    <StaffSupportLauncher />
 
   </div>
 </template>

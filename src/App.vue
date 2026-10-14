@@ -6,6 +6,7 @@ import { useAuthState } from '@/services/authState'
 import { gatewayUrl } from '@/api/authApi'
 import { trackAdminActivity } from '@/services/adminActivity'
 import FloatingScrollButtons from "@/components/common/FloatingScrollButtons.vue";
+import SupportChatWidget from '@/components/common/SupportChatWidget.vue'
 
 const { isAuthenticated, userRole } = useAuthState()
 let stopActivity: (() => void) | undefined
@@ -23,4 +24,5 @@ onUnmounted(() => stopActivity?.())
   <RouterView />
   <WalletNotifications />
   <FloatingScrollButtons />
+  <SupportChatWidget />
 </template>

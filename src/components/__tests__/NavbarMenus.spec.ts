@@ -3,6 +3,7 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { ref } from 'vue'
 import StaffNavbar from '@/components/staff/StaffNavbar.vue'
 import AdminNavbar from '@/components/admin/AdminNavbar.vue'
+import { staffSupportUnread } from '@/services/staffSupportNotifications'
 
 const mocks = vi.hoisted(() => ({
   logout: vi.fn(),
@@ -30,6 +31,7 @@ const show = (component: typeof StaffNavbar | typeof AdminNavbar) => {
 beforeEach(() => {
   vi.clearAllMocks()
   mocks.role = 'ADMIN'
+  staffSupportUnread.value = 0
   mocks.logout.mockResolvedValue(undefined)
   mocks.replace.mockResolvedValue(undefined)
   mocks.checkLogin.mockResolvedValue({ data: { isLoggedIn: true, name: 'Admin', email: 'admin@example.com' } })
@@ -43,12 +45,11 @@ it('hides the Admin return button from Staff accounts', () => {
 })
 afterEach(() => { mounted.splice(0).forEach(wrapper => wrapper.unmount()) })
 
-it('staff bell opens realtime events and account menu can log out without Bootstrap JS', async () => {
+it('staff bell opens support messages and account menu can log out without Bootstrap JS', async () => {
   const wrapper = show(StaffNavbar)
   expect(wrapper.get('[aria-label="Về giao diện Staff"]').attributes('href')).toBe('/staff')
   expect(wrapper.get('[aria-label="Về giao diện Admin"]').attributes('href')).toBe('/admin/dashboard')
-  expect(wrapper.get('[aria-label="Xem sự kiện giám sát realtime"]').attributes('href'))
-    .toBe('/staff/monitoring/vps/events/realtime')
+  expect(wrapper.get('[aria-label="Tin nhắn hỗ trợ"]').attributes('href')).toBe('/staff/support')
   const toggle = wrapper.get('[aria-controls="staff-account-menu"]')
   expect(toggle.attributes('aria-expanded')).toBe('false')
   await toggle.trigger('click')
@@ -57,6 +58,13 @@ it('staff bell opens realtime events and account menu can log out without Bootst
   await flushPromises()
   expect(mocks.logout).toHaveBeenCalledOnce()
   expect(mocks.replace).toHaveBeenCalledWith('/login')
+})
+
+it('shows the unread support message count on the staff bell', () => {
+  staffSupportUnread.value = 7
+  const wrapper = show(StaffNavbar)
+  expect(wrapper.get('[aria-label="Tin nhắn hỗ trợ, 7 chưa đọc"]').attributes('href')).toBe('/staff/support')
+  expect(wrapper.get('.notification-count').text()).toBe('7')
 })
 
 it('staff account menu closes on outside click', async () => {

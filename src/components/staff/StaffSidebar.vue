@@ -240,6 +240,7 @@ const isBooksLoading = (levelId: number, typeId: number) => {
 
     <div class="sidebar-menu">
         <button class="menu-item" :class="{ active: isActive('/staff/classrooms') }" @click="go('/staff/classrooms')"><div><i class="bi bi-mortarboard me-2"></i> Lớp học & giao đề</div></button>
+      <button class="menu-item" :class="{ active: isActive('/staff/support') }" @click="go('/staff/support')"><div><i class="bi bi-headset me-2"></i> Hỗ trợ trực tuyến</div></button>
         <AccountMenu />
       <button class="menu-item" :class="{ active: isActive('/staff/insights') }" @click="go('/staff/insights')"><div><i class="bi bi-graph-up me-2"></i> Chất lượng & học viên</div></button>
       <button class="menu-item" :class="{ active: isActive('/staff/editorial') }" @click="go('/staff/editorial')"><div><i class="bi bi-inbox me-2"></i> Báo lỗi & duyệt bài</div></button>

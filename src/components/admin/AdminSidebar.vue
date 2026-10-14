@@ -19,6 +19,10 @@ import AccountMenu from '@/components/common/AccountMenu.vue'
       <i class="bi bi-people"></i> Tài khoản
     </router-link>
 
+    <router-link to="/admin/support" class="nav-item">
+      <i class="bi bi-headset"></i> Hỗ trợ trực tuyến
+    </router-link>
+
     <router-link to="/admin/reviews" class="nav-item">
       <i class="bi bi-journal-check"></i> Duyệt sách
     </router-link>

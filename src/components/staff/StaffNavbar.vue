@@ -2,6 +2,7 @@
 import {onMounted, onUnmounted, ref} from "vue"
 import {logout, useAuthState} from "@/services/authState.ts"
 import router from "@/router"
+import { staffSupportUnread } from '@/services/staffSupportNotifications'
 /* =========================
    AUTH STATE
 ========================= */
@@ -137,12 +138,13 @@ const handleLogout = async () => {
 
         <!-- NOTIFICATION -->
         <RouterLink
-          to="/staff/monitoring/vps/events/realtime"
+          to="/staff/support"
           class="btn btn-light me-3 notification-btn"
-          aria-label="Xem sự kiện giám sát realtime"
-          title="Sự kiện giám sát realtime"
+          :aria-label="staffSupportUnread ? `Tin nhắn hỗ trợ, ${staffSupportUnread} chưa đọc` : 'Tin nhắn hỗ trợ'"
+          title="Tin nhắn hỗ trợ"
         >
           <i class="bi bi-bell" aria-hidden="true"></i>
+          <span v-if="staffSupportUnread" class="notification-count">{{ staffSupportUnread > 99 ? '99+' : staffSupportUnread }}</span>
         </RouterLink>
 
 
@@ -334,6 +336,7 @@ const handleLogout = async () => {
 ========================= */
 
 .notification-btn {
+  position: relative;
   width: 46px;
   height: 46px;
 
@@ -344,6 +347,24 @@ const handleLogout = async () => {
   align-items: center;
 
   transition: 0.2s ease;
+}
+
+.notification-count {
+  position: absolute;
+  top: -3px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #dc3545;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .notification-btn:hover {
