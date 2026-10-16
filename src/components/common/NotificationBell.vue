@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { notificationOpen, notificationUnread } from '@/services/notificationState'
+import { computed } from 'vue'
+import { notificationOpen, notificationUnread, broadcastUnread } from '@/services/notificationState'
+const total = computed(() => notificationUnread.value + broadcastUnread.value)
 </script>
 
 <template>
-  <button class="notification-bell" :aria-label="`Thông báo, ${notificationUnread} chưa đọc`"
+  <button class="notification-bell" :aria-label="`Thông báo, ${total} chưa đọc`"
     :aria-expanded="notificationOpen" aria-controls="wallet-notification-panel"
     @click="notificationOpen = !notificationOpen" @keydown.esc="notificationOpen = false">
     <i class="bi bi-bell" aria-hidden="true"></i>
-    <span v-if="notificationUnread" class="bell-count">{{ notificationUnread > 99 ? '99+' : notificationUnread }}</span>
+    <span v-if="total" class="bell-count">{{ total > 99 ? '99+' : total }}</span>
   </button>
 </template>
 

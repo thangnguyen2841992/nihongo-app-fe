@@ -177,9 +177,10 @@ const setupToken = ref<string>('')
 const loading = ref<boolean>(false)
 const error = ref<string>('')
 
-onMounted(() => {
-  const token = route.query.token
-  const emailParam = route.query.email
+onMounted(async () => {
+  const fragment = new URLSearchParams(route.hash.replace(/^#/, ''))
+  const token = fragment.get('token') || route.query.token
+  const emailParam = fragment.get('email') || route.query.email
 
   if (typeof token === 'string') {
     setupToken.value = token
@@ -188,6 +189,8 @@ onMounted(() => {
   if (typeof emailParam === 'string') {
     email.value = emailParam
   }
+
+  await router.replace({ path: route.path })
 
   if (!setupToken.value) {
     error.value = 'Google setup token không hợp lệ'

@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { logout, useAuthState } from '@/services/authState.ts'
 import { staffSupportUnread } from '@/services/staffSupportNotifications'
+import NotificationBell from '@/components/common/NotificationBell.vue'
 import router from '@/router'
 import { openJapaneseAiPopup } from '@/services/japaneseAiPopup'
 
@@ -29,7 +30,7 @@ const handleLogout = async () => { accountMenuOpen.value = false; await logout()
     <button type="button" class="mobile-menu" aria-label="Mở menu nhân viên" aria-controls="staff-sidebar" @click="emit('toggleMenu')"><i class="bi bi-list"></i></button>
     <div class="page-identity"><strong>Không gian nhân viên</strong><span>Quản lý nội dung và hỗ trợ học viên</span></div>
     <form class="navbar-search" @submit.prevent="handleSearch"><i class="bi bi-search"></i><input v-model="searchKeyword" type="search" placeholder="Tra cứu tiếng Nhật / tiếng Việt..." maxlength="2000" aria-label="Tìm kiếm AI"><button v-if="searchKeyword" type="button" aria-label="Xóa tìm kiếm" @click="searchKeyword = ''"><i class="bi bi-x"></i></button></form>
-    <div class="navbar-actions">
+    <div class="navbar-actions"><NotificationBell />
       <div class="workspace-switcher">
         <RouterLink to="/staff" class="workspace-link" aria-label="Về giao diện Staff"><i class="bi bi-person-workspace"></i><span>Staff</span></RouterLink>
         <RouterLink v-if="userRole === 'ADMIN'" to="/admin/dashboard" class="workspace-link" aria-label="Về giao diện Admin"><i class="bi bi-shield-check"></i><span>Admin</span></RouterLink>

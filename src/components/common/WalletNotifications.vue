@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import BroadcastInbox from './BroadcastInbox.vue'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useAuthState } from '@/services/authState'
 import { notificationOpen as open, notificationUnread } from '@/services/notificationState'
 import { connectWalletRealtime, type LiveStatus } from '@/services/walletRealtime'
-import { getAdminDeposits, getDeposits, formatMoney, type WalletDeposit } from '@/services/walletApi'
+import { getPendingDeposits, getDeposits, formatMoney, type WalletDeposit } from '@/services/walletApi'
 
 const { isAuthenticated, userEmail, userRole } = useAuthState()
 const admin = computed(() => userRole.value.replace(/^ROLE_/, '') === 'ADMIN')
-const enabled = computed(() => isAuthenticated.value && !!userEmail.value && ['ADMIN', 'USER'].includes(userRole.value.replace(/^ROLE_/, '')))
+const enabled = computed(() => isAuthenticated.value && !!userEmail.value && ['ADMIN', 'STAFF', 'USER'].includes(userRole.value.replace(/^ROLE_/, '')))
 const rows = ref<WalletDeposit[]>([])
 const read = ref<string[]>([])
 const dismissed = ref<string[]>([])
@@ -55,7 +56,7 @@ watch(() => [enabled.value, userEmail.value, userRole.value] as const, ([active,
     do {
       again = false
       try {
-        const result = await (admin.value ? getAdminDeposits() : getDeposits())
+        const result = userRole.value.replace(/^ROLE_/, '') === 'STAFF' ? [] : await (admin.value ? getPendingDeposits() : getDeposits())
         if (disposed) return
         rows.value = result
         const fresh = relevant.value.filter(row => !known.has(key(row)) && !read.value.includes(key(row)))
@@ -71,7 +72,7 @@ watch(() => [enabled.value, userEmail.value, userRole.value] as const, ([active,
     running = false
   }
   refresh = () => { void load() }
-  stop = connectWalletRealtime(admin.value, event => {
+  stop = userRole.value.replace(/^ROLE_/, '') === 'STAFF' ? undefined : connectWalletRealtime(admin.value, event => {
     if (disposed) return
     window.dispatchEvent(new Event('wallet:changed'))
     void load(!!event)
@@ -106,7 +107,7 @@ onUnmounted(() => { stop?.(); clearTimeout(timer); window.removeEventListener('f
 </script>
 
 <template>
-  <aside v-if="enabled" class="wallet-notifications" aria-label="Thông báo nạp tiền" @keydown.esc="open = false">
+  <aside v-if="enabled" class="wallet-notifications" aria-label="Thông báo" @keydown.esc="open = false">
     <Transition name="notice">
       <div v-if="toast" class="notice-toast" role="status">
         <i class="bi bi-bell-fill toast-icon" aria-hidden="true"></i>
@@ -115,7 +116,7 @@ onUnmounted(() => { stop?.(); clearTimeout(timer); window.removeEventListener('f
       </div>
     </Transition>
     <Transition name="notice">
-      <section v-if="open" id="wallet-notification-panel" class="notice-panel" aria-label="Danh sách thông báo">
+      <section v-show="open" id="wallet-notification-panel" class="notice-panel" aria-label="Danh sách thông báo">
         <header class="notice-header">
           <div class="header-title"><span class="header-icon"><i class="bi bi-bell" aria-hidden="true"></i></span>
             <div><h3>Thông báo</h3><p>{{ unread ? `${unread} thông báo chưa đọc` : 'Bạn đã xem hết thông báo' }}</p></div>
@@ -123,7 +124,7 @@ onUnmounted(() => { stop?.(); clearTimeout(timer); window.removeEventListener('f
           <button class="icon-button" aria-label="Đóng danh sách" @click="open = false"><i class="bi bi-x-lg"></i></button>
         </header>
         <div class="notice-toolbar">
-          <span class="live-label"><span class="live-dot" :class="{ connected: status === 'live' }"></span>{{ status === 'live' ? 'Trực tiếp' : 'Đang kết nối…' }}</span>
+          <span class="live-label"><span class="live-dot" :class="{ connected: status === 'live' }"></span>{{ userRole.replace(/^ROLE_/, '') === 'STAFF' ? 'Cập nhật mỗi 30 giây' : status === 'live' ? 'Trực tiếp' : 'Đang kết nối…' }}</span>
           <div class="toolbar-actions">
             <button class="text-button btn-link" :disabled="!unread" @click="markRead()" title="Đánh dấu tất cả đã đọc"><i class="bi bi-check2-all" aria-hidden="true"></i> Đọc tất cả</button>
             <button class="text-button delete-all" :disabled="!relevant.length" @click="dismiss()"><i class="bi bi-trash3" aria-hidden="true"></i> Xóa tất cả</button>
@@ -132,9 +133,9 @@ onUnmounted(() => { stop?.(); clearTimeout(timer); window.removeEventListener('f
         <div v-if="undoKeys.length" class="undo-bar">
           <span>Đã xóa {{ undoKeys.length }} thông báo</span><button class="text-button" @click="undo()">Hoàn tác</button>
         </div>
-        <div class="notice-list">
+        <div class="notice-list"><BroadcastInbox />
           <button v-if="error" class="retry-button" @click="refresh?.()"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> {{ error }}</button>
-          <div v-else-if="!relevant.length" class="empty-notices">
+          <div v-else-if="!relevant.length && userRole.replace(/^ROLE_/, '') !== 'STAFF'" class="empty-notices">
             <span class="empty-icon"><i class="bi bi-bell-slash" aria-hidden="true"></i></span>
             <strong>Chưa có thông báo</strong><p>Các cập nhật nạp tiền sẽ xuất hiện ở đây.</p>
           </div>
@@ -152,7 +153,7 @@ onUnmounted(() => { stop?.(); clearTimeout(timer); window.removeEventListener('f
             </div>
           </article>
         </div>
-        <footer class="notice-footer">Thông báo nạp tiền · Nihongo</footer>
+        <footer class="notice-footer">Thông báo · Nihongo</footer>
       </section>
     </Transition>
   </aside>

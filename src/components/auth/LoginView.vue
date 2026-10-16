@@ -70,52 +70,14 @@ const checkEmail = async () => {
     return
   }
 
-  loading.value = true
-
-  try {
-    const response = await gatewayUrl.get(
-      '/api/auth/checkEmail',
-      {
-        params: {
-          email: emailValue
-        }
-      }
-    )
-
-    // Email tồn tại thì luôn cho đăng nhập bằng password
-    if (response.data?.type === 'LOCAL' ||
-      response.data?.type === 'GOOGLE') {
-
-      loginType.value = 'LOCAL'
-
-      await nextTick()
-
-      passwordRef.value?.focus()
-
-    } else {
-      loginType.value = null
-      error.value = 'Email chưa tồn tại'
-    }
-
-  } catch (e: any) {
-
-
-
-    if (e.response?.status === 404) {
-      error.value = 'Email chưa tồn tại'
-
-    } else if (e.response?.status === 400) {
-      error.value =
-        e.response?.data?.message ||
-        'Email không hợp lệ'
-
-    } else {
-      error.value = 'Không thể kiểm tra email'
-    }
-
-  } finally {
-    loading.value = false
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
+    error.value = 'Email không hợp lệ'
+    return
   }
+  email.value = emailValue
+  loginType.value = 'LOCAL'
+  await nextTick()
+  passwordRef.value?.focus()
 }
 
 const login = async () => {

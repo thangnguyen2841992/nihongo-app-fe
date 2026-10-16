@@ -1,25 +1,23 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { listAccounts, type AdminAccount } from '@/services/adminAccounts'
-import { getAdminDeposits, type WalletDeposit } from '@/services/walletApi'
+import { onMounted, ref } from 'vue'
+import { getAccountSummary } from '@/services/adminAccounts'
+import { getPendingDepositCount } from '@/services/walletApi'
 import { gatewayUrl } from '@/api/authApi'
 
-const accounts = ref<AdminAccount[]>([])
-const deposits = ref<WalletDeposit[]>([])
+const users = ref(0)
+const staff = ref(0)
+const pending = ref(0)
 const booksInReview = ref(0)
 const loading = ref(true)
 const warning = ref('')
-const users = computed(() => accounts.value.filter(a => a.active && a.role === 'USER').length)
-const staff = computed(() => accounts.value.filter(a => a.active && a.role === 'STAFF').length)
-const pending = computed(() => deposits.value.filter(d => d.status === 'PENDING').length)
 async function load() {
   loading.value = true; warning.value = ''
   const [accountResult, depositResult, bookResult] = await Promise.allSettled([
-    listAccounts(), getAdminDeposits(), gatewayUrl.get<Array<{ publicationStatus: string }>>('/api/staff/books'),
+    getAccountSummary(), getPendingDepositCount(), gatewayUrl.get<{ totalElements: number }>('/api/staff/content/reviews', { params: { status: 'IN_REVIEW', page: 0 } }),
   ])
-  if (accountResult.status === 'fulfilled') accounts.value = accountResult.value
-  if (depositResult.status === 'fulfilled') deposits.value = depositResult.value
-  if (bookResult.status === 'fulfilled') booksInReview.value = bookResult.value.data.filter(book => book.publicationStatus === 'IN_REVIEW').length
+  if (accountResult.status === 'fulfilled') { users.value = accountResult.value.activeUsers; staff.value = accountResult.value.activeStaff }
+  if (depositResult.status === 'fulfilled') pending.value = depositResult.value
+  if (bookResult.status === 'fulfilled') booksInReview.value = bookResult.value.data.totalElements
   if (accountResult.status === 'rejected' || depositResult.status === 'rejected' || bookResult.status === 'rejected') warning.value = 'Một số số liệu chưa tải được. Hãy thử tải lại.'
   loading.value = false
 }

@@ -25,6 +25,7 @@ const groups = [
   { id: 'learning', label: 'Học viên & hỗ trợ', icon: 'bi-people', items: [
     { to: '/staff/classrooms', label: 'Lớp học & giao đề', icon: 'bi-mortarboard' },
     { to: '/staff/support', label: 'Hỗ trợ trực tuyến', icon: 'bi-headset' },
+    { to: '/staff/notifications', label: 'Gửi thông báo', icon: 'bi-megaphone' },
     { to: '/staff/insights', label: 'Chất lượng & học viên', icon: 'bi-graph-up' },
   ]},
   { id: 'editorial', label: 'Biên tập nội dung', icon: 'bi-pencil-square', items: [

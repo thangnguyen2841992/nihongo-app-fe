@@ -3,8 +3,6 @@ import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import vueJsx from '@vitejs/plugin-vue-jsx'
-import vueDevTools from 'vite-plugin-vue-devtools'
 
 const sharedSettingsPath = fileURLToPath(new URL('../.local/shared.properties', import.meta.url))
 const publicKeys = ['VITE_GATEWAY_URL', 'VITE_AUTH_WS_URL'] as const
@@ -18,7 +16,7 @@ if (existsSync(sharedSettingsPath)) {
 }
 
 // https://vite.dev/config/
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ mode }) => {
  const publicDefines: Record<string, string> = {}
  for (const key of publicKeys) {
    // Deployment builds must not inherit this workstation's localhost URLs.
@@ -29,8 +27,6 @@ export default defineConfig(({ command, mode }) => {
   define: publicDefines,
   plugins: [
     vue(),
-    vueJsx(),
-    ...(command === 'serve' ? [vueDevTools()] : []),
   ],
   resolve: {
     alias: {

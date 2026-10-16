@@ -19,7 +19,7 @@ export function grammarConnections(formula: string): GrammarConnection[] {
   const verb = (notation: string, original: string, transformed: string, meaning = 'đọc') => add('Động từ', notation, original, transformed, meaning)
   const plain = /^(?:Thể thông thường|普通形)/i.test(formula)
   const polite = /^(?:Thể lịch sự|丁寧形)/i.test(formula)
-  if (/^Thể thông thường quá khứ bỏ た/u.test(formula)) {
+  if (formula.startsWith('Thể thông thường quá khứ bỏ た')) {
     add('Động từ', 'Vた形', '読む', '読んだ', 'đã đọc')
     add('Tính từ い', 'Aい普通形・過去', '高い', '高かった', 'đã cao / đắt')
     add('Tính từ な', 'Aな普通形・過去', '静か', '静かだった', 'đã yên tĩnh')

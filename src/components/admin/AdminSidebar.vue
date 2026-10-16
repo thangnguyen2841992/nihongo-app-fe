@@ -14,6 +14,7 @@ const groups = [
     { to: '/admin/audit', label: 'Nhật ký quản trị', icon: 'bi-clock-history' },
   ]},
   { id: 'people', label: 'Người dùng & hỗ trợ', icon: 'bi-people', items: [
+    { to: '/admin/notifications', label: 'Gửi thông báo', icon: 'bi-megaphone' },
     { to: '/admin/users', label: 'Tài khoản người dùng', icon: 'bi-person-lines-fill' },
     { to: '/admin/support', label: 'Hỗ trợ trực tuyến', icon: 'bi-headset' },
   ]},

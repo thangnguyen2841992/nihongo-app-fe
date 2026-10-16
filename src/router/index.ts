@@ -181,6 +181,7 @@ const routes = [
       { path: 'catalog', component: () => import('@/components/operations/CatalogManagement.vue') },
       { path: 'promotions', component: () => import('@/components/operations/PromotionManagement.vue') },
       { path: 'reviews', component: () => import('@/components/operations/EditorialWorkspace.vue'), props: { initialTab: 'reviews' } },
+      { path: 'notifications', component: () => import('@/components/admin/AdminBroadcasts.vue') },
       { path: 'audit', component: () => import('@/components/operations/AdminAuditLog.vue') },
       { path: 'support', component: () => import('@/components/support/SupportInboxView.vue') },
       {
@@ -217,6 +218,7 @@ const routes = [
       { path: 'question-bank', component: () => import('@/components/operations/QuestionBank.vue') },
       { path: 'revisions', component: () => import('@/components/operations/ContentRevisions.vue') },
       { path: 'support', component: () => import('@/components/support/SupportInboxView.vue') },
+      { path: 'notifications', component: () => import('@/components/staff/StaffBroadcasts.vue') },
       {
         path: '',
         component: StaffHome

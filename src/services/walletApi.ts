@@ -32,6 +32,8 @@ export const depositWallet = async (data: DepositWalletRequest): Promise<WalletD
 export const getDeposits = async (): Promise<WalletDeposit[]> => (await gatewayUrl.get(`${base}/deposits`)).data
 export const getBankInfo = async (): Promise<BankInfo> => (await gatewayUrl.get(`${base}/bank-info`)).data
 export const getAdminDeposits = async (): Promise<WalletDeposit[]> => (await gatewayUrl.get(`${base}/admin/deposits`)).data
+export const getPendingDeposits = async (): Promise<WalletDeposit[]> => (await gatewayUrl.get(`${base}/admin/deposits/pending`)).data
+export const getPendingDepositCount = async (): Promise<number> => (await gatewayUrl.get<{ count: number }>(`${base}/admin/deposits/pending-count`)).data.count
 export const reviewDeposit = async (id: number, data: DepositReview): Promise<WalletDeposit> =>
   (await gatewayUrl.post(`${base}/admin/deposits/${id}/review`, data)).data
 export const walletError = (error: unknown, fallback: string): string => {

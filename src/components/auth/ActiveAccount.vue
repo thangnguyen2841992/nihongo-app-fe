@@ -7,18 +7,19 @@ const route = useRoute()
 const router = useRouter()
 
 onMounted(async () => {
-  const userId = route.query.userId as string
-  const activeCode = route.query.activeCode as string
-  const email = route.query.email as string
+  const fragment = new URLSearchParams(route.hash.replace(/^#/, ''))
+  const userId = fragment.get('userId') || route.query.userId as string
+  const activeCode = fragment.get('activeCode') || route.query.activeCode as string
+  await router.replace({ path: route.path })
 
-  if (!userId || !activeCode || !email) {
+  if (!userId || !activeCode) {
     await router.push('/active-failed')
     return
   }
 
   try {
     const res = await gatewayUrl.get('/api/active-user/active', {
-      params: {userId, activeCode, email}
+      params: {userId, activeCode}
     })
 
     const data = res.data

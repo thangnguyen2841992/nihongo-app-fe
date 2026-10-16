@@ -16,9 +16,7 @@ it.each([
   ['ADMIN', '', '/admin'],
   ['STAFF', '', '/staff'],
 ])('sends %s from login%s to %s', async (role, query, destination) => {
-  vi.mocked(gatewayUrl.get)
-    .mockResolvedValueOnce({ data: { type: 'LOCAL' } })
-    .mockResolvedValueOnce({ data: { isLoggedIn: true, role } })
+  vi.mocked(gatewayUrl.get).mockResolvedValueOnce({ data: { isLoggedIn: true, role } })
   vi.mocked(gatewayUrl.post).mockResolvedValue({ data: { message: 'Login success' } })
   const router = createRouter({ history: createMemoryHistory(), routes: [
     { path: '/login', component: LoginView },
@@ -32,6 +30,7 @@ it.each([
   await wrapper.get('input[type="email"]').setValue('user@example.com')
   await wrapper.get('form').trigger('submit')
   await flushPromises()
+  expect(gatewayUrl.get).not.toHaveBeenCalled()
   await wrapper.get('input[type="password"]').setValue('ValidPass1!')
   await wrapper.get('form').trigger('submit')
   await flushPromises()

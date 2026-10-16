@@ -122,7 +122,7 @@ it('loads each lesson examples in one batch and reuses them when returning to th
       { lessonId: 11, name: 'Bài 1', reading: '' },
       { lessonId: 12, name: 'Bài 2', reading: '' },
     ] : url === '/api/staff/getAllGrammarByLesson' ? [
-      { grammarId: config?.params?.lessonId === 11 ? 21 : 22, title: '文法' },
+      { grammarId: (config?.params as { lessonId?: number } | undefined)?.lessonId === 11 ? 21 : 22, title: '文法' },
     ] : url === '/api/staff/lessons/11/examples' ? [
       { exampleId: 31, grammarId: 21, nihongo: '一番' },
     ] : url === '/api/staff/lessons/12/examples' ? [
@@ -168,7 +168,7 @@ it('keeps the newest lesson visible when an older response arrives late', async 
     if (url === '/api/staff/getLessonsByBook') return { data: [
       { lessonId: 11, name: 'Bài 1', reading: '' }, { lessonId: 12, name: 'Bài 2', reading: '' },
     ] } as never
-    if (url === '/api/staff/getAllGrammarByLesson' && config?.params?.lessonId === 11) {
+    if (url === '/api/staff/getAllGrammarByLesson' && (config?.params as { lessonId?: number } | undefined)?.lessonId === 11) {
       return await new Promise(resolve => { resolveOld = resolve })
     }
     if (url === '/api/staff/getAllGrammarByLesson') return { data: [{ grammarId: 22, title: 'Ngữ pháp mới' }] } as never

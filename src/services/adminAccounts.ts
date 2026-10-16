@@ -19,8 +19,12 @@ export interface AccountAudit {
   newValue: string | null
   createdAt: string
 }
+export interface AccountPage { content: AdminAccount[]; number: number; totalElements: number; totalPages: number }
+export interface AccountSummary { activeUsers: number; activeStaff: number }
 const base = '/api/users/admin/accounts'
-export const listAccounts = async () => (await gatewayUrl.get<AdminAccount[]>(base)).data
+export const listAccounts = async (page = 0, search = '') =>
+  (await gatewayUrl.get<AccountPage>(base, { params: { page, size: 25, search } })).data
+export const getAccountSummary = async () => (await gatewayUrl.get<AccountSummary>(`${base}/summary`)).data
 export const inviteAccount = async (input: { email: string; firstName: string; lastName: string; role: AdminAccount['role'] }) =>
   (await gatewayUrl.post<AdminAccount>(base, input)).data
 export const updateAccountRole = async (id: string, role: AdminAccount['role']) =>

@@ -16,16 +16,20 @@ it('restores authentication before entering the protected My Courses page after 
     { path: '/google/setup-password', component: GoogleSetupPassword },
     { path: '/user/my-courses', component: { template: '<p>My courses</p>' } },
   ] })
+  let enteredMyCourses = false
   router.beforeEach(to => {
-    if (to.path === '/user/my-courses') expect(setAuth).toHaveBeenCalledOnce()
+    if (to.path === '/user/my-courses') enteredMyCourses = vi.mocked(setAuth).mock.calls.length === 1
   })
-  await router.push('/google/setup-password?token=grant&email=user@example.com')
+  await router.push('/google/setup-password#token=grant&email=user%40example.com')
   await router.isReady()
   const wrapper = mount({ template: '<router-view />' }, { global: { plugins: [router] } })
+  await flushPromises()
+  expect(router.currentRoute.value.hash).toBe('')
   for (const input of wrapper.findAll('input[type="password"]')) await input.setValue('ValidPass1!')
   await wrapper.get('form').trigger('submit')
   await flushPromises()
   expect(publicClient.post).toHaveBeenCalledOnce()
   expect(router.currentRoute.value.path).toBe('/user/my-courses')
+  expect(enteredMyCourses).toBe(true)
   wrapper.unmount()
 })

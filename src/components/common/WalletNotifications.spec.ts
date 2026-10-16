@@ -7,7 +7,7 @@ import NotificationBell from './NotificationBell.vue'
 const mocks = vi.hoisted(() => ({ auth: {} as any, change: undefined as any, stop: vi.fn(), admin: vi.fn(), history: vi.fn() }))
 vi.mock('@/services/authState', () => ({ useAuthState: () => mocks.auth }))
 vi.mock('@/services/walletRealtime', () => ({ connectWalletRealtime: (_: boolean, change: any) => { mocks.change = change; return mocks.stop } }))
-vi.mock('@/services/walletApi', () => ({ getAdminDeposits: mocks.admin, getDeposits: mocks.history, formatMoney: (n: number) => `${n}đ` }))
+vi.mock('@/services/walletApi', () => ({ getPendingDeposits: mocks.admin, getDeposits: mocks.history, formatMoney: (n: number) => `${n}đ` }))
 const row = { id: 12, amount: 10000, status: 'PENDING', createdAt: '2026-09-27T08:00:00', reviewedAt: null, reviewNote: null }
 const mountPanel = () => mount({ components: { WalletNotifications, NotificationBell }, template: '<NotificationBell /><WalletNotifications />' }, { global: { stubs: { RouterLink: { template: '<a><slot /></a>' } } } })
 beforeEach(() => {
