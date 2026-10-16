@@ -155,7 +155,7 @@ onBeforeUnmount(() => { disposed = true; sourceRequest++; controller?.abort(); i
       </section>
       <section class="source-panel"><h2>Đối chiếu trang sách gốc</h2><p>15 trang của chương 1, gồm hình minh họa và các bài tập chưa chuyển sang dạng tương tác.</p>
         <div class="source-controls"><label>Trang PDF <select v-model="sourcePage" @change="loadSource"><option v-for="page in chapter.sourcePdfPages" :key="page" :value="page">{{ page }} (trang sách {{ page + 1 }})</option></select></label><button class="btn btn-outline-secondary" :disabled="sourceLoading" @click="loadSource">{{ sourceLoading ? 'Đang tải…' : 'Xem trang gốc' }}</button></div>
-        <p v-if="sourceError" role="alert" class="text-danger">{{ sourceError }}</p><img v-if="sourceImage" :src="sourceImage" alt="Trang scan sách TRY! N3 để đối chiếu" class="source-image">
+        <p v-if="sourceError" role="alert" class="text-danger">{{ sourceError }}</p><img v-if="sourceImage" :src="sourceImage" alt="Trang scan sách TRY! N3 để đối chiếu" class="source-image" decoding="async">
       </section>
     </template>
   </main>

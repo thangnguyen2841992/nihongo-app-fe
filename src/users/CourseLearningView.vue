@@ -100,7 +100,9 @@ onMounted(() => {
             v-if="book.imageUrls?.length"
             :src="book.imageUrls[0]?.imgUrl"
             class="card-img-top"
-            alt="book"
+            :alt="`Bìa ${book.bookName}`"
+            loading="lazy"
+            decoding="async"
           >
 
           <div class="card-body">

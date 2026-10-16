@@ -1,5 +1,4 @@
 @import './base.css';
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
 
 #app {
   width: 100%;
@@ -8,9 +7,7 @@
 }
 
 body {
-  font-family: "Noto Sans JP",
-  "Segoe UI",
-  sans-serif;
+  font-family: "Segoe UI", "Yu Gothic UI", "Yu Gothic", Meiryo, system-ui, sans-serif;
   margin: 0;
   background-color: #f5f7fb;
 }

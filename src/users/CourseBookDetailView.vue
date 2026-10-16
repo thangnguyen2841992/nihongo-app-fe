@@ -185,6 +185,21 @@ const examples =
   ref<Record<number, Example[]>>({})
 type LessonContent = { grammars: Grammar[]; examples: Record<number, Example[]>; loadedAt: number }
 const lessonContentCache = new Map<number, LessonContent>()
+const LESSON_CACHE_TTL = 5 * 60_000
+const lessonCacheKey = (lessonId: number) => `nihongo:lesson-content:${lessonId}`
+const readStoredLesson = (lessonId: number): LessonContent | null => {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(lessonCacheKey(lessonId)) || 'null') as LessonContent | null
+    return cached && Array.isArray(cached.grammars) && cached.examples && Date.now() - cached.loadedAt < LESSON_CACHE_TTL
+      ? cached : null
+  } catch { return null }
+}
+const storeLesson = (lessonId: number, content: LessonContent) => {
+  try { sessionStorage.setItem(lessonCacheKey(lessonId), JSON.stringify(content)) } catch { /* cache is optional */ }
+}
+const clearStoredLesson = (lessonId: number) => {
+  try { sessionStorage.removeItem(lessonCacheKey(lessonId)) } catch { /* cache is optional */ }
+}
 const loadingLessonContent = ref(false)
 const lessonContentError = ref('')
 let lessonRequestId = 0
@@ -519,6 +534,7 @@ const fetchGrammars =
 
       grammars.value = res.data
       lessonContentCache.delete(lessonId)
+      clearStoredLesson(lessonId)
 
     } catch (e) {
 
@@ -608,8 +624,8 @@ const openLesson = async (
     })
   }
 
-  const cached = lessonContentCache.get(lesson.lessonId)
-  if (cached && Date.now() - cached.loadedAt < 60_000) {
+  const cached = lessonContentCache.get(lesson.lessonId) ?? readStoredLesson(lesson.lessonId)
+  if (cached && Date.now() - cached.loadedAt < LESSON_CACHE_TTL) {
     lessonContentCache.delete(lesson.lessonId)
     lessonContentCache.set(lesson.lessonId, cached)
     grammars.value = cached.grammars
@@ -621,31 +637,49 @@ const openLesson = async (
 
   const controller = new AbortController()
   lessonContentController = controller
+  let grammarLoaded = false
   try {
-    const [grammarResponse, exampleResponse] = await Promise.all([
-      gatewayUrl.get<Grammar[]>('/api/staff/getAllGrammarByLesson', {
-        params: { lessonId: lesson.lessonId }, signal: controller.signal,
-      }),
-      gatewayUrl.get<Example[]>(`/api/staff/lessons/${lesson.lessonId}/examples`, {
-        signal: controller.signal,
-      }),
-    ])
+    // Khởi động song song nhưng render ngữ pháp ngay khi request nhẹ hơn về.
+    // Danh sách ví dụ không còn chặn phần công thức/cách dùng.
+    const examplesRequest = gatewayUrl.get<Example[]>(
+      `/api/staff/lessons/${lesson.lessonId}/examples`,
+      { signal: controller.signal },
+    ).then(response => ({ response }), error => ({ error }))
+    const grammarResponse = await gatewayUrl.get<Grammar[]>(
+      '/api/staff/getAllGrammarByLesson',
+      { params: { lessonId: lesson.lessonId }, signal: controller.signal },
+    )
     if (requestId !== lessonRequestId) return
+    const firstStructure = grammarResponse.data.find(grammar => grammar.imageUrl)?.imageUrl
+    if (firstStructure) new Image().src = getStructureImage(firstStructure)
     const lessonExamples: Record<number, Example[]> = {}
     for (const grammar of grammarResponse.data) lessonExamples[grammar.grammarId] = []
-    for (const example of exampleResponse.data) {
+    grammars.value = grammarResponse.data
+    examples.value = lessonExamples
+    expandedGrammar.value = Object.fromEntries(grammarResponse.data.map(grammar => [grammar.grammarId, true]))
+    grammarLoaded = true
+    loadingLessonContent.value = false
+
+    const exampleResult = await examplesRequest
+    if (requestId !== lessonRequestId) return
+    if ('error' in exampleResult) throw exampleResult.error
+    for (const example of exampleResult.response.data) {
       if (lessonExamples[example.grammarId]) lessonExamples[example.grammarId]!.push(example)
     }
+    examples.value = { ...lessonExamples }
     const content = { grammars: grammarResponse.data, examples: lessonExamples, loadedAt: Date.now() }
     if (lessonContentCache.size >= 8) lessonContentCache.delete(lessonContentCache.keys().next().value!)
     lessonContentCache.set(lesson.lessonId, content)
+    storeLesson(lesson.lessonId, content)
     grammars.value = content.grammars
     examples.value = content.examples
     expandedGrammar.value = Object.fromEntries(content.grammars.map(grammar => [grammar.grammarId, true]))
   } catch (error) {
     if (requestId !== lessonRequestId) return
     console.error(error)
-    lessonContentError.value = 'Không thể tải nội dung bài học. Vui lòng thử lại.'
+    lessonContentError.value = grammarLoaded
+      ? 'Ngữ pháp đã hiển thị nhưng chưa tải được ví dụ. Vui lòng thử lại.'
+      : 'Không thể tải nội dung bài học. Vui lòng thử lại.'
   } finally {
     if (requestId === lessonRequestId) {
       loadingLessonContent.value = false
@@ -676,7 +710,10 @@ const fetchExamples = async (
 
     examples.value[grammarId] =
       res.data
-    if (selectedLesson.value) lessonContentCache.delete(selectedLesson.value.lessonId)
+    if (selectedLesson.value) {
+      lessonContentCache.delete(selectedLesson.value.lessonId)
+      clearStoredLesson(selectedLesson.value.lessonId)
+    }
 
   } catch (e) {
 
@@ -719,7 +756,7 @@ const getStructureImage = (
 
   return imageUrl.replace(
     "/upload/",
-    "/upload/w_1200,c_limit/"
+    "/upload/f_auto,q_auto:good,w_900,c_limit/"
   )
 }
 
@@ -743,24 +780,38 @@ onMounted(async () => {
     "scroll",
     handleScroll
   )
-  await Promise.all([fetchBook(), fetchLessons()])
-  if (disposed) return
+  // Thông tin sách không chặn việc tải nội dung bài học.
+  void fetchBook()
+  const requestedLessonId = Number(route.query.lessonId)
+  const requestedGrammarId = Number(route.query.grammarId)
+  const hasRequestedLesson = Number.isInteger(requestedLessonId) && requestedLessonId > 0
 
-  /* AUTO OPEN FIRST LESSON */
+  if (hasRequestedLesson) {
+    // URL đã có lessonId: không đợi payload danh sách bài (có thể chứa nhiều bài đọc dài).
+    const contentPromise = openLesson({
+      lessonId: requestedLessonId,
+      name: 'Đang tải bài học...',
+      description: '',
+      reading: '',
+      bookId,
+    })
+    await fetchLessons()
+    if (disposed) return
+    const hydratedLesson = lessons.value.find(lesson => lesson.lessonId === requestedLessonId)
+    if (hydratedLesson && selectedLesson.value?.lessonId === requestedLessonId) selectedLesson.value = hydratedLesson
+    await contentPromise
+  } else {
+    await fetchLessons()
+    if (disposed) return
+    if (lessons.value.length > 0) await openLesson(lessons.value[0]!)
+    else rememberPosition(null)
+  }
 
-  if (
-    lessons.value.length > 0
-  ) {
-    const requestedLessonId = Number(route.query.lessonId)
-    const requestedGrammarId = Number(route.query.grammarId)
-    const requestedLesson = lessons.value.find(lesson => lesson.lessonId === requestedLessonId)
-    await openLesson(requestedLesson ?? lessons.value[0]!)
+  if (selectedLesson.value) {
     if (Number.isInteger(requestedGrammarId) && requestedGrammarId > 0) {
       await nextTick()
       document.getElementById(`grammar-${requestedGrammarId}`)?.scrollIntoView({ block: 'center' })
     }
-  } else {
-    rememberPosition(null)
   }
 
 })
@@ -1011,7 +1062,7 @@ const goToExercisePage =
 
             <!-- IMAGE -->
 
-            <GrammarStructure v-if="grammar.imageUrl" :source="getStructureImage(grammar.imageUrl)" :title="grammar.title" @enlarge="openImage(grammar.imageUrl)" />
+            <GrammarStructure v-if="grammar.imageUrl" :source="getStructureImage(grammar.imageUrl)" :title="grammar.title" :eager="index === 0" @enlarge="openImage(grammar.imageUrl)" />
 
 
             <!-- DESCRIPTION -->

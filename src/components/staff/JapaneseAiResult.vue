@@ -1,5 +1,5 @@
 <template>
-  <div class="japanese-ai-page">
+  <div class="japanese-ai-page" :class="{ embedded }">
 
     <!-- =====================================================
          HEADER
@@ -416,6 +416,8 @@ import { useJapaneseSpeech } from '@/services/japaneseSpeech'
 
 const route = useRoute()
 const router = useRouter()
+const props = withDefaults(defineProps<{ embedded?: boolean; query?: string }>(), { embedded: false, query: '' })
+const emit = defineEmits<{ 'update:query': [value: string] }>()
 const { speechError, speakJapanese, stopSpeaking } = useJapaneseSpeech()
 const maxInputLength = 2000
 const searchText = ref('')
@@ -424,6 +426,7 @@ const loading = ref(false)
 const error = ref('')
 let activeRequest: AbortController | undefined
 let requestId = 0
+let lastQuery = ''
 
 function cancelSearch() {
   stopSpeaking()
@@ -451,6 +454,7 @@ async function runSearch(text: string) {
   result.value = null
   error.value = ''
   if (!validInput(text)) return
+  lastQuery = text.trim()
   const id = requestId
   const controller = new AbortController()
   activeRequest = controller
@@ -480,7 +484,12 @@ async function runSearch(text: string) {
 async function search() {
   if (!validInput(searchText.value)) return
   const keyword = searchText.value.trim()
-  if (loading.value && route.query.q === keyword) return
+  if (loading.value && lastQuery === keyword) return
+  if (props.embedded) {
+    if (props.query === keyword) await runSearch(keyword)
+    else emit('update:query', keyword)
+    return
+  }
   if (route.query.q === keyword) {
     await runSearch(keyword)
   } else {
@@ -494,7 +503,7 @@ function onSearchEnter(event: KeyboardEvent) {
   void search()
 }
 
-watch(() => route.query.q, keyword => {
+watch(() => props.embedded ? props.query : route.query.q, keyword => {
   searchText.value = typeof keyword === 'string' ? keyword : ''
   if (searchText.value.trim()) {
     void runSearch(searchText.value)
@@ -531,6 +540,12 @@ onBeforeUnmount(() => {
   padding: 30px 20px 60px;
 
 }
+
+.japanese-ai-page.embedded { max-width: none; padding: 16px 16px 28px; }
+.japanese-ai-page.embedded .page-header { display: none; }
+.japanese-ai-page.embedded .search-card { position: sticky; top: 0; z-index: 2; padding: 14px; border: 1px solid #e2e6ed; box-shadow: 0 5px 18px rgb(32 43 64 / 7%); }
+.japanese-ai-page.embedded .result-container { margin-top: 16px; gap: 14px; }
+.japanese-ai-page.embedded .result-card { padding: 18px; border: 1px solid #e2e6ed; box-shadow: 0 3px 12px rgb(32 43 64 / 5%); }
 
 
 /* =========================================================
@@ -1294,6 +1309,10 @@ onBeforeUnmount(() => {
     padding: 20px 15px 40px;
 
   }
+
+  .japanese-ai-page.embedded { padding: 10px 10px 22px; }
+  .japanese-ai-page.embedded .search-box { flex-direction: row; }
+  .japanese-ai-page.embedded .search-box button { width: auto; min-width: 96px; }
 
 
   .page-header h1 {

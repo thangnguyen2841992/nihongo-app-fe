@@ -7,6 +7,7 @@ import NotificationBell from '@/components/common/NotificationBell.vue'
 import BrandLogo from '@/components/common/BrandLogo.vue'
 import {useRouter} from "vue-router"
 import {logout} from "@/services/authState.ts"
+import { openJapaneseAiPopup } from '@/services/japaneseAiPopup'
 
 
 const props = defineProps<{
@@ -143,7 +144,8 @@ const handleSearch = async () => {
 
     searchLoading.value = true
 
-    await router.push({ path: '/japanese-ai', query: { q: keyword } })
+    openJapaneseAiPopup(keyword)
+    searchKeyword.value = ''
 
   } catch (e) {
 

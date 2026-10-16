@@ -1,16 +1,18 @@
 .study-page { --study-accent: #80628e; --study-accent-strong: #664b75; --study-border: #e4dbe7; max-width: 1120px; margin: 0 auto; padding: 24px 18px 60px; color: #4c4355; }
-.study-hero { position: relative; overflow: hidden; padding: 30px 32px; border: 1px solid #e4d9e3; border-radius: 22px; background: linear-gradient(125deg, #fffaf7f2, #f3ebf9f2); box-shadow: 0 12px 30px #73627b12; }
-.study-hero::after { content: ''; position: absolute; right: -48px; top: -72px; width: 180px; height: 180px; border: 28px solid #b69ac014; border-radius: 50%; pointer-events: none; }
+.study-hero { position: relative; overflow: hidden; padding: 34px 36px; border: 1px solid rgb(229 220 222 / 88%); border-radius: 24px; background: linear-gradient(125deg, rgb(255 252 247 / 91%), rgb(244 239 245 / 86%) 58%, rgb(235 243 247 / 82%)); box-shadow: 0 16px 42px #4f627517; backdrop-filter: blur(15px) saturate(112%); }
+.study-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 82% 20%, #f1cfd43d, transparent 26%), linear-gradient(90deg, transparent 72%, #d7e6eb24); pointer-events: none; }
+.study-hero::after { content: ''; position: absolute; right: -42px; top: -68px; width: 190px; height: 190px; border: 26px solid #a9bdc722; border-radius: 50%; box-shadow: 0 0 0 20px #d6afb012; pointer-events: none; }
 .study-hero h1 { margin: 0 0 8px; color: #50435e; font-size: clamp(24px, 3vw, 34px); font-weight: 750; }
 .study-hero p { position: relative; z-index: 1; max-width: 720px; margin: 0; color: #74697d; line-height: 1.7; }
 .study-eyebrow { margin: 0 0 8px !important; color: #9a7da5 !important; font-size: 10px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
 .study-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
-.study-panel { min-width: 0; padding: 22px; border: 1px solid #e6e1e8; border-radius: 18px; background: #ffffffed; box-shadow: 0 8px 24px #55475e0c; }
+.study-panel { min-width: 0; padding: 22px; border: 1px solid rgb(229 225 228 / 88%); border-radius: 19px; background: rgb(255 255 255 / 82%); box-shadow: 0 10px 30px #40556b10; backdrop-filter: blur(12px) saturate(108%); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.study-panel:hover { transform: translateY(-2px); border-color: #d9cdd7; box-shadow: 0 16px 36px #40556b18; }
 .study-panel h2 { font-size: 18px; font-weight: 720; color: #50435e; margin: 0 0 12px; }
 .study-panel p { color: #746d7c; margin: 0 0 15px; line-height: 1.65; }
 .study-section-heading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 18px; }
 .study-section-heading h2 { margin-bottom: 5px; }.study-section-heading p { margin: 0; font-size: 13px; }
-.study-icon { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: #f2eaf5; color: #8d6c9b; font-size: 18px; }
+.study-icon { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; border: 1px solid #e8dde5; border-radius: 13px; background: linear-gradient(145deg,#f6e8eb,#e8eef2); color: #7e657f; font-size: 18px; box-shadow: inset 0 1px #fff; }
 .study-panel > .study-icon + h2 { margin-top: 14px; }
 .study-heading-copy { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
 .study-count { font-size: 32px; color: #80628e; font-weight: 800; line-height: 1; margin: 10px 0; }
@@ -51,4 +53,4 @@
 .study-feedback { padding: 12px; background: #f5edf8; border-radius: 10px; margin-top: 12px; }
 @keyframes study-spin { to { transform: rotate(360deg); } }
 @media (max-width: 600px) { .study-page { padding: 14px 0 40px; } .study-hero { padding: 22px 18px; border-radius: 18px; } .study-panel { padding: 18px; border-radius: 16px; } .study-grid { grid-template-columns: minmax(0,1fr); gap: 12px; } .study-button { min-height: 44px; } .study-actions.mobile-stack .study-button { width: 100%; } }
-@media (prefers-reduced-motion: reduce) { .study-spinner { animation: none; } .study-button { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .study-spinner { animation: none; } .study-button,.study-panel { transition: none; } }

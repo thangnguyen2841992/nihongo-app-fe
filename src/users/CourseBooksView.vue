@@ -49,7 +49,7 @@ onMounted(loadBooks)
     <section v-else class="book-list" aria-label="Danh sách giáo trình">
       <article v-for="book in books" :key="book.bookId" class="book-row">
         <div class="book-cover-wrap">
-          <img v-if="book.imageUrls[0]?.imgUrl" :src="book.imageUrls[0].imgUrl" class="book-cover" :alt="`Bìa ${book.bookName}`">
+          <img v-if="book.imageUrls[0]?.imgUrl" :src="book.imageUrls[0].imgUrl" class="book-cover" :alt="`Bìa ${book.bookName}`" loading="lazy" decoding="async">
           <span v-else class="book-cover-placeholder"><i class="bi bi-book" aria-hidden="true"></i></span>
         </div>
         <div class="book-info">

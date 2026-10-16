@@ -57,6 +57,11 @@ interface Example {
   grammarId: number
 }
 
+interface LessonGrammarContent {
+  grammars: Grammar[]
+  examples: Example[]
+}
+
 /* =========================
    STATE
 ========================= */
@@ -452,29 +457,31 @@ const openLesson = async (
 ) => {
 
   selectedLesson.value = lesson
-
-  await fetchGrammars(
-    lesson.lessonId
-  )
-
-  expandedGrammar.value = {}
-
-  grammars.value.forEach(
-    grammar => {
-      expandedGrammar.value[
-        grammar.grammarId
-        ] = true
-    }
-  )
-
-  await Promise.all(
-    grammars.value.map(
-      grammar =>
-        fetchExamples(
-          grammar.grammarId
-        )
+  grammars.value = []
+  examples.value = {}
+  try {
+    const res = await gatewayUrl.get<LessonGrammarContent>(
+      `/api/staff/lessons/${lesson.lessonId}/grammar-content`
     )
-  )
+    if (selectedLesson.value?.lessonId !== lesson.lessonId) return
+
+    const firstStructure = res.data.grammars.find(grammar => grammar.imageUrl)?.imageUrl
+    if (firstStructure) new Image().src = getStructureImage(firstStructure)
+    grammars.value = res.data.grammars
+    const lessonExamples: Record<number, Example[]> = {}
+    for (const grammar of res.data.grammars) lessonExamples[grammar.grammarId] = []
+    for (const example of res.data.examples) {
+      if (lessonExamples[example.grammarId]) lessonExamples[example.grammarId]!.push(example)
+    }
+    examples.value = lessonExamples
+    expandedGrammar.value = Object.fromEntries(
+      res.data.grammars.map(grammar => [grammar.grammarId, true])
+    )
+  } catch (error) {
+    if (selectedLesson.value?.lessonId !== lesson.lessonId) return
+    console.error(error)
+    alert('Không thể tải ngữ pháp và ví dụ')
+  }
 }
 
 
@@ -538,7 +545,7 @@ const getStructureImage = (
 
   return imageUrl.replace(
     "/upload/",
-    "/upload/w_1200,c_limit/"
+    "/upload/f_auto,q_auto:good,w_900,c_limit/"
   )
 }
 
@@ -557,8 +564,7 @@ onMounted(async () => {
     "scroll",
     handleScroll
   )
-  await fetchBook()
-
+  void fetchBook()
   await fetchLessons()
 
   /* AUTO OPEN FIRST LESSON */
@@ -871,7 +877,7 @@ const goToExercisePage =
 
                 </div>
 
-                <GrammarStructure v-if="grammar.imageUrl" :source="getStructureImage(grammar.imageUrl)" :title="grammar.title" @enlarge="openImage(grammar.imageUrl)" />
+                <GrammarStructure v-if="grammar.imageUrl" :source="getStructureImage(grammar.imageUrl)" :title="grammar.title" :eager="index === 0" @enlarge="openImage(grammar.imageUrl)" />
                 <GrammarNotes :description="grammar.description" :examples="examples[grammar.grammarId]" />
                 <!-- EXAMPLE ACTION -->
 

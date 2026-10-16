@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{ source: string; title: string }>()
+defineProps<{ source: string; title: string; eager?: boolean }>()
 const emit = defineEmits<{ enlarge: [] }>()
 </script>
 
@@ -10,7 +10,13 @@ const emit = defineEmits<{ enlarge: [] }>()
       <button type="button" class="enlarge" :aria-label="`Phóng to cấu trúc ${title}`" @click="emit('enlarge')"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i>Phóng to</button>
     </figcaption>
     <button type="button" class="structure-image-button" :aria-label="`Xem ảnh cấu trúc ${title}`" @click="emit('enlarge')">
-      <img :src="source" :alt="title" loading="lazy" decoding="async">
+      <img
+        :src="source"
+        :alt="title"
+        :loading="eager ? 'eager' : 'lazy'"
+        :fetchpriority="eager ? 'high' : 'auto'"
+        decoding="async"
+      >
     </button>
   </figure>
 </template>

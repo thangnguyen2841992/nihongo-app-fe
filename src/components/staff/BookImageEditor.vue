@@ -282,7 +282,9 @@ defineExpose({
           <img
             :src="img.imgUrl"
             class="preview-image"
-            alt="image"
+            alt="Ảnh giáo trình"
+            loading="lazy"
+            decoding="async"
           />
 
           <div class="image-overlay">

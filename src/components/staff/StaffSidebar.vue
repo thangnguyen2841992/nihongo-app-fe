@@ -1,924 +1,119 @@
 <script setup lang="ts">
+import { onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import AccountMenu from '@/components/common/AccountMenu.vue'
-import { onMounted, ref, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
 import { gatewayUrl } from '@/api/authApi.ts'
 
-/* =========================
-   ROUTER
-========================= */
+interface Lesson { lessonId: number; lessonName: string }
+interface Book { bookId: number; bookName: string; lessons: Lesson[] }
+interface Type { typeId: number; typeName: string }
+interface Level { levelId: number; levelName: string }
 
+defineProps<{ isOpen?: boolean }>()
+const emit = defineEmits<{ close: [] }>()
 const router = useRouter()
 const route = useRoute()
-
-/* =========================
-   INTERFACES
-========================= */
-
-interface Lesson {
-  lessonId: number
-  lessonName: string
-}
-
-interface Book {
-  bookId: number
-  bookName: string
-  lessons: Lesson[]
-}
-
-interface Type {
-  typeId: number
-  typeName: string
-}
-
-interface Level {
-  levelId: number
-  levelName: string
-}
-
-/* =========================
-   STATE
-========================= */
-
-const showTree = ref(true)
-
 const loading = ref(false)
-
 const levels = ref<Level[]>([])
-
 const types = ref<Type[]>([])
-
-/*
- * Monitoring menu
- *
- * Tự mở nếu URL hiện tại thuộc:
- *
- * /staff/monitoring
- * /staff/monitoring/...
- */
-const showMonitoring = ref(route.path.startsWith('/staff/monitoring'))
-watch(
-  () => route.path,
-  (path) => {
-    if (path.startsWith('/staff/monitoring')) showMonitoring.value = true
-  },
-)
-
-/*
- * expand level
- */
 const expandedLevels = ref<Record<number, boolean>>({})
-
-/*
- * expand type
- *
- * key = levelId-typeId
- */
 const expandedTypes = ref<Record<string, boolean>>({})
-
-/*
- * cache books
- */
 const booksMap = ref<Record<string, Book[]>>({})
-
-/*
- * loading books
- */
 const loadingBooks = ref<Record<string, boolean>>({})
 
-/* =========================
-   FETCH INITIAL DATA
-========================= */
+const groups = [
+  { id: 'learning', label: 'Học viên & hỗ trợ', icon: 'bi-people', items: [
+    { to: '/staff/classrooms', label: 'Lớp học & giao đề', icon: 'bi-mortarboard' },
+    { to: '/staff/support', label: 'Hỗ trợ trực tuyến', icon: 'bi-headset' },
+    { to: '/staff/insights', label: 'Chất lượng & học viên', icon: 'bi-graph-up' },
+  ]},
+  { id: 'editorial', label: 'Biên tập nội dung', icon: 'bi-pencil-square', items: [
+    { to: '/staff/editorial', label: 'Báo lỗi & duyệt bài', icon: 'bi-inbox' },
+    { to: '/staff/question-bank', label: 'Ngân hàng câu hỏi', icon: 'bi-ui-checks' },
+    { to: '/staff/revisions', label: 'Phiên bản nội dung', icon: 'bi-clock-history' },
+    { to: '/staff/create-book', label: 'Tạo sách', icon: 'bi-book-half' },
+    { to: '/staff/imports/books', label: 'Nhập dữ liệu sách', icon: 'bi-cloud-arrow-up' },
+  ]},
+]
+const monitoringItems = [
+  { to: '/staff/monitoring/vps/register', label: 'Đăng ký máy chủ', icon: 'bi-server' },
+  { to: '/staff/monitoring/mysql/register', label: 'Đăng ký MySQL', icon: 'bi-database' },
+  { to: '/staff/monitoring/vps/performance', label: 'Hiệu năng VPS / MySQL', icon: 'bi-graph-up' },
+  { to: '/staff/monitoring/vps/performance?schedules=1', label: 'Lịch thu thập metric', icon: 'bi-sliders' },
+  { to: '/staff/monitoring/vps/events', label: 'Event giám sát', icon: 'bi-bell' },
+  { to: '/staff/monitoring/vps/events/realtime', label: 'Event realtime', icon: 'bi-broadcast' },
+  { to: '/staff/monitoring/vps/events/history', label: 'Lịch sử event', icon: 'bi-clock-history' },
+]
+const expanded = reactive<Record<string, boolean>>({ content: true })
+const cleanPath = (to: string) => to.split('?')[0] || to
+const itemActive = (to: string) => route.path === cleanPath(to) && (!to.includes('schedules=1') || route.query.schedules === '1') && (to.includes('schedules=1') || !(cleanPath(to).endsWith('/performance') && route.query.schedules === '1'))
+const groupActive = (items: { to: string }[]) => items.some(item => itemActive(item.to))
+watch(() => route.fullPath, () => {
+  groups.forEach(group => { if (groupActive(group.items)) expanded[group.id] = true })
+  if (route.path.startsWith('/staff/monitoring')) expanded.monitoring = true
+}, { immediate: true })
+const go = async (path: string) => { await router.push(path); emit('close') }
 
 onMounted(async () => {
   loading.value = true
-
   try {
-    const [levelRes, typeRes] = await Promise.all([
-      gatewayUrl.get('/api/staff/levels'),
-
-      gatewayUrl.get('/api/staff/types'),
-    ])
-
+    const [levelRes, typeRes] = await Promise.all([gatewayUrl.get('/api/staff/levels'), gatewayUrl.get('/api/staff/types')])
     levels.value = levelRes.data || []
-
     types.value = typeRes.data || []
-
-    levels.value.forEach((level) => {
-      expandedLevels.value[level.levelId] = false
-    })
-  } catch (e) {
-    console.error('Load sidebar data error:', e)
-  } finally {
-    loading.value = false
-  }
+  } catch (error) { console.error('Load sidebar data error:', error) }
+  finally { loading.value = false }
 })
-
-/* =========================
-   NAVIGATION
-========================= */
-
-const go = (path: string) => {
-  router.push(path)
-}
-
-const isActive = (path: string) => {
-  return route.path === path
-}
-
-/* =========================
-   MONITORING
-========================= */
-
-const toggleMonitoring = () => {
-  showMonitoring.value = !showMonitoring.value
-}
-
-/*
- * Monitoring menu active
- *
- * true khi đang ở:
- *
- * /staff/monitoring
- * /staff/monitoring/vps/register
- * /staff/monitoring/...
- */
-const isMonitoringActive = () => {
-  return route.path.startsWith('/staff/monitoring')
-}
-
-/* =========================
-   TREE
-========================= */
-
-const toggleTree = () => {
-  showTree.value = !showTree.value
-}
-
-/* =========================
-   LEVEL
-========================= */
-
-const toggleLevel = (levelId: number) => {
-  expandedLevels.value[levelId] = !expandedLevels.value[levelId]
-}
-
-const isLevelExpanded = (levelId: number) => {
-  return !!expandedLevels.value[levelId]
-}
-
-/* =========================
-   TYPE + LOAD BOOKS
-========================= */
-
 const toggleType = async (levelId: number, typeId: number) => {
   const key = `${levelId}-${typeId}`
-
-  /*
-   * Đã load books
-   */
-  if (booksMap.value[key]) {
-    expandedTypes.value[key] = !expandedTypes.value[key]
-
-    return
-  }
-
+  if (booksMap.value[key]) { expandedTypes.value[key] = !expandedTypes.value[key]; return }
+  loadingBooks.value[key] = true
   try {
-    loadingBooks.value[key] = true
-
-    const response = await gatewayUrl.get('/api/staff/getBooksByLevelAndType', {
-      params: {
-        levelId,
-        typeId,
-      },
-    })
-
+    const response = await gatewayUrl.get('/api/staff/getBooksByLevelAndType', { params: { levelId, typeId } })
     booksMap.value[key] = response.data || []
-
     expandedTypes.value[key] = true
-  } catch (e) {
-    console.error('Load books error:', e)
-  } finally {
-    loadingBooks.value[key] = false
-  }
-}
-
-const isTypeExpanded = (levelId: number, typeId: number) => {
-  return !!expandedTypes.value[`${levelId}-${typeId}`]
-}
-
-/* =========================
-   HELPERS
-========================= */
-
-const getBooks = (levelId: number, typeId: number) => {
-  return booksMap.value[`${levelId}-${typeId}`] || []
-}
-
-const isBooksLoading = (levelId: number, typeId: number) => {
-  return !!loadingBooks.value[`${levelId}-${typeId}`]
+  } catch (error) { console.error('Load books error:', error) }
+  finally { loadingBooks.value[key] = false }
 }
 </script>
 
 <template>
-  <div class="sidebar">
-    <!-- =========================
-         HEADER
-    ========================= -->
-
-    <div class="sidebar-header">
-      <h4 class="sidebar-title">
-        <i class="bi bi-person-badge me-2"></i>
-
-        Nhân viên
-      </h4>
-    </div>
-
-    <!-- =========================
-         MENU
-    ========================= -->
-
-    <div class="sidebar-menu">
-        <button class="menu-item" :class="{ active: isActive('/staff/classrooms') }" @click="go('/staff/classrooms')"><div><i class="bi bi-mortarboard me-2"></i> Lớp học & giao đề</div></button>
-      <button class="menu-item" :class="{ active: isActive('/staff/support') }" @click="go('/staff/support')"><div><i class="bi bi-headset me-2"></i> Hỗ trợ trực tuyến</div></button>
-        <AccountMenu />
-      <button class="menu-item" :class="{ active: isActive('/staff/insights') }" @click="go('/staff/insights')"><div><i class="bi bi-graph-up me-2"></i> Chất lượng & học viên</div></button>
-      <button class="menu-item" :class="{ active: isActive('/staff/editorial') }" @click="go('/staff/editorial')"><div><i class="bi bi-inbox me-2"></i> Báo lỗi & duyệt bài</div></button>
-      <button class="menu-item" :class="{ active: isActive('/staff/question-bank') }" @click="go('/staff/question-bank')"><div><i class="bi bi-ui-checks me-2"></i> Ngân hàng câu hỏi</div></button>
-      <button class="menu-item" :class="{ active: isActive('/staff/revisions') }" @click="go('/staff/revisions')"><div><i class="bi bi-clock-history me-2"></i> Phiên bản nội dung</div></button>
-      <!-- =========================
-           DASHBOARD
-      ========================= -->
-
-      <button
-        class="menu-item"
-        :class="{
-          active: isActive('/staff'),
-        }"
-        @click="go('/staff')"
-      >
-        <div>
-          <i class="bi bi-house-door me-2"></i>
-
-          Trang chủ
+  <aside id="staff-sidebar" class="staff-sidebar" :class="{ open: isOpen }" aria-label="Điều hướng nhân viên" @keydown.esc="emit('close')">
+    <header class="sidebar-brand"><span class="brand-mark"><i class="bi bi-person-badge"></i></span><span><strong>Nihongo Staff</strong><small>Không gian vận hành</small></span><button type="button" class="sidebar-close" aria-label="Đóng menu" @click="emit('close')"><i class="bi bi-x-lg"></i></button></header>
+    <nav class="sidebar-nav">
+      <button type="button" class="top-link" :class="{ active: route.path === '/staff' }" @click="go('/staff')"><i class="bi bi-grid-1x2"></i><span>Trang chủ</span></button>
+      <section v-for="group in groups" :key="group.id" class="nav-group">
+        <button type="button" class="group-button" :class="{ active: groupActive(group.items) }" :aria-expanded="Boolean(expanded[group.id])" @click="expanded[group.id] = !expanded[group.id]"><i class="bi" :class="group.icon"></i><span>{{ group.label }}</span><i class="bi chevron" :class="expanded[group.id] ? 'bi-chevron-down' : 'bi-chevron-right'"></i></button>
+        <ul v-if="expanded[group.id]" class="group-children"><li v-for="item in group.items" :key="item.to"><button type="button" :class="{ active: itemActive(item.to) }" @click="go(item.to)"><i class="bi" :class="item.icon"></i><span>{{ item.label }}</span></button></li></ul>
+      </section>
+      <section class="nav-group">
+        <button type="button" class="group-button" :class="{ active: route.path.startsWith('/staff/monitoring') }" :aria-expanded="Boolean(expanded.monitoring)" @click="expanded.monitoring = !expanded.monitoring"><i class="bi bi-speedometer2"></i><span>Giám sát hệ thống</span><i class="bi chevron" :class="expanded.monitoring ? 'bi-chevron-down' : 'bi-chevron-right'"></i></button>
+        <ul v-if="expanded.monitoring" class="group-children"><li v-for="item in monitoringItems" :key="item.to"><button type="button" :class="{ active: itemActive(item.to) }" @click="go(item.to)"><i class="bi" :class="item.icon"></i><span>{{ item.label }}</span></button></li></ul>
+      </section>
+      <section class="nav-group content-tree">
+        <button type="button" class="group-button" :aria-expanded="Boolean(expanded.content)" @click="expanded.content = !expanded.content"><i class="bi bi-diagram-3"></i><span>Cây khóa học</span><i class="bi chevron" :class="expanded.content ? 'bi-chevron-down' : 'bi-chevron-right'"></i></button>
+        <div v-if="expanded.content" class="course-tree">
+          <div v-if="loading" class="tree-status"><span class="spinner-border spinner-border-sm"></span>Đang tải dữ liệu...</div>
+          <section v-for="level in levels" :key="level.levelId" class="level-group">
+            <button type="button" class="level-item" @click="expandedLevels[level.levelId] = !expandedLevels[level.levelId]"><span><i class="bi bi-mortarboard"></i>{{ level.levelName }}</span><i class="bi" :class="expandedLevels[level.levelId] ? 'bi-chevron-down' : 'bi-chevron-right'"></i></button>
+            <div v-if="expandedLevels[level.levelId]" class="type-list">
+              <section v-for="type in types" :key="type.typeId"><button type="button" class="type-item" @click="toggleType(level.levelId,type.typeId)"><span><i class="bi bi-tags"></i>{{ type.typeName }}</span><i class="bi" :class="expandedTypes[`${level.levelId}-${type.typeId}`] ? 'bi-chevron-down' : 'bi-chevron-right'"></i></button>
+                <div v-if="expandedTypes[`${level.levelId}-${type.typeId}`]" class="book-list"><div v-if="loadingBooks[`${level.levelId}-${type.typeId}`]" class="tree-status">Đang tải sách...</div><div v-for="book in booksMap[`${level.levelId}-${type.typeId}`] || []" :key="book.bookId" class="book-group"><strong><i class="bi bi-book"></i>{{ book.bookName }}</strong><button v-for="lesson in book.lessons" :key="lesson.lessonId" type="button" class="lesson-item"><i class="bi bi-file-earmark-text"></i>{{ lesson.lessonName }}</button></div><div v-if="!loadingBooks[`${level.levelId}-${type.typeId}`] && !(booksMap[`${level.levelId}-${type.typeId}`] || []).length" class="tree-status">Chưa có sách</div></div>
+              </section>
+            </div>
+          </section>
         </div>
-      </button>
-
-      <!-- =========================
-           MONITORING
-      ========================= -->
-
-      <div class="monitoring-menu">
-        <!-- MENU CHA -->
-
-        <button
-          class="menu-item tree-header"
-          :class="{
-            active: isMonitoringActive(),
-          }"
-          @click="toggleMonitoring"
-        >
-          <div>
-            <i class="bi bi-speedometer2 me-2"></i>
-
-            Monitoring Server
-          </div>
-
-          <i class="bi" :class="showMonitoring ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
-        </button>
-
-        <!-- MENU CON -->
-
-        <Transition name="fade">
-          <div v-if="showMonitoring" class="monitoring-submenu">
-            <!-- =================
-                 REGISTER VPS
-            ================== -->
-
-            <button
-              class="monitoring-item"
-              :class="{
-                active: isActive('/staff/monitoring/vps/register'),
-              }"
-              @click="go('/staff/monitoring/vps/register')"
-            >
-              <i class="bi bi-server me-2"></i>
-
-              Đăng ký máy chủ
-            </button>
-            <button
-              class="monitoring-item"
-              :class="{ active: isActive('/staff/monitoring/mysql/register') }"
-              @click="go('/staff/monitoring/mysql/register')"
-            >
-              <i class="bi bi-database me-2"></i> Đăng ký MySQL
-            </button>
-            <button
-              class="monitoring-item"
-              :class="{
-                active:
-                  isActive('/staff/monitoring/vps/performance') && route.query.schedules !== '1',
-              }"
-              @click="go('/staff/monitoring/vps/performance')"
-            >
-              <i class="bi bi-graph-up me-2"></i> Hiệu năng VPS / MySQL
-            </button>
-            <button
-              class="monitoring-item"
-              :class="{
-                active:
-                  isActive('/staff/monitoring/vps/performance') && route.query.schedules === '1',
-              }"
-              @click="go('/staff/monitoring/vps/performance?schedules=1')"
-            >
-              <i class="bi bi-sliders me-2"></i> Lịch thu thập metric
-            </button>
-            <button
-              class="monitoring-item"
-              :class="{ active: isActive('/staff/monitoring/vps/events') }"
-              @click="go('/staff/monitoring/vps/events')"
-            >
-              <i class="bi bi-bell me-2"></i> Event giám sát
-            </button>
-            <button
-              class="monitoring-item"
-              :class="{ active: isActive('/staff/monitoring/vps/events/realtime') }"
-              @click="go('/staff/monitoring/vps/events/realtime')"
-            >
-              <i class="bi bi-broadcast me-2"></i> Event realtime
-            </button>
-            <button
-              class="monitoring-item"
-              :class="{ active: isActive('/staff/monitoring/vps/events/history') }"
-              @click="go('/staff/monitoring/vps/events/history')"
-            >
-              <i class="bi bi-clock-history me-2"></i> Lịch sử event
-            </button>
-          </div>
-        </Transition>
-      </div>
-
-      <!-- =========================
-           CREATE BOOK
-      ========================= -->
-
-      <button
-        class="menu-item"
-        :class="{
-          active: isActive('/staff/create-book'),
-        }"
-        @click="go('/staff/create-book')"
-      >
-        <div>
-          <i class="bi bi-book-half me-2"></i>
-
-          Tạo sách
-        </div>
-      </button>
-
-      <!-- =========================
-           CONTENT MANAGEMENT
-      ========================= -->
-
-      <div class="tree-wrapper">
-        <!-- TREE HEADER -->
-
-        <button class="menu-item tree-header" @click="toggleTree">
-          <div>
-            <i class="bi bi-diagram-3 me-2"></i>
-
-            Quản lý nội dung
-          </div>
-
-          <i class="bi" :class="showTree ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
-        </button>
-
-        <!-- TREE BODY -->
-
-        <div v-if="showTree" class="tree-body">
-          <!-- =================
-               LOADING
-          ================== -->
-
-          <div v-if="loading" class="loading-box">
-            <div class="spinner-border spinner-border-sm"></div>
-
-            <span> Đang tải dữ liệu... </span>
-          </div>
-
-          <!-- =================
-               LEVEL
-          ================== -->
-
-          <div v-for="level in levels" :key="level.levelId" class="level-group">
-            <!-- LEVEL HEADER -->
-
-            <button class="level-item" @click="toggleLevel(level.levelId)">
-              <div class="level-left">
-                <i class="bi bi-mortarboard me-2"></i>
-
-                {{ level.levelName }}
-              </div>
-
-              <i
-                class="bi"
-                :class="isLevelExpanded(level.levelId) ? 'bi-chevron-down' : 'bi-chevron-right'"
-              ></i>
-            </button>
-
-            <!-- =================
-                 TYPE
-            ================== -->
-
-            <Transition name="fade">
-              <div v-if="isLevelExpanded(level.levelId)" class="type-list">
-                <div v-for="type in types" :key="type.typeId" class="type-group">
-                  <!-- TYPE -->
-
-                  <button class="type-item" @click="toggleType(level.levelId, type.typeId)">
-                    <div class="type-left">
-                      <i class="bi bi-tags me-2"></i>
-
-                      {{ type.typeName }}
-                    </div>
-
-                    <i
-                      class="bi"
-                      :class="
-                        isTypeExpanded(level.levelId, type.typeId)
-                          ? 'bi-chevron-down'
-                          : 'bi-chevron-right'
-                      "
-                    ></i>
-                  </button>
-
-                  <!-- =================
-                       BOOK
-                  ================== -->
-
-                  <Transition name="fade">
-                    <div v-if="isTypeExpanded(level.levelId, type.typeId)" class="book-list">
-                      <!-- LOADING BOOKS -->
-
-                      <div v-if="isBooksLoading(level.levelId, type.typeId)" class="loading-books">
-                        <div class="spinner-border spinner-border-sm"></div>
-
-                        <span> Đang tải sách... </span>
-                      </div>
-
-                      <!-- BOOK -->
-
-                      <div
-                        v-for="book in getBooks(level.levelId, type.typeId)"
-                        :key="book.bookId"
-                        class="book-group"
-                      >
-                        <!-- BOOK -->
-
-                        <div class="book-item">
-                          <i class="bi bi-book me-2"></i>
-
-                          {{ book.bookName }}
-                        </div>
-
-                        <!-- LESSON -->
-
-                        <div class="lesson-list">
-                          <button
-                            v-for="lesson in book.lessons"
-                            :key="lesson.lessonId"
-                            class="lesson-item"
-                          >
-                            <i class="bi bi-file-earmark-text me-2"></i>
-
-                            {{ lesson.lessonName }}
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- EMPTY -->
-
-                      <div
-                        v-if="
-                          !isBooksLoading(level.levelId, type.typeId) &&
-                          !getBooks(level.levelId, type.typeId).length
-                        "
-                        class="empty-books"
-                      >
-                        Không có sách
-                      </div>
-                    </div>
-                  </Transition>
-                </div>
-              </div>
-            </Transition>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+      </section>
+      <div class="account-wrap"><AccountMenu @navigate="emit('close')" /></div>
+    </nav>
+  </aside>
+  <button v-if="isOpen" type="button" class="sidebar-backdrop" aria-label="Đóng menu" @click="emit('close')"></button>
 </template>
 
 <style scoped>
-/* =========================
-   SIDEBAR
-========================= */
-
-.sidebar {
-  position: fixed;
-
-  top: 0;
-  left: 0;
-
-  width: 300px;
-
-  height: 100vh;
-
-  z-index: 1000;
-
-  overflow-y: auto;
-
-  background: linear-gradient(180deg, #0f172a, #1e293b);
-
-  color: white;
-
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* =========================
-   SCROLLBAR
-========================= */
-
-.sidebar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-
-  border-radius: 20px;
-}
-
-/* =========================
-   HEADER
-========================= */
-
-.sidebar-header {
-  padding: 24px 20px;
-
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.sidebar-title {
-  margin: 0;
-
-  font-size: 22px;
-
-  font-weight: 700;
-}
-
-/* =========================
-   MENU
-========================= */
-
-.sidebar-menu {
-  padding: 16px;
-}
-
-/* =========================
-   MENU ITEM
-========================= */
-
-.menu-item {
-  width: 100%;
-
-  border: none;
-
-  background: transparent;
-
-  color: #cbd5e1;
-
-  padding: 12px 14px;
-
-  border-radius: 12px;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  margin-bottom: 8px;
-
-  transition: 0.2s ease;
-
-  cursor: pointer;
-
-  font-size: 15px;
-
-  font-weight: 500;
-}
-
-.menu-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-
-  color: white;
-}
-
-.menu-item.active {
-  background: #2563eb;
-
-  color: white;
-}
-
-/* =========================
-   MONITORING
-========================= */
-
-.monitoring-menu {
-  margin-bottom: 8px;
-}
-
-/* =========================
-   MONITORING SUB MENU
-========================= */
-
-.monitoring-submenu {
-  margin-left: 14px;
-
-  padding-left: 10px;
-
-  border-left: 1px solid rgba(255, 255, 255, 0.12);
-
-  margin-bottom: 10px;
-}
-
-.monitoring-item {
-  width: 100%;
-
-  border: none;
-
-  background: transparent;
-
-  color: #cbd5e1;
-
-  padding: 10px 12px;
-
-  border-radius: 9px;
-
-  display: flex;
-
-  align-items: center;
-
-  text-align: left;
-
-  margin-bottom: 4px;
-
-  cursor: pointer;
-
-  transition: 0.2s ease;
-
-  font-size: 14px;
-
-  font-weight: 500;
-}
-
-.monitoring-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-
-  color: white;
-}
-
-.monitoring-item.active {
-  background: rgba(37, 99, 235, 0.85);
-
-  color: white;
-}
-
-/* =========================
-   TREE
-========================= */
-
-.tree-wrapper {
-  margin-top: 10px;
-}
-
-.tree-body {
-  margin-top: 10px;
-}
-
-/* =========================
-   LOADING
-========================= */
-
-.loading-box,
-.loading-books {
-  display: flex;
-
-  align-items: center;
-
-  gap: 10px;
-
-  padding: 12px;
-
-  color: #cbd5e1;
-}
-
-/* =========================
-   LEVEL
-========================= */
-
-.level-group {
-  margin-bottom: 16px;
-}
-
-.level-item {
-  width: 100%;
-
-  border: none;
-
-  padding: 10px 14px;
-
-  border-radius: 10px;
-
-  background: rgba(59, 130, 246, 0.15);
-
-  color: #93c5fd;
-
-  font-weight: 700;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  cursor: pointer;
-
-  transition: 0.2s ease;
-}
-
-.level-item:hover {
-  background: rgba(59, 130, 246, 0.22);
-}
-
-.level-left {
-  display: flex;
-
-  align-items: center;
-}
-
-/* =========================
-   TYPE
-========================= */
-
-.type-list {
-  margin-top: 8px;
-
-  padding-left: 14px;
-}
-
-.type-group {
-  margin-bottom: 10px;
-}
-
-.type-item {
-  width: 100%;
-
-  border: none;
-
-  padding: 10px 12px;
-
-  border-radius: 8px;
-
-  background: rgba(255, 255, 255, 0.05);
-
-  color: #facc15;
-
-  font-weight: 600;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  cursor: pointer;
-
-  transition: 0.2s ease;
-}
-
-.type-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.type-left {
-  display: flex;
-
-  align-items: center;
-}
-
-/* =========================
-   BOOK
-========================= */
-
-.book-list {
-  margin-top: 6px;
-
-  padding-left: 14px;
-}
-
-.book-group {
-  margin-bottom: 8px;
-}
-
-.book-item {
-  padding: 8px 12px;
-
-  border-radius: 8px;
-
-  background: rgba(255, 255, 255, 0.04);
-
-  color: #f8fafc;
-
-  display: flex;
-
-  align-items: center;
-
-  font-size: 14px;
-
-  font-weight: 500;
-}
-
-/* =========================
-   LESSON
-========================= */
-
-.lesson-list {
-  margin-top: 4px;
-
-  padding-left: 14px;
-
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 4px;
-}
-
-.lesson-item {
-  width: 100%;
-
-  border: none;
-
-  background: transparent;
-
-  color: #cbd5e1;
-
-  text-align: left;
-
-  padding: 7px 10px;
-
-  border-radius: 8px;
-
-  cursor: pointer;
-
-  transition: 0.2s ease;
-
-  font-size: 13px;
-}
-
-.lesson-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-
-  color: white;
-}
-
-/* =========================
-   EMPTY
-========================= */
-
-.empty-books {
-  padding: 10px 12px;
-
-  color: #94a3b8;
-
-  font-size: 13px;
-}
-
-/* =========================
-   ANIMATION
-========================= */
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-
-  transform: translateY(-4px);
-}
+.staff-sidebar { position: fixed; inset: 0 auto 0 0; z-index: 1040; display: flex; flex-direction: column; width: var(--workspace-sidebar); overflow-y: auto; background: linear-gradient(180deg,#10243c,#173557); color:#fff; box-shadow: 8px 0 28px rgba(15,23,42,.12); scrollbar-width: thin; scrollbar-color:#526f8e transparent; }
+.sidebar-brand { position: sticky; top:0; z-index:2; display:flex; align-items:center; gap:11px; min-height:var(--workspace-navbar); padding:10px 16px; border-bottom:1px solid rgba(255,255,255,.08); background:rgba(16,36,60,.96); backdrop-filter:blur(12px); }.brand-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#69a7e7,#4077ae);font-size:18px}.sidebar-brand>span:nth-child(2){display:flex;flex:1;flex-direction:column;line-height:1.25}.sidebar-brand strong{font-size:14px}.sidebar-brand small{color:#9bb0c8;font-size:10px}.sidebar-close{display:none;border:0;background:transparent;color:#d8e3ee}
+.sidebar-nav{flex:1;padding:14px 12px}.top-link,.group-button,.group-children button{display:flex;align-items:center;gap:10px;width:100%;border:0;color:#c7d5e4;text-align:left}.top-link,.group-button{min-height:44px;padding:9px 11px;border-radius:10px;background:transparent;font-size:13px;font-weight:650}.top-link>i,.group-button>i:first-child{display:grid;place-items:center;width:24px;font-size:16px}.group-button>span,.top-link>span{flex:1}.chevron{color:#7892ad;font-size:10px}.top-link:hover,.top-link.active,.group-button:hover,.group-button.active{background:rgba(255,255,255,.09);color:#fff}.top-link.active{box-shadow:inset 3px 0 #70b3f1}.nav-group{margin-top:5px}.group-children{margin:3px 0 8px 23px;padding:2px 0 2px 11px;list-style:none;border-left:1px solid rgba(255,255,255,.13)}.group-children button{min-height:38px;padding:7px 9px;border-radius:8px;background:transparent;font-size:11px;line-height:1.35}.group-children button i{width:17px;color:#8fa8c1;font-size:13px}.group-children button:hover,.group-children button.active{background:rgba(255,255,255,.08);color:#fff}.group-children button.active{color:#9cd0ff}
+.content-tree{padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}.course-tree{margin:5px 0 10px 10px;padding-left:10px;border-left:1px solid rgba(255,255,255,.12)}.tree-status{display:flex;align-items:center;gap:7px;padding:8px;color:#8fa8c1;font-size:10px}.level-group{margin:5px 0}.level-item,.type-item{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;border-radius:8px;color:#d7e5f2;text-align:left}.level-item{padding:8px;background:rgba(80,145,205,.15);font-size:11px;font-weight:700}.level-item span,.type-item span{display:flex;align-items:center;gap:7px}.level-item>i,.type-item>i{font-size:9px}.type-list{padding:5px 0 0 9px}.type-item{padding:7px;background:transparent;font-size:10px}.type-item:hover{background:rgba(255,255,255,.06)}.book-list{padding-left:9px}.book-group{margin:4px 0;padding:6px;border-radius:7px;background:rgba(255,255,255,.04)}.book-group strong{display:flex;gap:6px;color:#e6eef7;font-size:10px}.lesson-item{display:flex;gap:6px;width:100%;margin-top:3px;padding:5px 6px;border:0;border-radius:6px;background:transparent;color:#aebfd1;font-size:9px;text-align:left}.lesson-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.account-wrap{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}.account-wrap :deep(.account-parent){color:#c7d5e4;font-size:13px;font-weight:650}.account-wrap :deep(.account-parent:hover),.account-wrap :deep(.account-parent.selected){background:rgba(255,255,255,.09);color:#fff}.account-wrap :deep(.account-children){border-color:rgba(255,255,255,.12)}.account-wrap :deep(.account-children a){color:#b7c7d8}.account-wrap :deep(.account-children a:hover),.account-wrap :deep(.account-children a.router-link-exact-active){background:rgba(255,255,255,.08);color:#9cd0ff}.sidebar-backdrop{display:none}
+@media(max-width:768px){.staff-sidebar{width:min(var(--workspace-sidebar),86vw);visibility:hidden;transform:translateX(-100%);transition:transform .2s,visibility .2s}.staff-sidebar.open{visibility:visible;transform:translateX(0)}.sidebar-close{display:grid;place-items:center;width:34px;height:34px}.sidebar-backdrop{position:fixed;inset:0;z-index:1030;display:block;border:0;background:rgba(15,23,42,.46);backdrop-filter:blur(2px)}}
 </style>

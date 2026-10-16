@@ -23,6 +23,7 @@ const originalRevokeObjectURL = URL.revokeObjectURL
 
 beforeEach(() => {
   vi.resetAllMocks()
+  sessionStorage.clear()
   bookName = 'TRY! N3 - Tiếng Việt'
   synthesis.getVoices.mockReturnValue([voice])
   vi.stubGlobal('speechSynthesis', synthesis)
@@ -92,6 +93,7 @@ it('does not show TRY! N3 pronunciation controls for another book', async () => 
 it('falls back to the browser voice when VOICEVOX is unavailable', async () => {
   vi.mocked(gatewayUrl.get).mockImplementation(async (url) => {
     if (url.includes('/speech')) throw new Error('engine offline')
+    if (url === '/api/nihongo-user/study/cards') return { data: [] } as never
     return { data: url === '/api/staff/books/1' ? { bookId: 1, bookName } :
       url === '/api/staff/getLessonsByBook' ? [{ lessonId: 11, bookId: 1, name: 'Bài 1' }] :
       url === '/api/staff/getAllGrammarByLesson' ? [{ grammarId: 21, title: '文法' }] :
@@ -113,7 +115,7 @@ it('explains when neither VOICEVOX nor a Japanese browser voice is available', a
   expect(synthesis.speak).not.toHaveBeenCalled()
 })
 
-it('loads all lesson examples in one request and reuses them when returning to the lesson', async () => {
+it('loads each lesson examples in one batch and reuses them when returning to the lesson', async () => {
   vi.mocked(gatewayUrl.get).mockImplementation(async (url, config) => ({ data:
     url === '/api/staff/books/1' ? { bookId: 1, bookName } :
     url === '/api/staff/getLessonsByBook' ? [
@@ -138,10 +140,31 @@ it('loads all lesson examples in one request and reuses them when returning to t
   expect(vi.mocked(gatewayUrl.get).mock.calls.some(([url]) => url === '/api/staff/getAllExampleByGrammar')).toBe(false)
 })
 
+it('renders grammar before the slower example request finishes', async () => {
+  let resolveExamples!: (value: { data: Array<{ exampleId: number; grammarId: number; nihongo: string }> }) => void
+  vi.mocked(gatewayUrl.get).mockImplementation(async (url) => {
+    if (url === '/api/staff/books/1') return { data: { bookId: 1, bookName } } as never
+    if (url === '/api/staff/getLessonsByBook') return { data: [{ lessonId: 11, name: 'Bài 1', reading: '' }] } as never
+    if (url === '/api/nihongo-user/study/cards') return { data: [] } as never
+    if (url === '/api/staff/getAllGrammarByLesson') return { data: [{ grammarId: 21, title: 'Cấu trúc hiện trước', description: 'Cấu trúc: V + 始める' }] } as never
+    if (url === '/api/staff/lessons/11/examples') return await new Promise(resolve => { resolveExamples = resolve })
+    return { data: [] } as never
+  })
+
+  await openBook()
+  expect(wrapper!.text()).toContain('Cấu trúc hiện trước')
+  expect(wrapper!.text()).not.toContain('例文 về sau')
+
+  resolveExamples({ data: [{ exampleId: 31, grammarId: 21, nihongo: '例文 về sau' }] })
+  await flushPromises()
+  expect(wrapper!.text()).toContain('例文 về sau')
+})
+
 it('keeps the newest lesson visible when an older response arrives late', async () => {
   let resolveOld!: (value: { data: Array<{ grammarId: number; title: string }> }) => void
   vi.mocked(gatewayUrl.get).mockImplementation(async (url, config) => {
     if (url === '/api/staff/books/1') return { data: { bookId: 1, bookName } } as never
+    if (url === '/api/nihongo-user/study/cards') return { data: [] } as never
     if (url === '/api/staff/getLessonsByBook') return { data: [
       { lessonId: 11, name: 'Bài 1', reading: '' }, { lessonId: 12, name: 'Bài 2', reading: '' },
     ] } as never

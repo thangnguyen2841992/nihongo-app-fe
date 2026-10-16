@@ -339,8 +339,10 @@ const closeLessonModal =
                   :src="
                     b.imageUrls[0]!.imgUrl
                   "
-                  alt="book"
+                  :alt="`Bìa ${b.bookName}`"
                   class="book-thumbnail"
+                  loading="lazy"
+                  decoding="async"
                 />
 
                 <!-- OVERLAY -->

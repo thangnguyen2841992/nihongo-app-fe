@@ -287,7 +287,7 @@ it('navigates to the event page from the sidebar and highlights the menu', async
   await flushPromises()
   await wrapper
     .findAll('button')
-    .find((b) => b.text().includes('Monitoring Server'))!
+    .find((b) => b.text().includes('Giám sát hệ thống'))!
     .trigger('click')
   await wrapper
     .findAll('button')

@@ -7,6 +7,7 @@ import { gatewayUrl } from '@/api/authApi'
 import { trackAdminActivity } from '@/services/adminActivity'
 import FloatingScrollButtons from "@/components/common/FloatingScrollButtons.vue";
 import SupportChatWidget from '@/components/common/SupportChatWidget.vue'
+import JapaneseAiPopup from '@/components/common/JapaneseAiPopup.vue'
 
 const { isAuthenticated, userRole } = useAuthState()
 let stopActivity: (() => void) | undefined
@@ -25,4 +26,5 @@ onUnmounted(() => stopActivity?.())
   <WalletNotifications />
   <FloatingScrollButtons />
   <SupportChatWidget />
+  <JapaneseAiPopup />
 </template>
