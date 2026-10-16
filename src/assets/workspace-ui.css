@@ -1,0 +1,58 @@
+:root {
+  --workspace-sidebar: 272px;
+  --workspace-navbar: 64px;
+  --workspace-bg: #f4f7fb;
+  --workspace-card: #ffffff;
+  --workspace-border: #e3e9f1;
+  --workspace-text: #1e293b;
+  --workspace-muted: #64748b;
+  --workspace-primary: #315b8a;
+  --workspace-radius: 16px;
+  --workspace-shadow: 0 8px 28px rgba(15, 23, 42, .06);
+}
+
+body { color: var(--workspace-text); background: var(--workspace-bg); }
+button, input, select, textarea { font: inherit; }
+
+.workspace-shell { min-height: 100vh; background: var(--workspace-bg); }
+.workspace-content { min-width: 0; }
+.workspace-page { width: 100%; max-width: 1600px; margin: 0 auto; }
+
+.workspace-content :is(.card, .panel, .content-card, .table-card) {
+  border-color: var(--workspace-border);
+  border-radius: var(--workspace-radius);
+  box-shadow: var(--workspace-shadow);
+}
+.workspace-content :is(.form-control, .form-select) {
+  min-height: 42px;
+  border-color: #d9e2ec;
+  border-radius: 10px;
+  background-color: #fff;
+  color: var(--workspace-text);
+}
+.workspace-content textarea.form-control { min-height: 104px; }
+.workspace-content :is(.form-control, .form-select):focus {
+  border-color: #7b9dc2;
+  box-shadow: 0 0 0 3px rgba(49, 91, 138, .12);
+}
+.workspace-content .form-label { margin-bottom: 6px; color: #43536a; font-size: 13px; font-weight: 650; }
+.workspace-content .btn { border-radius: 10px; font-weight: 650; }
+.workspace-content .btn-primary { border-color: #315b8a; background: #315b8a; }
+.workspace-content .btn-primary:hover { border-color: #274b73; background: #274b73; }
+.workspace-content .table { margin-bottom: 0; color: #334155; }
+.workspace-content .table > :not(caption) > * > * { padding: 12px 14px; border-bottom-color: #e8edf3; vertical-align: middle; }
+.workspace-content .table thead th { background: #f7f9fc; color: #58677b; font-size: 12px; font-weight: 750; letter-spacing: .02em; white-space: nowrap; }
+.workspace-content .table-responsive { border: 1px solid var(--workspace-border); border-radius: 14px; background: #fff; }
+.workspace-content .modal-content { border: 0; border-radius: 18px; box-shadow: 0 22px 60px rgba(15, 23, 42, .2); }
+.workspace-content .modal-header, .workspace-content .modal-footer { border-color: #e8edf3; }
+.workspace-content :is(h1, h2, h3, h4, h5, h6) { color: #1e293b; }
+
+@media (max-width: 768px) {
+  :root { --workspace-sidebar: 280px; }
+  .workspace-content :is(.card-body, .modal-body) { padding: 14px; }
+  .workspace-content .table > :not(caption) > * > * { padding: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
