@@ -6,6 +6,7 @@ import { gatewayUrl } from '@/api/authApi.ts'
 import router from '@/router'
 
 const emit = defineEmits<{ toggleMenu: [] }>()
+withDefaults(defineProps<{ sidebarOpen?: boolean }>(), { sidebarOpen: false })
 const isLoggedIn = ref(false)
 const userName = ref('')
 const userEmail = ref('')
@@ -28,7 +29,7 @@ const handleLogout = async () => { accountMenuOpen.value = false; await logout()
 
 <template>
   <nav class="admin-navbar" aria-label="Thanh công cụ quản trị">
-    <button type="button" class="mobile-menu" aria-label="Mở menu quản trị" aria-controls="admin-sidebar" @click="emit('toggleMenu')"><i class="bi bi-list"></i></button>
+    <button type="button" class="mobile-menu" :aria-label="sidebarOpen ? 'Đóng menu quản trị' : 'Mở menu quản trị'" :aria-expanded="sidebarOpen" aria-controls="admin-sidebar" @click="emit('toggleMenu')"><i class="bi bi-list" aria-hidden="true"></i></button>
     <div class="page-identity"><strong>Quản trị hệ thống</strong><span>Điều hành và theo dõi Nihongo</span></div>
     <div class="navbar-actions">
       <div class="workspace-switcher">

@@ -43,7 +43,7 @@ export type CardInput = Pick<StudyCard, 'sourceKey' | 'kind' | 'courseId' | 'boo
 export interface WrongAnswer { id: number; lessonId: number; exerciseId: number; chosenAnswer: string | null; correctAnswer: string; updatedAt: string }
 
 const base = '/api/nihongo-user/study'
-export const getMyCourses = async () => (await gatewayUrl.get<MyCourse[]>('/api/nihongo-user/my-courses-dto')).data
+export const getMyCourses = async (signal?: AbortSignal) => (await gatewayUrl.get<MyCourse[]>('/api/nihongo-user/my-courses-dto', { signal })).data
 export const getResults = async () => (await gatewayUrl.get<LessonResult[]>('/api/nihongo-user/userExerciseAttempt')).data
 export const getCards = async (lessonId?: number) => (await gatewayUrl.get<StudyCard[]>(`${base}/cards`, { params: lessonId ? { lessonId } : {} })).data
 export const getOverview = async () => (await gatewayUrl.get<{ dueCards: number; weakLessons: number }>(`${base}/overview`)).data

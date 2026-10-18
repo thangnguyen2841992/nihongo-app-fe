@@ -14,7 +14,7 @@ async function send() {
   busy.value = true; error.value = ''; message.value = ''
   try {
     await sendBroadcast({ title: title.value.trim(), content: content.value.trim(), audience: audience.value })
-    title.value = ''; content.value = ''; message.value = 'Đã gửi thông báo. Người nhận sẽ thấy trong chuông thông báo.'
+    title.value = ''; content.value = ''; message.value = 'Đã gửi thông báo. Dòng chữ đỏ sẽ chạy từ trái sang phải trên giao diện người nhận và được lưu trong chuông.'
     window.dispatchEvent(new Event('broadcast:changed')); await load()
   } catch { error.value = 'Gửi thông báo thất bại. Vui lòng kiểm tra kết nối và thử lại.' }
   finally { busy.value = false }
@@ -24,7 +24,7 @@ onMounted(() => load())
 <template>
   <main class="container py-4" style="max-width: 960px">
     <h1 class="h3">Gửi thông báo</h1>
-    <p>Thông báo được lưu để staff và user có thể xem cả khi đăng nhập sau.</p>
+    <p>Thông báo sẽ chạy từ trái sang phải trong 2 phút bằng dòng chữ đỏ dưới navbar và được lưu trong chuông.</p>
     <p v-if="message" role="status" class="alert alert-success">{{ message }}</p>
     <p v-if="error" role="alert" class="alert alert-danger">{{ error }}</p>
     <form class="card card-body gap-3 mb-4" @submit.prevent="send">

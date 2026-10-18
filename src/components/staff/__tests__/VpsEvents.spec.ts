@@ -14,7 +14,7 @@ import { connectVpsPerformance } from '@/monitor/vpsPerformanceRealtime'
 import { getEventRules, saveEventRule, type EventRule } from '@/monitor/monitorEventService'
 
 vi.mock('@/api/authApi', () => ({ gatewayUrl: { get: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('@/monitor/monitorVpsService', () => ({ listVps: vi.fn() }))
+vi.mock('@/monitor/monitorVpsService', async importOriginal => ({ ...await importOriginal<typeof import('@/monitor/monitorVpsService')>(), listVps: vi.fn() }))
 vi.mock('@/monitor/vpsPerformanceService', () => ({
   getPerformanceMetrics: vi.fn(),
   getMetricConfigs: vi.fn(),

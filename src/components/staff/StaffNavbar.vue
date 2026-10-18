@@ -7,6 +7,7 @@ import router from '@/router'
 import { openJapaneseAiPopup } from '@/services/japaneseAiPopup'
 
 const emit = defineEmits<{ toggleMenu: [] }>()
+withDefaults(defineProps<{ sidebarOpen?: boolean }>(), { sidebarOpen: false })
 const { userName, userEmail, userRole } = useAuthState()
 const searchKeyword = ref('')
 const searchLoading = ref(false)
@@ -27,7 +28,7 @@ const handleLogout = async () => { accountMenuOpen.value = false; await logout()
 
 <template>
   <nav class="staff-navbar" aria-label="Thanh công cụ nhân viên">
-    <button type="button" class="mobile-menu" aria-label="Mở menu nhân viên" aria-controls="staff-sidebar" @click="emit('toggleMenu')"><i class="bi bi-list"></i></button>
+    <button type="button" class="mobile-menu" :aria-label="sidebarOpen ? 'Đóng menu nhân viên' : 'Mở menu nhân viên'" :aria-expanded="sidebarOpen" aria-controls="staff-sidebar" @click="emit('toggleMenu')"><i class="bi bi-list" aria-hidden="true"></i></button>
     <div class="page-identity"><strong>Không gian nhân viên</strong><span>Quản lý nội dung và hỗ trợ học viên</span></div>
     <form class="navbar-search" @submit.prevent="handleSearch"><i class="bi bi-search"></i><input v-model="searchKeyword" type="search" placeholder="Tra cứu tiếng Nhật / tiếng Việt..." maxlength="2000" aria-label="Tìm kiếm AI"><button v-if="searchKeyword" type="button" aria-label="Xóa tìm kiếm" @click="searchKeyword = ''"><i class="bi bi-x"></i></button></form>
     <div class="navbar-actions"><NotificationBell />

@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
-import WalletNotifications from '@/components/common/WalletNotifications.vue'
+import { computed, defineAsyncComponent, onMounted, onUnmounted } from 'vue'
 import { initAuth } from '@/services/authState.ts'
 import { useAuthState } from '@/services/authState'
 import { gatewayUrl } from '@/api/authApi'
 import { trackAdminActivity } from '@/services/adminActivity'
 import FloatingScrollButtons from "@/components/common/FloatingScrollButtons.vue";
-import SupportChatWidget from '@/components/common/SupportChatWidget.vue'
-import JapaneseAiPopup from '@/components/common/JapaneseAiPopup.vue'
+import BroadcastTicker from '@/components/common/BroadcastTicker.vue'
 
-const { isAuthenticated, userRole } = useAuthState()
+const WalletNotifications = defineAsyncComponent(() => import('@/components/common/WalletNotifications.vue').then(module => module.default))
+const SupportChatWidget = defineAsyncComponent(() => import('@/components/common/SupportChatWidget.vue').then(module => module.default))
+const JapaneseAiPopup = defineAsyncComponent(() => import('@/components/common/JapaneseAiPopup.vue').then(module => module.default))
+const { isAuthenticated, isAuthReady, userRole } = useAuthState()
+const signedIn = computed(() => isAuthReady.value && isAuthenticated.value)
+const isLearner = computed(() => signedIn.value && userRole.value.replace(/^ROLE_/, '') === 'USER')
 let stopActivity: (() => void) | undefined
 onMounted(() => {
   initAuth()
@@ -23,8 +26,9 @@ onUnmounted(() => stopActivity?.())
 
 <template>
   <RouterView />
-  <WalletNotifications />
+  <WalletNotifications v-if="signedIn" />
+  <BroadcastTicker />
   <FloatingScrollButtons />
-  <SupportChatWidget />
-  <JapaneseAiPopup />
+  <SupportChatWidget v-if="isLearner" />
+  <JapaneseAiPopup v-if="signedIn" />
 </template>

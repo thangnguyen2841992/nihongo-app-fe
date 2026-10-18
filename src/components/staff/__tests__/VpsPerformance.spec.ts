@@ -15,7 +15,7 @@ import { connectVpsPerformance } from '@/monitor/vpsPerformanceRealtime'
 import { Chart } from 'chart.js'
 vi.mock('@/monitor/vpsPerformanceRealtime', () => ({ connectVpsPerformance: vi.fn(() => vi.fn()) }))
 
-vi.mock('@/monitor/monitorVpsService', () => ({ listVps: vi.fn() }))
+vi.mock('@/monitor/monitorVpsService', async importOriginal => ({ ...await importOriginal<typeof import('@/monitor/monitorVpsService')>(), listVps: vi.fn() }))
 vi.mock('@/monitor/vpsPerformanceService', () => ({
   getPerformanceMetrics: vi.fn(),
   getVpsPerformance: vi.fn(),
@@ -30,7 +30,13 @@ vi.mock('chart.js', () => ({
     }),
     { register: vi.fn() },
   ),
-  registerables: [],
+  CategoryScale: {},
+  Filler: {},
+  LineController: {},
+  LineElement: {},
+  LinearScale: {},
+  PointElement: {},
+  Tooltip: {},
 }))
 let wrapper: ReturnType<typeof mount> | undefined
 const result = (id = 1): PerformanceData => ({
@@ -275,6 +281,23 @@ it('shows an empty state when no target is registered', async () => {
   await open()
   expect(wrapper!.text()).toContain('Chưa có target nào')
   expect(getVpsPerformance).not.toHaveBeenCalled()
+})
+it('identifies a Kafka target in the shared performance screen', async () => {
+  vi.mocked(listVps).mockResolvedValue([{
+    vpsId: 8,
+    hostname: 'Kafka production',
+    ipAddress: 'broker-a',
+    agentPort: 9093,
+    exporterType: 'KAFKA_ADMIN',
+    osType: 'Kafka',
+    osVersion: 'prod-1',
+    architecture: '',
+    status: 'UP',
+    lastSeenAt: '',
+  }])
+  await open('?vps=8')
+  expect(wrapper!.get('.eyebrow').text()).toBe('GIÁM SÁT KAFKA')
+  expect(wrapper!.get('h1').text()).toBe('Hiệu năng Kafka')
 })
 it('edits schedules in a popup for the selected VPS without leaving the performance screen', async () => {
   await open('?vps=2')

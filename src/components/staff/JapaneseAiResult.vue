@@ -541,11 +541,17 @@ onBeforeUnmount(() => {
 
 }
 
-.japanese-ai-page.embedded { max-width: none; padding: 16px 16px 28px; }
+.japanese-ai-page.embedded { min-width: 0; max-width: none; padding: 16px 16px 28px; overflow-wrap: anywhere; }
 .japanese-ai-page.embedded .page-header { display: none; }
 .japanese-ai-page.embedded .search-card { position: sticky; top: 0; z-index: 2; padding: 14px; border: 1px solid #e2e6ed; box-shadow: 0 5px 18px rgb(32 43 64 / 7%); }
 .japanese-ai-page.embedded .result-container { margin-top: 16px; gap: 14px; }
-.japanese-ai-page.embedded .result-card { padding: 18px; border: 1px solid #e2e6ed; box-shadow: 0 3px 12px rgb(32 43 64 / 5%); }
+.japanese-ai-page.embedded .result-card { min-width: 0; padding: 18px; border: 1px solid #e2e6ed; box-shadow: 0 3px 12px rgb(32 43 64 / 5%); }
+.japanese-ai-page.embedded .search-box input { min-width: 0; }
+.japanese-ai-page.embedded .search-box button { flex-shrink: 0; }
+.japanese-ai-page.embedded .vocabulary-item { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.japanese-ai-page.embedded .vocabulary-item > *,
+.japanese-ai-page.embedded .vocabulary-word > span,
+.japanese-ai-page.embedded .reading { min-width: 0; }
 
 
 /* =========================================================

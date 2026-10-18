@@ -32,7 +32,7 @@ test('previews chapter one, grades the original questions and opens the imported
   await expect(page.locator('.reading')).toContainText('先週の日曜日')
   await expect(page.locator('.lesson-panel audio')).toHaveAttribute('aria-label', 'Nghe CD 02')
   await expect(page.locator('.example-translation').first()).toContainText('Tôi bắt đầu học tiếng Nhật')
-  await expect(page.locator('.grammar-notes .formula').first()).toContainText('V bỏ ます + 始める')
+  await expect(page.locator('.grammar-notes .formula').first()).toContainText('Vます形（−ます） + 始める')
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.screenshot({ path: '../imports/try-n3/preview.png' })
   await page.getByRole('button', { name: '02. Lần đầu leo núi Phú Sĩ (2)', exact: true }).click()

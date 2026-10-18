@@ -4,7 +4,7 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vu
 import axios from 'axios'
 import MetricEventRules from './MetricEventRules.vue'
 import VpsEventHistory from './VpsEventHistory.vue'
-import { listVps, type MonitorVps } from '@/monitor/monitorVpsService'
+import { listVps, monitoringTargetLabel, type MonitorVps } from '@/monitor/monitorVpsService'
 import {
   getMetricConfigs,
   getPerformanceMetrics,
@@ -21,7 +21,7 @@ const vpsList = ref<MonitorVps[]>([])
 const metrics = ref<PerformanceMetric[]>([])
 const configs = ref<MetricConfig[]>([])
 const selectedVps = ref<number | null>(null)
-const isMysql = computed(() => vpsList.value.find(vps => vps.vpsId === selectedVps.value)?.exporterType === 'MYSQL_JDBC')
+const targetKind = computed(() => monitoringTargetLabel(vpsList.value.find(vps => vps.vpsId === selectedVps.value)))
 const selectedMetric = ref('')
 const current = ref<VpsPerformance | null>(null)
 const editor = ref<InstanceType<typeof MetricEventRules> | null>(null)
@@ -180,8 +180,8 @@ onBeforeUnmount(() => {
   <main class="events-page">
     <header>
       <div>
-        <span class="eyebrow">{{ isMysql ? 'GIÁM SÁT MYSQL' : 'GIÁM SÁT VPS' }}</span>
-        <h1>{{ isMysql ? 'Event MySQL' : 'Event VPS' }}</h1>
+        <span class="eyebrow">GIÁM SÁT {{ targetKind.toUpperCase() }}</span>
+        <h1>Event {{ targetKind }}</h1>
         <p>Cấu hình điều kiện theo từng object và theo dõi event phát sinh trực tiếp.</p>
       </div>
       <span v-if="selectedMetric" class="live-state" :class="liveStatus" role="status">{{

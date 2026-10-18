@@ -8,13 +8,22 @@ import {
   type NodeExporterDiscoveryResult,
   type MonitorVps
 } from '@/monitor/monitorVpsService.ts'
+import type { ServerOsType } from '@/monitor/monitoringTargetTypes'
 
+const props = withDefaults(defineProps<{ embedded?: boolean; osType?: ServerOsType }>(), {
+  embedded: false,
+  osType: 'linux',
+})
+const emit = defineEmits<{ registered: [target: MonitorVps] }>()
 const ipAddress = ref('')
-const agentPort = ref(9100)
-const exporterKind = ref<'NODE_EXPORTER' | 'WINDOWS_EXPORTER'>('NODE_EXPORTER')
+const exporterKind = ref<'NODE_EXPORTER' | 'WINDOWS_EXPORTER'>(props.osType === 'windows' ? 'WINDOWS_EXPORTER' : 'NODE_EXPORTER')
+const agentPort = ref(exporterKind.value === 'WINDOWS_EXPORTER' ? 9182 : 9100)
 
 watch(exporterKind, type => {
   agentPort.value = type === 'WINDOWS_EXPORTER' ? 9182 : 9100
+})
+watch(() => props.osType, type => {
+  exporterKind.value = type === 'windows' ? 'WINDOWS_EXPORTER' : 'NODE_EXPORTER'
 })
 
 const loadingDiscovery = ref(false)
@@ -62,7 +71,9 @@ const loadList = async () => {
   loadingList.value = true
   listError.value = ''
   try {
-    vpsList.value = (await listVps()).filter(vps => vps.exporterType !== 'MYSQL_JDBC')
+    vpsList.value = (await listVps()).filter(vps =>
+      vps.exporterType == null || ['NODE_EXPORTER', 'WINDOWS_EXPORTER'].includes(vps.exporterType),
+    )
   } catch (cause: unknown) {
     listError.value = errorMessage(cause, 'Không thể tải danh sách máy chủ. Vui lòng thử lại.')
   } finally {
@@ -161,6 +172,7 @@ const register = async () => {
     registeredVps.value = vps
     success.value = `Đăng ký máy chủ thành công: ${vps.hostname || vps.ipAddress}`
     if (showList.value) void loadList()
+    emit('registered', vps)
   } catch (e: unknown) {
     error.value = errorMessage(e, 'Không thể đăng ký máy chủ. Vui lòng kiểm tra danh sách và thử lại sau.')
   } finally {
@@ -170,12 +182,13 @@ const register = async () => {
 </script>
 
 <template>
-  <main class="vps-page">
-    <header class="page-heading">
+  <main class="vps-page" :class="{ embedded }">
+    <header v-if="!embedded" class="page-heading">
       <span class="heading-icon"><i class="bi bi-hdd-network" aria-hidden="true"></i></span>
       <div><span class="eyebrow">GIÁM SÁT HỆ THỐNG</span><h1>Đăng ký máy chủ</h1><p>Kết nối Linux Node Exporter hoặc Windows Exporter và theo dõi tài nguyên cùng Prometheus.</p></div>
       <button class="list-toggle" type="button" :aria-expanded="showList" aria-controls="registered-vps-list" @click="toggleList"><i class="bi bi-list-ul" aria-hidden="true"></i>{{ showList ? 'Ẩn danh sách máy chủ' : 'Xem danh sách máy chủ' }}</button>
     </header>
+    <div v-else class="embedded-toolbar"><div><h2>Máy chủ {{ osType === 'windows' ? 'Windows' : 'Linux' }}</h2><p class="field-help">{{ osType === 'windows' ? 'Windows Exporter · cổng mặc định 9182' : 'Node Exporter · cổng mặc định 9100' }}</p></div><button class="list-toggle" type="button" :aria-expanded="showList" aria-controls="registered-vps-list" @click="toggleList"><i class="bi bi-list-ul" aria-hidden="true"></i>{{ showList ? 'Ẩn danh sách' : 'Máy chủ đã đăng ký' }}</button></div>
     <ol class="steps" aria-label="Tiến trình đăng ký">
       <li :class="{ active: !discoveryResult, complete: discoveryResult }"><span>1</span> Nhập kết nối</li>
       <li :class="{ active: discoveryResult && !registeredVps, complete: registeredVps }"><span>2</span> Kiểm tra máy chủ</li>
@@ -196,11 +209,11 @@ const register = async () => {
       <section class="panel connection-panel">
         <div class="panel-heading"><span class="small-icon"><i class="bi bi-plug" aria-hidden="true"></i></span><div><h2>Thông tin kết nối</h2><p>Chọn exporter và nhập địa chỉ máy chủ cần giám sát.</p></div></div>
         <form @submit.prevent="discovery">
-          <label for="exporter-type">Loại exporter</label>
+          <template v-if="!embedded"><label for="exporter-type">Loại exporter</label>
           <select id="exporter-type" v-model="exporterKind" :disabled="loadingDiscovery || loadingRegister || !!registeredVps">
             <option value="NODE_EXPORTER">Linux · Node Exporter</option>
             <option value="WINDOWS_EXPORTER">Windows · Windows Exporter</option>
-          </select>
+          </select></template>
           <label for="vps-ip">Địa chỉ IP / hostname</label>
           <input id="vps-ip" v-model="ipAddress" :placeholder="exporterKind === 'WINDOWS_EXPORTER' ? '127.0.0.1 nếu chạy cùng máy' : 'Ví dụ: 160.22.107.232'" autocomplete="off" :disabled="loadingDiscovery || loadingRegister || !!registeredVps" />
           <label for="vps-port">Cổng exporter</label>
@@ -240,4 +253,5 @@ const register = async () => {
 select{width:100%;border:1px solid #dce3ed;border-radius:10px;padding:12px 14px;color:#27354a;background:#fbfcfe;outline:none}
 select:focus{border-color:#7197bc;box-shadow:0 0 0 3px #7197bc20}
 select:disabled{background:#f1f4f8;color:#68778c}
+.vps-page.embedded{max-width:none;padding:0}.embedded-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}.embedded-toolbar h2{margin-bottom:2px}@media(max-width:600px){.vps-page.embedded{padding:0}.embedded-toolbar{align-items:flex-start;flex-direction:column}}
 </style>

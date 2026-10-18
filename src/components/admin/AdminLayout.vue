@@ -1,18 +1,15 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useWorkspaceSidebar } from '@/composables/useWorkspaceSidebar'
 import AdminNavbar from './AdminNavbar.vue'
 import AdminSidebar from './AdminSidebar.vue'
 
-const route = useRoute()
-const menuOpen = ref(false)
-watch(() => route.fullPath, () => { menuOpen.value = false })
+const { sidebarOpen, toggleSidebar, closeSidebar, closeOnNavigate } = useWorkspaceSidebar()
 </script>
 
 <template>
-  <div class="admin-shell workspace-shell" :class="{ 'menu-open': menuOpen }">
-    <AdminSidebar :is-open="menuOpen" @close="menuOpen = false" />
-    <AdminNavbar @toggle-menu="menuOpen = !menuOpen" />
+  <div class="admin-shell workspace-shell" :class="{ 'menu-open': sidebarOpen, 'sidebar-collapsed': !sidebarOpen }">
+    <AdminSidebar :is-open="sidebarOpen" @close="closeSidebar" @navigate="closeOnNavigate" />
+    <AdminNavbar :sidebar-open="sidebarOpen" @toggle-menu="toggleSidebar" />
     <main class="admin-content workspace-content">
       <div class="workspace-page"><RouterView /></div>
     </main>

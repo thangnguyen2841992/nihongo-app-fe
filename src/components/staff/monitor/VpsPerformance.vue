@@ -3,8 +3,17 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MetricScheduleDialog from './MetricScheduleDialog.vue'
 import axios from 'axios'
-import { Chart, registerables } from 'chart.js'
-import { listVps, type MonitorVps } from '@/monitor/monitorVpsService'
+import {
+  CategoryScale,
+  Chart,
+  Filler,
+  LineController,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Tooltip,
+} from 'chart.js'
+import { listVps, monitoringTargetLabel, type MonitorVps } from '@/monitor/monitorVpsService'
 import {
   getPerformanceMetrics,
   getVpsPerformance,
@@ -18,7 +27,7 @@ import {
 
 import { connectVpsPerformance, type PerformanceLiveStatus } from '@/monitor/vpsPerformanceRealtime'
 
-Chart.register(...registerables)
+Chart.register(CategoryScale, LinearScale, LineController, LineElement, PointElement, Tooltip, Filler)
 const route = useRoute()
 const router = useRouter()
 const showSchedules = ref(false)
@@ -50,7 +59,7 @@ async function schedulesSaved() {
 }
 const vpsList = ref<MonitorVps[]>([])
 const selectedTarget = computed(() => vpsList.value.find(vps => vps.vpsId === selectedVps.value))
-const isMysql = computed(() => selectedTarget.value?.exporterType === 'MYSQL_JDBC')
+const targetKind = computed(() => monitoringTargetLabel(selectedTarget.value))
 const metrics = ref<PerformanceMetric[]>([])
 const configs = ref<MetricConfig[]>([])
 const config = computed(() => configs.value.find((c) => c.code === selectedMetric.value))
@@ -361,8 +370,8 @@ onBeforeUnmount(() => {
   <main class="perf-page">
     <header>
       <div>
-        <span class="eyebrow">{{ isMysql ? 'GIÁM SÁT MYSQL' : 'GIÁM SÁT VPS' }}</span>
-        <h1>{{ isMysql ? 'Hiệu năng MySQL' : 'Hiệu năng từng object' }}</h1>
+        <span class="eyebrow">GIÁM SÁT {{ targetKind.toUpperCase() }}</span>
+        <h1>{{ targetKind === 'VPS' ? 'Hiệu năng từng object' : `Hiệu năng ${targetKind}` }}</h1>
         <p>Tải dữ liệu 10 phút gần nhất từ DB, sau đó nối tiếp giá trị mới qua socket.</p>
       </div>
       <div class="header-actions">
@@ -396,7 +405,7 @@ onBeforeUnmount(() => {
     </div>
     <div v-if="initializing" role="status" class="empty">Đang tải danh sách máy chủ...</div>
     <div v-else-if="!vpsList.length && !error" class="empty">
-      Chưa có target nào được đăng ký. Hãy đăng ký máy chủ hoặc MySQL trước khi xem hiệu năng.
+      Chưa có target nào được đăng ký. Hãy đăng ký máy chủ, MySQL hoặc Kafka trước khi xem hiệu năng.
     </div>
     <template v-else-if="vpsList.length">
       <section class="filters">

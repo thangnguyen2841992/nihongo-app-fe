@@ -1,23 +1,21 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { onMounted, onUnmounted } from 'vue'
+import { useWorkspaceSidebar } from '@/composables/useWorkspaceSidebar'
 import StaffSidebar from './StaffSidebar.vue'
 import StaffNavbar from './StaffNavbar.vue'
 import StaffSupportLauncher from './StaffSupportLauncher.vue'
 import { startStaffSupportNotifications } from '@/services/staffSupportNotifications'
 
-const route = useRoute()
-const menuOpen = ref(false)
-watch(() => route.fullPath, () => { menuOpen.value = false })
+const { sidebarOpen, toggleSidebar, closeSidebar, closeOnNavigate } = useWorkspaceSidebar()
 let stopNotifications: (() => void) | undefined
 onMounted(() => { stopNotifications = startStaffSupportNotifications() })
 onUnmounted(() => stopNotifications?.())
 </script>
 
 <template>
-  <div class="staff-shell workspace-shell" :class="{ 'menu-open': menuOpen }">
-    <StaffSidebar :is-open="menuOpen" @close="menuOpen = false" />
-    <StaffNavbar @toggle-menu="menuOpen = !menuOpen" />
+  <div class="staff-shell workspace-shell" :class="{ 'menu-open': sidebarOpen, 'sidebar-collapsed': !sidebarOpen }">
+    <StaffSidebar :is-open="sidebarOpen" @close="closeSidebar" @navigate="closeOnNavigate" />
+    <StaffNavbar :sidebar-open="sidebarOpen" @toggle-menu="toggleSidebar" />
     <main class="staff-content workspace-content"><div class="workspace-page"><RouterView /></div></main>
     <StaffSupportLauncher />
   </div>

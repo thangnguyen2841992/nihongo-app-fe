@@ -15,6 +15,23 @@ body { color: var(--workspace-text); background: var(--workspace-bg); }
 button, input, select, textarea { font: inherit; }
 
 .workspace-shell { min-height: 100vh; background: var(--workspace-bg); }
+@media (min-width: 769px) {
+  .workspace-shell.sidebar-collapsed :is(.staff-sidebar,.admin-sidebar,.user-sidebar) { visibility:hidden; transform:translateX(-100%); }
+  .workspace-shell.sidebar-collapsed :is(.staff-content,.admin-content) { margin-left:0; }
+  .workspace-shell.sidebar-collapsed :is(.staff-navbar,.admin-navbar) { left:0; }
+  :is(.staff-navbar,.admin-navbar) > button.mobile-menu { display:grid; place-items:center; width:40px; height:40px; flex-shrink:0; border:1px solid #dce4ed; border-radius:10px; background:#f7f9fc; color:#3d526b; font-size:21px; margin-right:10px; }
+  .workspace-shell :is(.staff-sidebar,.admin-sidebar) .sidebar-close { display:grid; place-items:center; width:30px; height:30px; }
+  nav.staff-navbar.sidebar-collapsed { left:0; }
+  .workspace-shell.staff-workspace.sidebar-collapsed .main-content.with-sidebar { margin-left:0; }
+  .workspace-shell.learner-workspace.sidebar-collapsed .main-content.with-sidebar { margin-left:0; }
+  body:has(.learner-workspace.sidebar-collapsed) .broadcast-ticker { left:0; }
+  body:has(.workspace-shell.sidebar-collapsed) .broadcast-ticker.staff-ticker { left:0; }
+}
+@media (min-width:769px) and (max-width:1200px) {
+  :is(.staff-navbar,.admin-navbar) > div.page-identity { display:none; }
+  .staff-navbar .navbar-search { min-width:0; flex:1; }
+  .staff-navbar .navbar-search input { min-width:0; }
+}
 .workspace-content { min-width: 0; }
 .workspace-page { width: 100%; max-width: 1600px; margin: 0 auto; }
 

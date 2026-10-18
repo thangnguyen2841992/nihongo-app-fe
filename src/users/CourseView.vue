@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, ref, watch} from "vue"
+import {computed, onMounted, onUnmounted, ref, watch} from "vue"
 import { useRouter } from "vue-router"
 import { purchaseCourse } from "@/services/coursePurchase"
 import { useAuthState } from "@/services/authState"
@@ -37,11 +37,13 @@ interface MyCourse {
 
 const courses = ref<Course[]>([])
 const registering = ref<number | null>(null)
-const registeredCourseIds = ref<number[]>([])
 const isRenewMode = ref(false)
 const showPackageModal = ref(false)
 const selectedCourse = ref<Course | null>(null)
 const myCourses = ref<MyCourse[]>([])
+const subscriptionsByCourse = computed(() => new Map(myCourses.value.map(course => [course.courseId, course])))
+let subscriptionRequest: AbortController | undefined
+let catalogRequest: AbortController | undefined
 const couponCode = ref('')
 const couponBusy = ref(false)
 const couponError = ref('')
@@ -90,27 +92,32 @@ const subscribe = async (packageId: number) => {
 }
 
 const loadCourses = async () => {
+  catalogRequest?.abort()
+  const controller = new AbortController()
+  catalogRequest = controller
   loading.value = true
   loadError.value = ""
   try {
-    const res = await publicClient.get("/api/nihongo-user/courses", { withCredentials: false })
+    const res = await publicClient.get("/api/nihongo-user/courses", { withCredentials: false, signal: controller.signal })
+    if (controller.signal.aborted) return
     courses.value = res.data
   } catch {
-    loadError.value = "Không thể tải danh sách khóa học. Vui lòng thử lại."
-  } finally { loading.value = false }
+    if (!controller.signal.aborted) loadError.value = "Không thể tải danh sách khóa học. Vui lòng thử lại."
+  } finally { if (!controller.signal.aborted) loading.value = false }
 }
 
 const loadMyCourses = async () => {
+  subscriptionRequest?.abort()
   if (!isAuthenticated.value) return
-  const res = await gatewayUrl.get("/api/nihongo-user/my-courses-dto")
-
+  const controller = new AbortController()
+  subscriptionRequest = controller
+  const res = await gatewayUrl.get<MyCourse[]>("/api/nihongo-user/my-courses-dto", { signal: controller.signal })
+  if (controller.signal.aborted) return
   myCourses.value = res.data
-
-  registeredCourseIds.value = res.data.map((x: MyCourse) => x.courseId)
 }
 
 const isExpired = (courseId: number) => {
-  const course = myCourses.value.find(c => c.courseId === courseId)
+  const course = subscriptionsByCourse.value.get(courseId)
 
   if (!course) return false
 
@@ -118,7 +125,7 @@ const isExpired = (courseId: number) => {
 }
 
 const getExpiredDate = (courseId: number) => {
-  const course = myCourses.value.find(c => c.courseId === courseId)
+  const course = subscriptionsByCourse.value.get(courseId)
 
   if (!course) return ""
 
@@ -126,7 +133,7 @@ const getExpiredDate = (courseId: number) => {
 }
 
 const isRegistered = (id: number) =>
-  registeredCourseIds.value.includes(id);
+  subscriptionsByCourse.value.has(id);
 const renewSubscription = async (packageId: number) => {
 
   if (!isAuthenticated.value) { void goToLogin(); return }
@@ -168,7 +175,7 @@ const renewCourse = (courseId: number) => {
 }
 
 const continueLearning = async (courseId: number) => {
-  const course = myCourses.value.find(item => item.courseId === courseId)
+  const course = subscriptionsByCourse.value.get(courseId)
   if (!course) return
   try {
     if (!course.startedAt) {
@@ -194,15 +201,20 @@ const continueLearning = async (courseId: number) => {
 }
 
 onMounted(() => { void loadCourses() })
-watch(isAuthenticated, async authenticated => {
-  registeredCourseIds.value = []
+watch(() => [isAuthenticated.value, userEmail.value] as const, ([authenticated], _, cleanup) => {
+  subscriptionRequest?.abort()
+  cleanup(() => subscriptionRequest?.abort())
   myCourses.value = []
   showPackageModal.value = false
   if (authenticated) {
-    try { await loadMyCourses() }
-    catch { loadError.value = "Không thể tải trạng thái đăng ký khóa học. Vui lòng thử lại." }
+    const pending = loadMyCourses()
+    const controller = subscriptionRequest
+    void pending.catch(() => {
+      if (!controller?.signal.aborted) loadError.value = "Không thể tải trạng thái đăng ký khóa học. Vui lòng thử lại."
+    })
   }
 }, { immediate: true })
+onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
 </script>
 
 <template>

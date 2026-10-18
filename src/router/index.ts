@@ -21,7 +21,6 @@ const StaffHome = () => import("@/components/staff/StaffHome.vue")
 const CourseView = () => import("@/users/CourseView.vue")
 const MyCoursesView = () => import("@/users/MyCoursesView.vue")
 const JapaneseAiResult = () => import("@/components/staff/JapaneseAiResult.vue")
-const RegisterVps = () => import("@/components/staff/monitor/RegisterVps.vue")
 const GoogleSetupPassword = () => import("@/components/auth/GoogleSetupPassword.vue")
 
 const routes = [
@@ -285,14 +284,29 @@ const routes = [
         component: () => import('@/components/staff/monitor/VpsPerformance.vue')
       },
       {
+        path: 'monitoring/topology',
+        name: 'monitor-topology',
+        component: () => import('@/components/staff/monitor/MonitoringTopology.vue')
+      },
+      {
+        path: 'monitoring/register',
+        name: 'monitor-register',
+        component: () => import('@/components/staff/monitor/MonitoringRegistration.vue')
+      },
+      {
         path: 'monitoring/mysql/register',
         name: 'monitor-mysql-register',
-        component: () => import('@/components/staff/monitor/RegisterMysql.vue')
+        redirect: (to: RouteLocation) => ({ path: '/staff/monitoring/register', query: { ...to.query, type: 'mysql' } })
+      },
+      {
+        path: 'monitoring/kafka/register',
+        name: 'monitor-kafka-register',
+        redirect: (to: RouteLocation) => ({ path: '/staff/monitoring/register', query: { ...to.query, type: 'kafka' } })
       },
       {
         path: 'monitoring/vps/register',
         name: 'monitor-vps-register',
-        component: RegisterVps
+        redirect: (to: RouteLocation) => ({ path: '/staff/monitoring/register', query: { ...to.query, type: 'server' } })
       }
     ]
   }

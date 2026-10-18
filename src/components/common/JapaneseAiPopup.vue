@@ -75,7 +75,7 @@ const enabled = computed(() => isAuthReady.value && isAuthenticated.value && rou
 .ai-popup-header p { margin: 2px 0 0; color: #7b8799; font-size: 11px; }
 .ai-popup-header button { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 10px; background: #f2f4f8; color: #68758a; cursor: pointer; }
 .ai-popup-header button:hover { background: #e8ebf2; color: #38445a; }
-.ai-popup-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.ai-popup-body { flex: 1; min-width: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
 .ai-popup-launcher { display: flex; align-items: center; gap: 7px; min-width: 64px; height: 48px; padding: 0 15px; border: 0; border-radius: 16px; background: linear-gradient(145deg, #6558c9, #8c63c8); color: #fff; box-shadow: 0 10px 28px rgb(66 55 146 / 32%); font-size: 13px; font-weight: 800; cursor: pointer; }
 .ai-popup-launcher i { font-size: 17px; }
 .ai-popup-launcher:hover { transform: translateY(-1px); box-shadow: 0 13px 32px rgb(66 55 146 / 38%); }

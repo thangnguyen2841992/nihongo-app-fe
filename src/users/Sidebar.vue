@@ -2,9 +2,10 @@
 import { reactive, useId, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AccountMenu from '@/components/common/AccountMenu.vue'
+import SidebarMyCourses from './SidebarMyCourses.vue'
 import { navigationItemActive, userNavigationGroups } from '@/services/userNavigation'
 defineProps<{ isOpen: boolean }>()
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; navigate: [] }>()
 const route = useRoute(), menuId = useId()
 const expanded = reactive<Record<string, boolean>>({ study: route.path === '/' })
 const groupActive = (id: string) => userNavigationGroups.find(group => group.id === id)?.items.some(item => navigationItemActive(item, route.path)) || false
@@ -17,19 +18,19 @@ watch(() => route.path, () => {
   <aside id="user-sidebar" class="learning-sidebar user-sidebar" :class="{ open: isOpen }" aria-label="Menu học tập" @keydown.esc="emit('close')">
     <div class="sidebar-heading"><span>KHÔNG GIAN HỌC TẬP</span><button type="button" class="close-menu" aria-label="Đóng menu" @click="emit('close')"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
     <nav aria-label="Điều hướng học tập">
-      <RouterLink to="/" class="learning-link home-link" active-class="" exact-active-class="selected" @click="emit('close')"><i class="bi bi-house-heart" aria-hidden="true"></i><span>Học hôm nay</span></RouterLink>
+      <RouterLink to="/" class="learning-link home-link" active-class="" exact-active-class="selected" @click="emit('navigate')"><i class="bi bi-house-heart" aria-hidden="true"></i><span>Học hôm nay</span></RouterLink>
       <div class="sidebar-groups">
         <section v-for="group in userNavigationGroups" :key="group.id" class="menu-group">
           <button type="button" class="menu-parent" :class="{ selected: groupActive(group.id) }" :aria-expanded="Boolean(expanded[group.id])" :aria-controls="`${menuId}-${group.id}`" @click="expanded[group.id] = !expanded[group.id]">
             <i class="bi group-icon" :class="group.icon" aria-hidden="true"></i><span>{{ group.label }}</span><i class="bi menu-chevron" :class="expanded[group.id] ? 'bi-chevron-down' : 'bi-chevron-right'" aria-hidden="true"></i>
           </button>
-          <ul v-if="expanded[group.id]" :id="`${menuId}-${group.id}`" class="menu-children">
-            <li v-for="item in group.items" :key="item.to"><RouterLink :to="item.to" class="menu-child" :class="{ selected: navigationItemActive(item, route.path) }" @click="emit('close')"><i class="bi" :class="item.icon" aria-hidden="true"></i><span>{{ item.label }}</span></RouterLink></li>
+          <ul v-show="expanded[group.id]" :id="`${menuId}-${group.id}`" class="menu-children">
+            <li v-for="item in group.items" :key="item.to"><RouterLink :to="item.to" class="menu-child" :class="{ selected: navigationItemActive(item, route.path) }" @click="emit('navigate')"><i class="bi" :class="item.icon" aria-hidden="true"></i><span>{{ item.label }}</span></RouterLink><SidebarMyCourses v-if="item.to === '/user/my-courses'" @navigate="emit('navigate')" /></li>
           </ul>
         </section>
-        <AccountMenu @navigate="emit('close')" />
+        <AccountMenu @navigate="emit('navigate')" />
       </div>
-      <div class="sidebar-support"><RouterLink to="/user/content-reports" class="support-link" @click="emit('close')"><i class="bi bi-flag" aria-hidden="true"></i><span>Báo lỗi của tôi</span></RouterLink><p>Học đều mỗi ngày, tiến bộ từng chút.</p></div>
+      <div class="sidebar-support"><RouterLink to="/user/content-reports" class="support-link" @click="emit('navigate')"><i class="bi bi-flag" aria-hidden="true"></i><span>Báo lỗi của tôi</span></RouterLink><p>Học đều mỗi ngày, tiến bộ từng chút.</p></div>
     </nav>
   </aside>
   <button v-if="isOpen" type="button" class="sidebar-overlay" aria-label="Đóng menu" @click="emit('close')"></button>
@@ -37,6 +38,7 @@ watch(() => route.path, () => {
 
 <style scoped src="./learningSidebar.css"></style>
 <style scoped>
+.close-menu{display:grid;place-items:center;flex-shrink:0;width:30px;height:30px;margin-left:8px;border:1px solid #e2d7df;border-radius:7px;background:#ffffff80;color:#71647d}
 .user-sidebar { padding: 22px 12px 20px; scrollbar-width: thin; scrollbar-color: #d7c8db transparent; }
 .sidebar-heading { padding: 0 10px; font-size: 10px; letter-spacing: .09em; margin-bottom: 12px; }
 .home-link { min-height: 48px; margin: 0 0 16px; padding: 10px; }.home-link.selected { background: linear-gradient(110deg,#ead5df,#e2d8eb); border-color: #dac3d7; color: #5d4968; font-weight: 650; }

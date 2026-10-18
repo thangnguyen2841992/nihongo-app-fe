@@ -1,21 +1,27 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Navbar from '@/users/Navbar.vue'
 import GuestNavbar from '@/users/GuestNavbar.vue'
 import GuestSidebar from '@/users/GuestSidebar.vue'
-import Sidebar from '@/users/Sidebar.vue'
-import StaffSidebar from '@/components/staff/StaffSidebar.vue'
-import StaffNavbar from '@/components/staff/StaffNavbar.vue'
 import { useAuthState } from '@/services/authState'
+import { useWorkspaceSidebar } from '@/composables/useWorkspaceSidebar'
 
+const Navbar = defineAsyncComponent(() => import('@/users/Navbar.vue').then(module => module.default))
+const Sidebar = defineAsyncComponent(() => import('@/users/Sidebar.vue').then(module => module.default))
+const StaffSidebar = defineAsyncComponent(() => import('@/components/staff/StaffSidebar.vue').then(module => module.default))
+const StaffNavbar = defineAsyncComponent(() => import('@/components/staff/StaffNavbar.vue').then(module => module.default))
 const { isAuthenticated, isAuthReady, userName, userEmail, userRole } = useAuthState()
 const route = useRoute()
+const { sidebarOpen, toggleSidebar: toggleMemberSidebar, closeSidebar: closeMemberSidebar, closeOnNavigate } = useWorkspaceSidebar()
 const router = useRouter()
 const isOpen = ref(false)
 const isStaff = computed(() => isAuthenticated.value && userRole.value === 'STAFF')
 const isUser = computed(() => isAuthenticated.value && userRole.value === 'USER')
 const hasSidebar = computed(() => !isAuthenticated.value || isStaff.value || isUser.value)
+// A different course/book needs fresh page state; lesson query changes stay in the same book.
+const courseViewKey = computed(() => route.name === 'CourseBookDetail'
+  ? `book:${route.params.bookId}:course:${route.query.courseId}`
+  : route.name === 'CourseBooks' ? `course:${route.params.courseId}` : undefined)
 const toggleSidebar = () => { isOpen.value = !isOpen.value }
 
 watch([isAuthReady, isAuthenticated, () => route.path], ([ready, authenticated, path]) => {
@@ -25,16 +31,16 @@ watch([isAuthReady, isAuthenticated, () => route.path], ([ready, authenticated, 
 </script>
 
 <template>
-  <StaffNavbar v-if="isStaff" :isLoggedIn="isAuthenticated" :name="userName" :email="userEmail" @toggle="toggleSidebar" />
-  <Navbar v-else-if="isAuthenticated" :isLoggedIn="isAuthenticated" :name="userName" :email="userEmail" :role="userRole" @toggle="toggleSidebar" />
+  <StaffNavbar v-if="isStaff" :sidebar-open="sidebarOpen" :class="{ 'sidebar-collapsed': !sidebarOpen }" @toggleMenu="toggleMemberSidebar" />
+  <Navbar v-else-if="isAuthenticated" :isLoggedIn="isAuthenticated" :name="userName" :email="userEmail" :role="userRole" :has-sidebar="isUser" :sidebar-open="sidebarOpen" @toggle="toggleMemberSidebar" />
   <GuestNavbar v-else :isOpen="isOpen" @toggle="toggleSidebar" />
 
-  <div class="layout workspace-shell" :class="{ 'user-background': !isAuthenticated || isUser, 'staff-workspace': isStaff }">
-    <StaffSidebar v-if="isStaff" :isOpen="isOpen" @close="isOpen = false" />
-    <Sidebar v-else-if="isUser" :isOpen="isOpen" @close="isOpen = false" />
+  <div class="layout workspace-shell" :class="{ 'user-background': !isAuthenticated || isUser, 'staff-workspace': isStaff, 'learner-workspace': isUser, 'sidebar-collapsed': (isStaff || isUser) && !sidebarOpen }">
+    <StaffSidebar v-if="isStaff" :isOpen="sidebarOpen" @close="closeMemberSidebar" @navigate="closeOnNavigate" />
+    <Sidebar v-else-if="isUser" :isOpen="sidebarOpen" @close="closeMemberSidebar" @navigate="closeOnNavigate" />
     <GuestSidebar v-else-if="!isAuthenticated" :isOpen="isOpen" @close="isOpen = false" />
     <main class="main-content workspace-content" :class="{ 'with-sidebar': hasSidebar, 'signed-in': isAuthenticated }">
-      <router-view v-if="isAuthReady && (isAuthenticated || route.path !== '/')" />
+      <router-view v-if="isAuthReady && (isAuthenticated || route.path !== '/')" :key="courseViewKey" />
       <p v-else class="text-center py-5" role="status">Đang tải...</p>
     </main>
   </div>
@@ -71,6 +77,7 @@ watch([isAuthReady, isAuthenticated, () => route.path], ([ready, authenticated, 
 .main-content.with-sidebar { margin-left: 236px; }
 .staff-workspace .main-content.with-sidebar { margin-left: var(--workspace-sidebar); padding-top: 20px; }
 .main-content.with-sidebar:not(.signed-in) { margin-top: 64px; background: #f6f7fb; }
+@media(min-width:769px){.layout.user-background.sidebar-collapsed::before,.layout.user-background.sidebar-collapsed::after{left:0}}
 @media (max-width: 768px) {
   .main-content.signed-in { padding: 0 12px 16px; }
   .layout.user-background::before { left: 0; }

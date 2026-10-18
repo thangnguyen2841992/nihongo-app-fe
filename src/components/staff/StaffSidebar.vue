@@ -10,7 +10,7 @@ interface Type { typeId: number; typeName: string }
 interface Level { levelId: number; levelName: string }
 
 defineProps<{ isOpen?: boolean }>()
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; navigate: [] }>()
 const router = useRouter()
 const route = useRoute()
 const loading = ref(false)
@@ -37,9 +37,9 @@ const groups = [
   ]},
 ]
 const monitoringItems = [
-  { to: '/staff/monitoring/vps/register', label: 'Đăng ký máy chủ', icon: 'bi-server' },
-  { to: '/staff/monitoring/mysql/register', label: 'Đăng ký MySQL', icon: 'bi-database' },
-  { to: '/staff/monitoring/vps/performance', label: 'Hiệu năng VPS / MySQL', icon: 'bi-graph-up' },
+  { to: '/staff/monitoring/topology', label: 'Topology tổng quan', icon: 'bi-diagram-3' },
+  { to: '/staff/monitoring/register', label: 'Đăng ký target', icon: 'bi-plus-square' },
+  { to: '/staff/monitoring/vps/performance', label: 'Hiệu năng monitoring', icon: 'bi-graph-up' },
   { to: '/staff/monitoring/vps/performance?schedules=1', label: 'Lịch thu thập metric', icon: 'bi-sliders' },
   { to: '/staff/monitoring/vps/events', label: 'Event giám sát', icon: 'bi-bell' },
   { to: '/staff/monitoring/vps/events/realtime', label: 'Event realtime', icon: 'bi-broadcast' },
@@ -53,7 +53,7 @@ watch(() => route.fullPath, () => {
   groups.forEach(group => { if (groupActive(group.items)) expanded[group.id] = true })
   if (route.path.startsWith('/staff/monitoring')) expanded.monitoring = true
 }, { immediate: true })
-const go = async (path: string) => { await router.push(path); emit('close') }
+const go = async (path: string) => { await router.push(path); emit('navigate') }
 
 onMounted(async () => {
   loading.value = true
@@ -104,7 +104,7 @@ const toggleType = async (levelId: number, typeId: number) => {
           </section>
         </div>
       </section>
-      <div class="account-wrap"><AccountMenu @navigate="emit('close')" /></div>
+      <div class="account-wrap"><AccountMenu @navigate="emit('navigate')" /></div>
     </nav>
   </aside>
   <button v-if="isOpen" type="button" class="sidebar-backdrop" aria-label="Đóng menu" @click="emit('close')"></button>

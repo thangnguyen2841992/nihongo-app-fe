@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import { listVps, type MonitorVps } from '@/monitor/monitorVpsService'
+import { listVps, monitoringTargetLabel, type MonitorVps } from '@/monitor/monitorVpsService'
 import { getPerformanceMetrics, type PerformanceMetric } from '@/monitor/vpsPerformanceService'
 import {
   getVpsEvents,
@@ -23,7 +23,7 @@ const vpsList = ref<MonitorVps[]>([]),
 const selectedVps = ref<number | null>(null),
   selectedMetric = ref(''),
   selectedSeverity = ref<EventSeverity | ''>('')
-const isMysql = computed(() => vpsList.value.find(vps => vps.vpsId === selectedVps.value)?.exporterType === 'MYSQL_JDBC')
+const targetKind = computed(() => monitoringTargetLabel(vpsList.value.find(vps => vps.vpsId === selectedVps.value)))
 const events = ref<MonitorEvent[]>([]),
   cursor = ref<number | null>(null)
 const initializing = ref(true),
@@ -240,7 +240,7 @@ function historyLink() {
   <main class="event-viewer">
     <header>
       <div>
-        <span class="eyebrow">{{ isMysql ? 'GIÁM SÁT MYSQL' : 'GIÁM SÁT VPS' }}</span>
+        <span class="eyebrow">GIÁM SÁT {{ targetKind.toUpperCase() }}</span>
         <h1>{{ realtime ? 'Event realtime' : 'Lịch sử event' }}</h1>
         <p>
           {{

@@ -2,7 +2,7 @@
 import BroadcastInbox from './BroadcastInbox.vue'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useAuthState } from '@/services/authState'
-import { notificationOpen as open, notificationUnread } from '@/services/notificationState'
+import { notificationOpen as open, notificationUnread, broadcastConnectionStatus } from '@/services/notificationState'
 import { connectWalletRealtime, type LiveStatus } from '@/services/walletRealtime'
 import { getPendingDeposits, getDeposits, formatMoney, type WalletDeposit } from '@/services/walletApi'
 
@@ -17,6 +17,8 @@ const dismissedStorage = () => `wallet-notifications-dismissed:${userEmail.value
 const toast = ref('')
 const error = ref('')
 const status = ref<LiveStatus>('connecting')
+const liveStatus = computed(() => userRole.value.replace(/^ROLE_/, '') === 'STAFF' ? broadcastConnectionStatus.value : status.value)
+const panel = ref<HTMLElement | null>(null)
 const key = (row: WalletDeposit) => `${row.id}:${row.status}`
 const relevant = computed(() => rows.value.filter(row => !dismissed.value.includes(key(row)) && (admin.value ? row.status === 'PENDING' : row.status !== 'PENDING')))
 const unread = computed(() => relevant.value.filter(row => !read.value.includes(key(row))).length)
@@ -27,6 +29,19 @@ let timer: ReturnType<typeof setTimeout> | undefined
 let refresh: (() => void) | undefined
 const focus = () => refresh?.()
 window.addEventListener('focus', focus)
+
+watch(open, (visible, _, cleanup) => {
+  if (!visible) return
+  const closeOutside = (event: MouseEvent) => {
+    const target = event.target
+    if (!(target instanceof Node) || panel.value?.contains(target)) return
+    // Let the bell toggle its own state, including clicks on its icon or badge.
+    if (target instanceof Element && target.closest('[aria-controls="wallet-notification-panel"]')) return
+    open.value = false
+  }
+  document.addEventListener('click', closeOutside, true)
+  cleanup(() => document.removeEventListener('click', closeOutside, true))
+})
 
 watch(() => [enabled.value, userEmail.value, userRole.value] as const, ([active, email], _, cleanup) => {
   stop?.()
@@ -116,7 +131,7 @@ onUnmounted(() => { stop?.(); clearTimeout(timer); window.removeEventListener('f
       </div>
     </Transition>
     <Transition name="notice">
-      <section v-show="open" id="wallet-notification-panel" class="notice-panel" aria-label="Danh sách thông báo">
+      <section v-show="open" id="wallet-notification-panel" ref="panel" class="notice-panel" aria-label="Danh sách thông báo">
         <header class="notice-header">
           <div class="header-title"><span class="header-icon"><i class="bi bi-bell" aria-hidden="true"></i></span>
             <div><h3>Thông báo</h3><p>{{ unread ? `${unread} thông báo chưa đọc` : 'Bạn đã xem hết thông báo' }}</p></div>
@@ -124,7 +139,7 @@ onUnmounted(() => { stop?.(); clearTimeout(timer); window.removeEventListener('f
           <button class="icon-button" aria-label="Đóng danh sách" @click="open = false"><i class="bi bi-x-lg"></i></button>
         </header>
         <div class="notice-toolbar">
-          <span class="live-label"><span class="live-dot" :class="{ connected: status === 'live' }"></span>{{ userRole.replace(/^ROLE_/, '') === 'STAFF' ? 'Cập nhật mỗi 30 giây' : status === 'live' ? 'Trực tiếp' : 'Đang kết nối…' }}</span>
+          <span class="live-label"><span class="live-dot" :class="{ connected: liveStatus === 'live' }"></span>{{ liveStatus === 'live' ? 'Trực tiếp' : liveStatus === 'offline' ? 'Đang kết nối lại…' : 'Đang kết nối…' }}</span>
           <div class="toolbar-actions">
             <button class="text-button btn-link" :disabled="!unread" @click="markRead()" title="Đánh dấu tất cả đã đọc"><i class="bi bi-check2-all" aria-hidden="true"></i> Đọc tất cả</button>
             <button class="text-button delete-all" :disabled="!relevant.length" @click="dismiss()"><i class="bi bi-trash3" aria-hidden="true"></i> Xóa tất cả</button>

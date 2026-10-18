@@ -32,7 +32,7 @@ async function send() {
     await sendStaffBroadcast({ title: title.value.trim(), content: content.value.trim() })
     title.value = ''
     content.value = ''
-    message.value = 'Đã gửi thông báo đến toàn bộ user.'
+    message.value = 'Đã gửi dòng thông báo đỏ chạy từ trái sang phải đến toàn bộ user.'
     await load()
   } catch {
     error.value = 'Gửi thông báo thất bại. Vui lòng thử lại.'
@@ -47,7 +47,7 @@ onMounted(() => load())
 <template>
   <main class="container py-4" style="max-width: 960px">
     <h1 class="h3">Thông báo cho user</h1>
-    <p>Thông báo sẽ được gửi đến toàn bộ user và được lưu trong chuông thông báo của họ.</p>
+    <p>Thông báo sẽ chạy từ trái sang phải trong 2 phút bằng dòng chữ đỏ dưới navbar và được lưu trong chuông.</p>
     <p v-if="message" role="status" class="alert alert-success">{{ message }}</p>
     <p v-if="error" role="alert" class="alert alert-danger">{{ error }}</p>
     <form class="card card-body gap-3 mb-4" @submit.prevent="send">

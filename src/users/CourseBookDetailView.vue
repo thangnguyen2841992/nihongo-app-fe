@@ -439,6 +439,7 @@ const onExampleSaved = async (
 const bookId =
   Number(route.params.bookId)
 const courseId = Number(route.query.courseId)
+const pageController = new AbortController()
 const positionError = ref('')
 let pendingPositionSave: Promise<void> = Promise.resolve()
 
@@ -466,13 +467,15 @@ const fetchBook =
 
       const res =
         await gatewayUrl.get(
-          `/api/staff/books/${bookId}`
+          `/api/staff/books/${bookId}`, { signal: pageController.signal }
         )
 
+      if (disposed) return
       book.value = res.data
 
     } catch (e) {
 
+      if (disposed) return
       console.error(e)
 
       alert(
@@ -496,15 +499,18 @@ const fetchLessons =
           {
             params: {
               bookId
-            }
+            },
+            signal: pageController.signal
           }
         )
 
+      if (disposed) return
       lessons.value =
         bookLessonOrder(res.data)
 
     } catch (e) {
 
+      if (disposed) return
       console.error(e)
 
       alert(
@@ -589,6 +595,7 @@ const openLesson = async (
   lesson: Lesson
 ) => {
 
+  if (disposed) return
   if (selectedLesson.value?.lessonId === lesson.lessonId && loadingLessonContent.value) return
   const requestId = ++lessonRequestId
   lessonContentController?.abort()
@@ -766,6 +773,7 @@ const getStructureImage = (
 onUnmounted(() => {
   clearRecording()
   disposed = true
+  pageController.abort()
   ++lessonRequestId
   lessonContentController?.abort()
   if (scrollFrame !== null) window.cancelAnimationFrame(scrollFrame)
@@ -807,7 +815,7 @@ onMounted(async () => {
     else rememberPosition(null)
   }
 
-  if (selectedLesson.value) {
+  if (!disposed && selectedLesson.value) {
     if (Number.isInteger(requestedGrammarId) && requestedGrammarId > 0) {
       await nextTick()
       document.getElementById(`grammar-${requestedGrammarId}`)?.scrollIntoView({ block: 'center' })

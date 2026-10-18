@@ -15,7 +15,7 @@ vi.mock('@/components/staff/StaffNavbar.vue', () => ({ default: { template: '<na
 vi.mock('@/components/staff/StaffSidebar.vue', () => ({ default: { template: '<aside>Staff sidebar</aside>' } }))
 let wrapper: ReturnType<typeof mount> | undefined
 beforeEach(() => {
-  vi.clearAllMocks(); state.isAuthenticated.value = false; state.isAuthReady.value = true
+  vi.clearAllMocks(); state.isAuthenticated.value = false; state.isAuthReady.value = true; state.userEmail.value = ''; state.userRole.value = 'USER'
   vi.mocked(publicClient.get).mockResolvedValue({ data: [{ courseId: 1, courseName: 'Tiếng Nhật N5', courseDescription: 'Cho người mới bắt đầu', active: 'ACTIVE', packages: [{ packageId: 1, packageName: '3 tháng', durationDays: 90, price: 100000 }] }] })
   vi.mocked(gatewayUrl.get).mockResolvedValue({ data: [] })
 })
@@ -44,7 +44,7 @@ it('redirects guests to the catalog with navigation and no private API calls', a
   expect(wrapper!.find('a[href="/user/my-courses"]').exists()).toBe(false)
   expect(wrapper!.get('main').classes()).toContain('with-sidebar')
   expect(gatewayUrl.get).not.toHaveBeenCalled()
-  expect(publicClient.get).toHaveBeenCalledWith('/api/nihongo-user/courses', { withCredentials: false })
+  expect(publicClient.get).toHaveBeenCalledWith('/api/nihongo-user/courses', { withCredentials: false, signal: expect.any(AbortSignal) })
 })
 it('routes a guest to login instead of purchasing', async () => {
   const router = await open('/courses')
@@ -72,7 +72,32 @@ it('waits for session initialization before deciding the landing page', async ()
 it('loads subscription status only for signed-in users', async () => {
   state.isAuthenticated.value = true
   await open('/courses')
-  expect(gatewayUrl.get).toHaveBeenCalledWith('/api/nihongo-user/my-courses-dto')
+  expect(gatewayUrl.get).toHaveBeenCalledWith('/api/nihongo-user/my-courses-dto', { signal: expect.any(AbortSignal) })
+})
+it('aborts the previous account subscription request and ignores its late response', async () => {
+  state.isAuthenticated.value = true
+  state.userEmail.value = 'first@example.test'
+  let finish!: (value: unknown) => void
+  vi.mocked(gatewayUrl.get).mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+  await open('/courses')
+  const signal = vi.mocked(gatewayUrl.get).mock.calls[0]![1]!.signal as AbortSignal
+  state.userEmail.value = 'second@example.test'
+  await flushPromises()
+  expect(signal.aborted).toBe(true)
+  expect(gatewayUrl.get).toHaveBeenCalledTimes(2)
+  finish({ data: [{ courseId: 1, expiredAt: '2099-01-01', startedAt: null, lastBookId: null, lastLessonId: null }] })
+  await flushPromises()
+  expect(wrapper!.get('.footer button').text()).toContain('Mua khóa học')
+  expect(wrapper!.text()).not.toContain('Đang học')
+})
+
+it('cancels a catalog request when navigating away', async () => {
+  vi.mocked(publicClient.get).mockReturnValueOnce(new Promise(() => {}))
+  const router = await open('/courses')
+  const signal = vi.mocked(publicClient.get).mock.calls[0]![1]!.signal as AbortSignal
+  await router.push('/login')
+  await flushPromises()
+  expect(signal.aborted).toBe(true)
 })
 it('shows a recoverable catalog error without redirecting to login', async () => {
   vi.mocked(publicClient.get).mockRejectedValueOnce(new Error('offline'))

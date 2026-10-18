@@ -15,6 +15,8 @@ const props = defineProps<{
   name?: string
   email?: string
   role?: string
+  sidebarOpen?: boolean
+  hasSidebar?: boolean
 }>()
 
 const emit = defineEmits(["toggle"])
@@ -182,9 +184,11 @@ const goToWallet = () => {
     <!-- MOBILE SIDEBAR -->
 
     <button
+      v-if="hasSidebar !== false"
       type="button"
-      class="mobile-menu-btn d-md-none"
-      aria-label="Mở menu học tập"
+      class="mobile-menu-btn"
+      :aria-label="sidebarOpen ? 'Đóng menu học tập' : 'Mở menu học tập'"
+      :aria-expanded="Boolean(sidebarOpen)"
       aria-controls="user-sidebar"
       @click="emit('toggle')"
     >
@@ -420,6 +424,8 @@ const goToWallet = () => {
 }
 .mobile-menu-btn { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; margin-right: 10px; border: 1px solid #e2d7df; border-radius: 11px; background: #ffffff90; color: #665b73; font-size: 22px; }
 .mobile-menu-btn:hover { background: #eee7ee; }
+.ai-search,.ai-search input{min-width:0}
+.navbar-custom>.ms-auto{flex-shrink:0}
 
 
 .brand {

@@ -4,12 +4,13 @@ import { useRoute } from 'vue-router'
 import AccountMenu from '@/components/common/AccountMenu.vue'
 
 defineProps<{ isOpen?: boolean }>()
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; navigate: [] }>()
 const route = useRoute()
 
 const groups = [
   { id: 'operation', label: 'Vận hành', icon: 'bi-kanban', items: [
     { to: '/admin/operations', label: 'Trung tâm vận hành', icon: 'bi-activity' },
+    { to: '/staff/monitoring/topology', label: 'Topology giám sát', icon: 'bi-diagram-3' },
     { to: '/staff/classrooms', label: 'Lớp học & giao đề', icon: 'bi-mortarboard' },
     { to: '/admin/audit', label: 'Nhật ký quản trị', icon: 'bi-clock-history' },
   ]},
@@ -43,16 +44,16 @@ watch(() => route.path, () => groups.forEach(group => { if (groupActive(group)) 
       <button type="button" class="sidebar-close" aria-label="Đóng menu" @click="emit('close')"><i class="bi bi-x-lg"></i></button>
     </header>
     <nav class="sidebar-nav">
-      <RouterLink to="/admin/dashboard" class="overview-link" @click="emit('close')"><i class="bi bi-grid-1x2"></i><span>Tổng quan</span></RouterLink>
+      <RouterLink to="/admin/dashboard" class="overview-link" @click="emit('navigate')"><i class="bi bi-grid-1x2"></i><span>Tổng quan</span></RouterLink>
       <section v-for="group in groups" :key="group.id" class="nav-group">
         <button type="button" class="group-button" :class="{ active: groupActive(group) }" :aria-expanded="Boolean(expanded[group.id])" @click="expanded[group.id] = !expanded[group.id]">
           <i class="bi" :class="group.icon"></i><span>{{ group.label }}</span><i class="bi chevron" :class="expanded[group.id] ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
         </button>
         <ul v-if="expanded[group.id]" class="group-children">
-          <li v-for="item in group.items" :key="item.to"><RouterLink :to="item.to" :class="{ active: itemActive(item.to) }" @click="emit('close')"><i class="bi" :class="item.icon"></i><span>{{ item.label }}</span></RouterLink></li>
+          <li v-for="item in group.items" :key="item.to"><RouterLink :to="item.to" :class="{ active: itemActive(item.to) }" @click="emit('navigate')"><i class="bi" :class="item.icon"></i><span>{{ item.label }}</span></RouterLink></li>
         </ul>
       </section>
-      <div class="account-wrap"><AccountMenu @navigate="emit('close')" /></div>
+      <div class="account-wrap"><AccountMenu @navigate="emit('navigate')" /></div>
     </nav>
     <footer class="sidebar-footer"><i class="bi bi-shield-check"></i><span>Không gian quản trị an toàn</span></footer>
   </aside>

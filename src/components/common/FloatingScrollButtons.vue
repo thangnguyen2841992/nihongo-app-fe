@@ -1,106 +1,56 @@
 <script setup lang="ts">
-import {
-  onMounted,
-  onUnmounted,
-  ref,
-  computed
-} from "vue"
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useAuthState } from '@/services/authState'
 import { supportChatOpen } from '@/services/supportChatState'
+import { useRoute } from 'vue-router'
+import { japaneseAiPopupOpen } from '@/services/japaneseAiPopup'
 
-const { isAuthenticated, userRole } = useAuthState()
+const { isAuthenticated, isAuthReady, userRole } = useAuthState()
+const route = useRoute()
 const hasSupportChat = computed(() => isAuthenticated.value && userRole.value.replace(/^ROLE_/, '') === 'USER')
+const hasAiPopup = computed(() => isAuthReady.value && isAuthenticated.value && route.path !== '/japanese-ai')
+const showTopButton = ref(false)
+const showBottomButton = ref(false)
+let frame: number | undefined
+let observer: ResizeObserver | undefined
 
-const showTopButton =
-  ref(false)
-
-const showBottomButton =
-  ref(true)
-
-const handleScroll = () => {
-
-  const scrollTop =
-    window.scrollY
-
-  const windowHeight =
-    window.innerHeight
-
-  const documentHeight =
-    document.documentElement
-      .scrollHeight
-
-  const isTop =
-    scrollTop < 100
-
-  const isBottom =
-    scrollTop + windowHeight >=
-    documentHeight - 100
-
-  if (isTop) {
-
-    showTopButton.value =
-      false
-
-    showBottomButton.value =
-      true
-
-  } else if (isBottom) {
-
-    showTopButton.value =
-      true
-
-    showBottomButton.value =
-      false
-
-  } else {
-
-    showTopButton.value =
-      true
-
-    showBottomButton.value =
-      true
-  }
+function updateScrollButtons() {
+  frame = undefined
+  const scrollTop = window.scrollY
+  const atBottom = scrollTop + window.innerHeight >= document.documentElement.scrollHeight - 100
+  showTopButton.value = scrollTop >= 100
+  showBottomButton.value = !atBottom
 }
 
-const scrollToTop = () => {
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  })
+function scheduleUpdate() {
+  if (frame === undefined) frame = requestAnimationFrame(updateScrollButtons)
 }
 
-const scrollToBottom = () => {
+const scrollBehavior = (): ScrollBehavior => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+const scrollToTop = () => window.scrollTo({ top: 0, behavior: scrollBehavior() })
+const scrollToBottom = () => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: scrollBehavior() })
 
-  window.scrollTo({
-    top:
-    document.documentElement
-      .scrollHeight,
-    behavior: "smooth"
-  })
-}
-
+watch(() => route.fullPath, scheduleUpdate, { flush: 'post' })
 onMounted(() => {
-
-  handleScroll()
-
-  window.addEventListener(
-    "scroll",
-    handleScroll
-  )
+  updateScrollButtons()
+  window.addEventListener('scroll', scheduleUpdate, { passive: true })
+  window.addEventListener('resize', scheduleUpdate)
+  if (typeof ResizeObserver !== 'undefined') {
+    observer = new ResizeObserver(scheduleUpdate)
+    observer.observe(document.body)
+    observer.observe(document.documentElement)
+  }
 })
-
 onUnmounted(() => {
-
-  window.removeEventListener(
-    "scroll",
-    handleScroll
-  )
+  window.removeEventListener('scroll', scheduleUpdate)
+  window.removeEventListener('resize', scheduleUpdate)
+  observer?.disconnect()
+  if (frame !== undefined) cancelAnimationFrame(frame)
 })
 </script>
 
 <template>
-  <div v-show="!supportChatOpen" class="floating-actions" :class="{ 'with-support-chat': hasSupportChat }">
+  <div v-show="!(hasSupportChat && supportChatOpen) && !(hasAiPopup && japaneseAiPopupOpen)" class="floating-actions" :class="{ 'with-support-chat': hasSupportChat, 'with-ai-popup': hasAiPopup }">
 
     <button
       v-if="showTopButton"
@@ -133,11 +83,15 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 12px;
 
-  z-index: 9999;
+  z-index: 1035;
 }
 
 .floating-actions.with-support-chat {
   bottom: 94px;
+}
+
+.floating-actions.with-ai-popup {
+  bottom: 156px;
 }
 
 .scroll-btn {
@@ -173,5 +127,12 @@ onUnmounted(() => {
 
 .scroll-btn:hover {
   transform: translateY(-3px);
+}
+
+@media (max-width: 640px) {
+  .floating-actions.with-ai-popup {
+    right: 12px;
+    bottom: max(138px, calc(env(safe-area-inset-bottom) + 132px));
+  }
 }
 </style>
