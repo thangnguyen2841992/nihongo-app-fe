@@ -16,6 +16,7 @@ export const userNavigationGroups: UserNavigationGroup[] = [
       { to: '/user/my-courses', icon: 'bi-journals', label: 'Khóa học của tôi', relatedPaths: /^\/course\/(?:\d+(?:\/books)?|book\/\d+)\/?$/ },
       { to: '/user/learning-plan', icon: 'bi-signpost', label: 'Lộ trình của tôi' },
       { to: '/user/notebook', icon: 'bi-journal-bookmark', label: 'Sổ tay' },
+      { to: '/user/english', icon: 'bi-translate', label: 'Tiếng Anh cá nhân' },
     ],
   },
   {

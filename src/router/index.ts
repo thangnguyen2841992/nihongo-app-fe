@@ -40,6 +40,7 @@ const routes = [
       {path: 'user/assignments', meta: {requiresAuth: true}, component: () => import('@/users/AssignmentsView.vue')},
       {path: 'user/attempts/:id', meta: {requiresAuth: true}, component: () => import('@/users/OnlineAttemptView.vue')},
       {path: 'user/learning-plan', meta: {requiresAuth: true}, component: () => import('@/users/LearningPlanView.vue')},
+      {path: 'user/english', name: 'english-self-study', meta: {requiresAuth: true}, component: () => import('@/users/EnglishSelfStudyView.vue')},
       {
         path: 'user/conversation-listening',
         name: 'conversation-listening',

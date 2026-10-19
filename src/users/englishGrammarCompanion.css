@@ -1,0 +1,436 @@
+.grammar-companion {
+  margin: 24px 0;
+  border: 1px solid #d7e1d8;
+  border-radius: 17px;
+  overflow: hidden;
+  background: #fffefb;
+}
+.grammar-companion p {
+  margin: 0;
+}
+.grammar-companion :is(input, button) {
+  font: inherit;
+}
+.grammar-companion :is(input, button):focus-visible {
+  outline: 3px solid #92bfb2;
+  outline-offset: 3px;
+}
+.unit-index input[type='search'] {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #d6dfce;
+  border-radius: 8px;
+  background: #fffefb;
+  color: #3e5e46;
+  font-size: 12px;
+}
+.companion-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 25px 27px;
+  border-bottom: 1px solid #dfe7de;
+  background: linear-gradient(120deg, #f1f4ec, #faf6ed);
+}
+.companion-heading h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 27px;
+  font-weight: 400;
+  margin: 9px 0;
+  color: #304f45;
+}
+.companion-heading p:last-child {
+  font-size: 12px;
+  color: #718177;
+}
+.companion-count {
+  white-space: nowrap;
+  border: 1px solid #cfdbce;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-radius: 20px;
+  color: #5d7867;
+  background: #ffffff8c;
+}
+.eyebrow {
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  color: #617b63;
+}
+.companion-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+}
+.unit-index {
+  padding: 22px 15px;
+  border-right: 1px solid #e1e7df;
+  background: #f7f8f3;
+}
+.unit-index > label {
+  font-size: 12px;
+  font-weight: 700;
+}
+.unit-index input {
+  margin: 8px 0 4px;
+}
+.unit-count {
+  font-size: 10px;
+  color: #798577;
+  margin: 7px 0 !important;
+}
+.unit-list {
+  max-height: 950px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.unit-list > button {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 9px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: #586b5b;
+  text-align: left;
+  margin: 3px 0;
+  cursor: pointer;
+}
+.unit-list > button > span:first-child {
+  font-size: 11px;
+  color: #83927e;
+  padding-top: 3px;
+  min-width: 20px;
+}
+.unit-list strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 650;
+}
+.unit-list small {
+  display: block;
+  font-size: 10px;
+  color: #879184;
+  margin-top: 4px;
+}
+.unit-list > button[aria-current='true'] {
+  border-color: #d0dccb;
+  background: #e9efdf;
+  color: #365b43;
+}
+.unit-list > button:hover {
+  background: #edf1e6;
+}
+.no-units {
+  font-size: 12px;
+  padding: 16px;
+  color: #7b8879;
+}
+.bilingual-lesson {
+  padding: 30px;
+  min-width: 0;
+}
+.lesson-overline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #68816e;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.bilingual-lesson h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 32px;
+  font-weight: 400;
+  margin: 12px 0 5px;
+  line-height: 1.25;
+}
+.lesson-title-vi {
+  color: #708171;
+  font-size: 15px;
+}
+.bilingual-lesson h4 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 13px;
+}
+.bilingual-lesson h4 > span {
+  font-size: 10px;
+  color: #8f9d86;
+  letter-spacing: 0.05em;
+}
+.lesson-explanation,
+.bilingual-example,
+.grammar-practice {
+  margin-top: 27px;
+}
+.lesson-explanation > p {
+  font-size: 14px;
+  color: #51645b;
+  line-height: 1.9;
+}
+.grammar-pattern {
+  padding: 16px 18px;
+  margin-top: 17px;
+  border-left: 3px solid #a6b895;
+  background: #f2f5ec;
+  border-radius: 0 9px 9px 0;
+}
+.grammar-pattern > span {
+  display: block;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  color: #80916f;
+  margin-bottom: 8px;
+}
+.grammar-pattern code {
+  color: #365440;
+  font-size: 14px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.bilingual-example {
+  padding: 20px;
+  border: 1px solid #e1e8db;
+  background: #fbfcf7;
+  border-radius: 11px;
+}
+.example-en {
+  font-size: 20px;
+  line-height: 1.5;
+  color: #355144;
+}
+.example-vi {
+  font-size: 14px;
+  color: #7b8777;
+  margin-top: 8px !important;
+}
+.text-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: #4c7b60;
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  margin-top: 12px;
+}
+.speech-hint {
+  font-size: 10px;
+  color: #8a9484;
+  margin-top: 7px !important;
+}
+.grammar-caution {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fcf5e6;
+  border: 1px solid #eee1c6;
+  padding: 14px 17px;
+  margin-top: 17px;
+  border-radius: 10px;
+  color: #816c3c;
+  font-size: 12px;
+}
+.grammar-caution strong {
+  display: block;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+.grammar-caution > i {
+  margin-top: 2px;
+}
+.grammar-practice legend {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.grammar-practice fieldset {
+  border: 0;
+  margin: 0 0 15px;
+  padding: 0;
+  min-width: 0;
+}
+.grammar-practice fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #dce4d6;
+  background: #fffefb;
+  border-radius: 8px;
+  padding: 11px 13px;
+  margin-top: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.grammar-practice input[type='radio'] {
+  accent-color: #4e7959;
+}
+.grammar-practice label.chosen {
+  border-color: #9db38f;
+  background: #f0f5e9;
+}
+.grammar-practice label.right {
+  border-color: #a6c2a3;
+  background: #eaf4e5;
+}
+.grammar-practice label.wrong {
+  border-color: #dcbaa6;
+  background: #fcf0e8;
+}
+.desk-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #52745c;
+  border-radius: 8px;
+  padding: 9px 12px;
+  background: #426b51;
+  color: white;
+  font-size: 12px;
+  font-weight: 650;
+  min-height: 40px;
+  cursor: pointer;
+}
+.desk-button.subtle {
+  background: #fffefb;
+  border-color: #d2decc;
+  color: #55745a;
+}
+.desk-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.practice-result {
+  padding: 16px;
+  border: 1px solid #e6d3b8;
+  background: #faf2e6;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #7b6443;
+}
+.practice-result.correct {
+  background: #eff6e9;
+  border-color: #cddfbf;
+  color: #486746;
+}
+.practice-result p {
+  margin-top: 8px !important;
+}
+.original-links {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #e3e8dd;
+}
+.original-links > p {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 12px !important;
+}
+.original-links > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.original-links small {
+  display: block;
+  font-size: 10px;
+  color: #899280;
+  margin-top: 10px;
+}
+.unit-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 23px;
+}
+.unit-pagination > span {
+  font-size: 11px;
+  color: #8c9781;
+}
+@media (max-width: 850px) {
+  .companion-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .unit-index {
+    border-right: 0;
+    border-bottom: 1px solid #e1e7df;
+    padding: 17px 20px;
+  }
+  .unit-list {
+    max-height: 205px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .bilingual-lesson {
+    padding: 24px;
+  }
+  .companion-heading {
+    padding: 22px;
+  }
+  .companion-heading h2 {
+    font-size: 25px;
+  }
+}
+@media (max-width: 500px) {
+  .companion-heading {
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px 16px;
+  }
+  .bilingual-lesson {
+    padding: 23px 17px;
+  }
+  .bilingual-lesson h3 {
+    font-size: 29px;
+  }
+  .unit-index {
+    padding: 16px;
+  }
+  .unit-list {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 180px;
+  }
+  .bilingual-example {
+    padding: 17px;
+  }
+  .example-en {
+    font-size: 19px;
+  }
+  .lesson-explanation > p {
+    font-size: 13px;
+  }
+  .lesson-title-vi {
+    font-size: 14px;
+  }
+  .grammar-pattern code {
+    font-size: 12px;
+  }
+  .desk-button {
+    min-height: 44px;
+  }
+  .original-links > div {
+    display: grid;
+  }
+  .unit-pagination {
+    gap: 8px;
+  }
+}

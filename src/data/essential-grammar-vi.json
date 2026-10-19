@@ -1,0 +1,2410 @@
+{
+  "kind": "essential-grammar-curriculum",
+  "version": 1,
+  "source": {
+    "filename": "Essential Grammar - new edition.pdf",
+    "pageCount": 318,
+    "sha256": "0e8d766dd70eca076166bfcecc2fbee21327dddf90803976733eff5f6793f88c"
+  },
+  "units": [
+    {
+      "id": 1,
+      "title": "am / is / are",
+      "titleVi": "Động từ be: là, thì, ở",
+      "category": "Hiện tại",
+      "pattern": "I am; he/she/it is; we/you/they are",
+      "explanation": "Dùng be để giới thiệu bản thân, nói tuổi, nghề nghiệp, cảm giác hoặc vị trí. Thêm not sau be để phủ định. Có thể viết gọn I’m, she’s, they’re.",
+      "example": { "en": "My sister is a nurse.", "vi": "Chị tôi là y tá." },
+      "caution": "Không bỏ be khi dịch từ tiếng Việt: nói She is tired, không nói She tired.",
+      "exercise": {
+        "prompt": "My parents ___ at home.",
+        "options": ["am", "is", "are"],
+        "answer": 2,
+        "explanation": "Chọn “are”. Mẫu cần áp dụng: I am; he/she/it is; we/you/they are. Không bỏ be khi dịch từ tiếng Việt: nói She is tired, không nói She tired."
+      },
+      "theoryPage": 11,
+      "exercisePage": 12,
+      "keyPages": [281]
+    },
+    {
+      "id": 2,
+      "title": "am / is / are: questions",
+      "titleVi": "Đặt câu hỏi với be",
+      "category": "Hiện tại",
+      "pattern": "Am/Is/Are + chủ ngữ ...?",
+      "explanation": "Đưa am, is hoặc are lên trước chủ ngữ để hỏi. Thêm từ hỏi như where, why, how ở đầu nếu cần biết thông tin cụ thể. Trả lời ngắn dùng Yes/No và be.",
+      "example": {
+        "en": "Are you ready? Yes, I am.",
+        "vi": "Bạn sẵn sàng chưa? Rồi, tôi sẵn sàng."
+      },
+      "caution": "Câu trả lời khẳng định ngắn dùng Yes, I am; không rút thành Yes, I’m.",
+      "exercise": {
+        "prompt": "___ your brother a student?",
+        "options": ["Am", "Is", "Are"],
+        "answer": 1,
+        "explanation": "Chọn “Is”. Mẫu cần áp dụng: Am/Is/Are + chủ ngữ ...?. Câu trả lời khẳng định ngắn dùng Yes, I am; không rút thành Yes, I’m."
+      },
+      "theoryPage": 13,
+      "exercisePage": 14,
+      "keyPages": [281]
+    },
+    {
+      "id": 3,
+      "title": "I am doing",
+      "titleVi": "Hiện tại tiếp diễn",
+      "category": "Hiện tại",
+      "pattern": "Chủ ngữ + am/is/are + V-ing",
+      "explanation": "Dùng hiện tại tiếp diễn cho việc đang xảy ra lúc nói. Be phải phù hợp với chủ ngữ; động từ chính thêm -ing. Phủ định bằng not sau be.",
+      "example": { "en": "I am studying English now.", "vi": "Tôi đang học tiếng Anh bây giờ." },
+      "caution": "Không quên be trước V-ing. He working thiếu is.",
+      "exercise": {
+        "prompt": "She ___ dinner at the moment.",
+        "options": ["cooks", "is cooking", "cook"],
+        "answer": 1,
+        "explanation": "Chọn “is cooking”. Mẫu cần áp dụng: Chủ ngữ + am/is/are + V-ing. Không quên be trước V-ing. He working thiếu is."
+      },
+      "theoryPage": 15,
+      "exercisePage": 16,
+      "keyPages": [281]
+    },
+    {
+      "id": 4,
+      "title": "Are you doing?",
+      "titleVi": "Câu hỏi hiện tại tiếp diễn",
+      "category": "Hiện tại",
+      "pattern": "Am/Is/Are + chủ ngữ + V-ing ...?",
+      "explanation": "Muốn hỏi một hành động đang diễn ra, đảo be lên trước chủ ngữ. Có thể hỏi hành động, người, nơi chốn bằng what, who, where rồi giữ phần V-ing.",
+      "example": { "en": "What are you reading?", "vi": "Bạn đang đọc gì vậy?" },
+      "caution": "Không dùng do/does để hỏi hiện tại tiếp diễn.",
+      "exercise": {
+        "prompt": "___ they waiting for us?",
+        "options": ["Do", "Is", "Are"],
+        "answer": 2,
+        "explanation": "Chọn “Are”. Mẫu cần áp dụng: Am/Is/Are + chủ ngữ + V-ing ...?. Không dùng do/does để hỏi hiện tại tiếp diễn."
+      },
+      "theoryPage": 17,
+      "exercisePage": 18,
+      "keyPages": [281]
+    },
+    {
+      "id": 5,
+      "title": "I do / work / like",
+      "titleVi": "Hiện tại đơn",
+      "category": "Hiện tại",
+      "pattern": "I/you/we/they + V; he/she/it + V-s/es",
+      "explanation": "Dùng hiện tại đơn cho thói quen, sự thật và điều đúng nói chung. Chủ ngữ he, she, it thường cần thêm -s hoặc -es vào động từ. Have đổi thành has.",
+      "example": { "en": "Lan walks to work every day.", "vi": "Lan đi bộ đi làm mỗi ngày." },
+      "caution": "Thêm -s cho động từ với he/she/it, không thêm vào chủ ngữ số nhiều.",
+      "exercise": {
+        "prompt": "My father ___ tea every morning.",
+        "options": ["drink", "drinks", "is drink"],
+        "answer": 1,
+        "explanation": "Chọn “drinks”. Mẫu cần áp dụng: I/you/we/they + V; he/she/it + V-s/es. Thêm -s cho động từ với he/she/it, không thêm vào chủ ngữ số nhiều."
+      },
+      "theoryPage": 19,
+      "exercisePage": 20,
+      "keyPages": [282]
+    },
+    {
+      "id": 6,
+      "title": "I don’t ...",
+      "titleVi": "Phủ định hiện tại đơn",
+      "category": "Hiện tại",
+      "pattern": "Chủ ngữ + don’t/doesn’t + V nguyên mẫu",
+      "explanation": "Dùng don’t với I, you, we, they và doesn’t với he, she, it. Sau don’t/doesn’t luôn dùng động từ nguyên mẫu. Never tự mang nghĩa phủ định.",
+      "example": { "en": "He doesn’t eat meat.", "vi": "Anh ấy không ăn thịt." },
+      "caution": "Không viết doesn’t eats; dấu -s đã nằm trong trợ động từ does.",
+      "exercise": {
+        "prompt": "She doesn’t ___ coffee.",
+        "options": ["likes", "like", "liking"],
+        "answer": 1,
+        "explanation": "Chọn “like”. Mẫu cần áp dụng: Chủ ngữ + don’t/doesn’t + V nguyên mẫu. Không viết doesn’t eats; dấu -s đã nằm trong trợ động từ does."
+      },
+      "theoryPage": 21,
+      "exercisePage": 22,
+      "keyPages": [282]
+    },
+    {
+      "id": 7,
+      "title": "Do you ...?",
+      "titleVi": "Câu hỏi hiện tại đơn",
+      "category": "Hiện tại",
+      "pattern": "Do/Does + chủ ngữ + V nguyên mẫu ...?",
+      "explanation": "Dùng do/does để hỏi thói quen hoặc sự thật với động từ thường. Động từ sau chủ ngữ ở dạng nguyên mẫu. Câu trả lời ngắn dùng do/does tương ứng.",
+      "example": { "en": "Does your sister work here?", "vi": "Chị bạn có làm việc ở đây không?" },
+      "caution": "Hỏi với be dùng Is she ...?, không dùng Does she is ...?",
+      "exercise": {
+        "prompt": "___ he speak English?",
+        "options": ["Do", "Does", "Is"],
+        "answer": 1,
+        "explanation": "Chọn “Does”. Mẫu cần áp dụng: Do/Does + chủ ngữ + V nguyên mẫu ...?. Hỏi với be dùng Is she ...?, không dùng Does she is ...?"
+      },
+      "theoryPage": 23,
+      "exercisePage": 24,
+      "keyPages": [282]
+    },
+    {
+      "id": 8,
+      "title": "I am doing and I do",
+      "titleVi": "Phân biệt hai thì hiện tại",
+      "category": "Hiện tại",
+      "pattern": "Đang diễn ra: be + V-ing; thường xuyên: V/V-s",
+      "explanation": "So sánh việc đang xảy ra hoặc tạm thời với thói quen hay trạng thái nói chung. Các động từ như know, like, want thường dùng hiện tại đơn khi nói về trạng thái.",
+      "example": {
+        "en": "I usually cook, but today I’m eating out.",
+        "vi": "Tôi thường nấu ăn, nhưng hôm nay tôi đang ăn ngoài."
+      },
+      "caution": "Không dùng I’m knowing cho nghĩa tôi biết. Cần xem ngữ cảnh, không chỉ một từ chỉ thời gian.",
+      "exercise": {
+        "prompt": "I ___ the answer to this question.",
+        "options": ["am knowing", "know", "knowing"],
+        "answer": 1,
+        "explanation": "Chọn “know”. Mẫu cần áp dụng: Đang diễn ra: be + V-ing; thường xuyên: V/V-s. Không dùng I’m knowing cho nghĩa tôi biết. Cần xem ngữ cảnh, không chỉ một từ chỉ thời gian."
+      },
+      "theoryPage": 25,
+      "exercisePage": 26,
+      "keyPages": [282]
+    },
+    {
+      "id": 9,
+      "title": "I have and I’ve got",
+      "titleVi": "Nói về sự sở hữu",
+      "category": "Hiện tại",
+      "pattern": "have/has; have/has got",
+      "explanation": "Have và have got có thể diễn đạt sở hữu, gia đình hoặc một số tình trạng. Hỏi bằng Do you have ...? hoặc Have you got ...?; giữ nhất quán cấu trúc đã chọn.",
+      "example": { "en": "I’ve got a new bicycle.", "vi": "Tôi có một chiếc xe đạp mới." },
+      "caution": "Không trộn hai kiểu hỏi thành Do you have got ...?",
+      "exercise": {
+        "prompt": "___ she got a car?",
+        "options": ["Does", "Have", "Has"],
+        "answer": 2,
+        "explanation": "Chọn “Has”. Mẫu cần áp dụng: have/has; have/has got. Không trộn hai kiểu hỏi thành Do you have got ...?"
+      },
+      "theoryPage": 27,
+      "exercisePage": 28,
+      "keyPages": [283]
+    },
+    {
+      "id": 10,
+      "title": "was / were",
+      "titleVi": "Be ở quá khứ",
+      "category": "Quá khứ",
+      "pattern": "I/he/she/it was; we/you/they were",
+      "explanation": "Was và were là quá khứ của be, dùng cho trạng thái, nơi chốn hoặc tính chất trong quá khứ. Hỏi bằng cách đảo was/were; phủ định bằng wasn’t/weren’t.",
+      "example": { "en": "We were tired after the trip.", "vi": "Chúng tôi đã mệt sau chuyến đi." },
+      "caution": "Was/were chỉ thay cho be, không dùng thay mọi động từ quá khứ.",
+      "exercise": {
+        "prompt": "They ___ at the library yesterday.",
+        "options": ["was", "were", "are being"],
+        "answer": 1,
+        "explanation": "Chọn “were”. Mẫu cần áp dụng: I/he/she/it was; we/you/they were. Was/were chỉ thay cho be, không dùng thay mọi động từ quá khứ."
+      },
+      "theoryPage": 29,
+      "exercisePage": 30,
+      "keyPages": [283]
+    },
+    {
+      "id": 11,
+      "title": "worked / got / went",
+      "titleVi": "Quá khứ đơn: khẳng định",
+      "category": "Quá khứ",
+      "pattern": "Chủ ngữ + V-ed / động từ quá khứ bất quy tắc",
+      "explanation": "Dùng quá khứ đơn cho sự việc đã kết thúc ở thời điểm quá khứ. Động từ có quy tắc thường thêm -ed; động từ bất quy tắc cần nhớ dạng riêng như go → went.",
+      "example": {
+        "en": "We visited Da Nang last summer.",
+        "vi": "Chúng tôi đã đến thăm Đà Nẵng mùa hè năm ngoái."
+      },
+      "caution": "Không thêm -ed vào động từ đã có dạng bất quy tắc như went.",
+      "exercise": {
+        "prompt": "Yesterday I ___ a new notebook.",
+        "options": ["buy", "bought", "buyed"],
+        "answer": 1,
+        "explanation": "Chọn “bought”. Mẫu cần áp dụng: Chủ ngữ + V-ed / động từ quá khứ bất quy tắc. Không thêm -ed vào động từ đã có dạng bất quy tắc như went."
+      },
+      "theoryPage": 31,
+      "exercisePage": 32,
+      "keyPages": [283]
+    },
+    {
+      "id": 12,
+      "title": "I didn’t ... Did you ...?",
+      "titleVi": "Quá khứ đơn: phủ định và câu hỏi",
+      "category": "Quá khứ",
+      "pattern": "didn’t + V; Did + chủ ngữ + V ...?",
+      "explanation": "Dùng did cho mọi chủ ngữ khi hỏi hoặc phủ định với động từ thường ở quá khứ. Sau did/didn’t, động từ trở về nguyên mẫu. Be vẫn dùng was/were.",
+      "example": { "en": "Did you enjoy the film?", "vi": "Bạn có thích bộ phim đó không?" },
+      "caution": "Không viết Did you went ...? vì did đã chỉ quá khứ.",
+      "exercise": {
+        "prompt": "We didn’t ___ out last night.",
+        "options": ["went", "go", "going"],
+        "answer": 1,
+        "explanation": "Chọn “go”. Mẫu cần áp dụng: didn’t + V; Did + chủ ngữ + V ...?. Không viết Did you went ...? vì did đã chỉ quá khứ."
+      },
+      "theoryPage": 33,
+      "exercisePage": 34,
+      "keyPages": [283]
+    },
+    {
+      "id": 13,
+      "title": "I was doing",
+      "titleVi": "Quá khứ tiếp diễn",
+      "category": "Quá khứ",
+      "pattern": "Chủ ngữ + was/were + V-ing",
+      "explanation": "Dùng quá khứ tiếp diễn để mô tả việc đang diễn ra tại một thời điểm trong quá khứ. Hành động đã bắt đầu trước mốc đó và chưa kết thúc ngay tại mốc đang kể.",
+      "example": {
+        "en": "At nine last night, I was reading.",
+        "vi": "Lúc chín giờ tối qua, tôi đang đọc sách."
+      },
+      "caution": "Không bỏ was/were; đây không phải dạng quá khứ của riêng V-ing.",
+      "exercise": {
+        "prompt": "At 8 p.m., they ___ dinner.",
+        "options": ["were having", "was having", "have"],
+        "answer": 0,
+        "explanation": "Chọn “were having”. Mẫu cần áp dụng: Chủ ngữ + was/were + V-ing. Không bỏ was/were; đây không phải dạng quá khứ của riêng V-ing."
+      },
+      "theoryPage": 35,
+      "exercisePage": 36,
+      "keyPages": [284]
+    },
+    {
+      "id": 14,
+      "title": "I was doing and I did",
+      "titleVi": "Việc đang diễn ra và sự việc xen vào",
+      "category": "Quá khứ",
+      "pattern": "was/were + V-ing; sự việc xen vào: quá khứ đơn",
+      "explanation": "Dùng quá khứ tiếp diễn làm bối cảnh; dùng quá khứ đơn cho hành động xảy ra hoặc hoàn tất trong bối cảnh đó. Hai hành động song song có thể đều ở quá khứ tiếp diễn.",
+      "example": {
+        "en": "I was cooking when the phone rang.",
+        "vi": "Tôi đang nấu ăn thì điện thoại reo."
+      },
+      "caution": "When/while không tự quyết định thì; cần hiểu hành động nào đang diễn ra và hành động nào xảy đến.",
+      "exercise": {
+        "prompt": "I was walking home when it ___ to rain.",
+        "options": ["was starting", "starts", "started"],
+        "answer": 2,
+        "explanation": "Chọn “started”. Mẫu cần áp dụng: was/were + V-ing; sự việc xen vào: quá khứ đơn. When/while không tự quyết định thì; cần hiểu hành động nào đang diễn ra và hành động nào xảy đến."
+      },
+      "theoryPage": 37,
+      "exercisePage": 38,
+      "keyPages": [284]
+    },
+    {
+      "id": 15,
+      "title": "I have done",
+      "titleVi": "Hiện tại hoàn thành: kết quả hiện tại",
+      "category": "Hiện tại hoàn thành",
+      "pattern": "Chủ ngữ + have/has + V3",
+      "explanation": "Dùng hiện tại hoàn thành cho việc quá khứ có kết quả hoặc liên hệ tới hiện tại. Dạng phân từ V3 có thể khác quá khứ đơn. Không nêu mốc quá khứ đã kết thúc trong cách dùng này.",
+      "example": {
+        "en": "I’ve lost my keys, so I can’t open the door.",
+        "vi": "Tôi làm mất chìa khóa nên giờ không mở được cửa."
+      },
+      "caution": "Không ghép hiện tại hoàn thành với yesterday trong một câu kể sự việc đã xong.",
+      "exercise": {
+        "prompt": "She ___ her homework, so she can relax now.",
+        "options": ["has finished", "have finished", "has finish"],
+        "answer": 0,
+        "explanation": "Chọn “has finished”. Mẫu cần áp dụng: Chủ ngữ + have/has + V3. Không ghép hiện tại hoàn thành với yesterday trong một câu kể sự việc đã xong."
+      },
+      "theoryPage": 39,
+      "exercisePage": 40,
+      "keyPages": [284]
+    },
+    {
+      "id": 16,
+      "title": "just / already / yet",
+      "titleVi": "Vừa mới, đã rồi và chưa",
+      "category": "Hiện tại hoàn thành",
+      "pattern": "have/has + just/already + V3; haven’t/hasn’t + V3 + yet",
+      "explanation": "Just diễn tả vừa mới; already diễn tả đã xảy ra, thường sớm hơn dự kiến. Yet thường nằm cuối câu hỏi hoặc câu phủ định, hỏi việc đã xảy ra chưa hoặc nói vẫn chưa xảy ra.",
+      "example": {
+        "en": "I haven’t finished the report yet.",
+        "vi": "Tôi vẫn chưa hoàn thành bản báo cáo."
+      },
+      "caution": "Trong cách dùng cơ bản, không đặt yet giữa have và V3 như just.",
+      "exercise": {
+        "prompt": "The train has ___ arrived. It came a minute ago.",
+        "options": ["yet", "just", "ever"],
+        "answer": 1,
+        "explanation": "Chọn “just”. Mẫu cần áp dụng: have/has + just/already + V3; haven’t/hasn’t + V3 + yet. Trong cách dùng cơ bản, không đặt yet giữa have và V3 như just."
+      },
+      "theoryPage": 41,
+      "exercisePage": 42,
+      "keyPages": [284]
+    },
+    {
+      "id": 17,
+      "title": "Have you ever ...?",
+      "titleVi": "Trải nghiệm tính đến hiện tại",
+      "category": "Hiện tại hoàn thành",
+      "pattern": "Have/Has + chủ ngữ + ever + V3 ...?",
+      "explanation": "Hỏi kinh nghiệm bằng ever; nói chưa từng bằng have/has never. Been to diễn tả đã đến rồi trở về; gone to thường nghĩa là đã đi và còn ở đó hoặc chưa về.",
+      "example": {
+        "en": "Have you ever travelled alone?",
+        "vi": "Bạn đã từng đi du lịch một mình chưa?"
+      },
+      "caution": "Never đã mang nghĩa phủ định: không dùng haven’t never trong tiếng Anh chuẩn.",
+      "exercise": {
+        "prompt": "I have never ___ to Canada.",
+        "options": ["went", "been", "go"],
+        "answer": 1,
+        "explanation": "Chọn “been”. Mẫu cần áp dụng: Have/Has + chủ ngữ + ever + V3 ...?. Never đã mang nghĩa phủ định: không dùng haven’t never trong tiếng Anh chuẩn."
+      },
+      "theoryPage": 43,
+      "exercisePage": 44,
+      "keyPages": [284]
+    },
+    {
+      "id": 18,
+      "title": "How long have you ...?",
+      "titleVi": "Việc bắt đầu trước đây và còn tiếp tục",
+      "category": "Hiện tại hoàn thành",
+      "pattern": "How long + have/has + chủ ngữ + V3/been V-ing ...?",
+      "explanation": "Dùng hiện tại hoàn thành cho trạng thái kéo dài đến nay, và thường dùng hiện tại hoàn thành tiếp diễn với hoạt động đang tiếp tục. How long hỏi khoảng thời gian kéo dài.",
+      "example": {
+        "en": "I’ve known Mai for ten years.",
+        "vi": "Tôi đã quen Mai được mười năm rồi."
+      },
+      "caution": "Với know, dùng have known, không dùng have been knowing.",
+      "exercise": {
+        "prompt": "How long ___ you known each other?",
+        "options": ["do", "have", "are"],
+        "answer": 1,
+        "explanation": "Chọn “have”. Mẫu cần áp dụng: How long + have/has + chủ ngữ + V3/been V-ing ...?. Với know, dùng have known, không dùng have been knowing."
+      },
+      "theoryPage": 45,
+      "exercisePage": 46,
+      "keyPages": [285]
+    },
+    {
+      "id": 19,
+      "title": "for / since / ago",
+      "titleVi": "Khoảng thời gian và mốc thời gian",
+      "category": "Hiện tại hoàn thành",
+      "pattern": "for + khoảng; since + mốc bắt đầu; khoảng + ago",
+      "explanation": "For nêu độ dài như three days. Since nêu mốc bắt đầu như Monday. Ago tính lùi từ hiện tại và thường đi cùng quá khứ đơn. For không chỉ dùng riêng với hiện tại hoàn thành.",
+      "example": { "en": "I moved here two years ago.", "vi": "Tôi chuyển đến đây hai năm trước." },
+      "caution": "Không dùng since two years; dùng for two years hoặc since một mốc cụ thể.",
+      "exercise": {
+        "prompt": "She has lived here ___ 2020.",
+        "options": ["for", "since", "ago"],
+        "answer": 1,
+        "explanation": "Chọn “since”. Mẫu cần áp dụng: for + khoảng; since + mốc bắt đầu; khoảng + ago. Không dùng since two years; dùng for two years hoặc since một mốc cụ thể."
+      },
+      "theoryPage": 47,
+      "exercisePage": 48,
+      "keyPages": [285]
+    },
+    {
+      "id": 20,
+      "title": "I have done and I did",
+      "titleVi": "Hiện tại hoàn thành hay quá khứ đơn?",
+      "category": "Hiện tại hoàn thành",
+      "pattern": "Liên hệ hiện tại: have/has + V3; quá khứ đã kết thúc: V2",
+      "explanation": "Chọn hiện tại hoàn thành khi không giới hạn trong một mốc quá khứ đã kết thúc. Chọn quá khứ đơn với yesterday, last year hoặc khi hỏi chuyện xảy ra lúc nào.",
+      "example": {
+        "en": "I saw that film last weekend.",
+        "vi": "Tôi đã xem bộ phim đó cuối tuần trước."
+      },
+      "caution": "Không đồng nhất từ đã trong tiếng Việt với have/has; cần xét mốc thời gian.",
+      "exercise": {
+        "prompt": "We ___ him yesterday.",
+        "options": ["have seen", "see", "saw"],
+        "answer": 2,
+        "explanation": "Chọn “saw”. Mẫu cần áp dụng: Liên hệ hiện tại: have/has + V3; quá khứ đã kết thúc: V2. Không đồng nhất từ đã trong tiếng Việt với have/has; cần xét mốc thời gian."
+      },
+      "theoryPage": 49,
+      "exercisePage": 50,
+      "keyPages": [285]
+    },
+    {
+      "id": 21,
+      "title": "is done / was done",
+      "titleVi": "Câu bị động cơ bản",
+      "category": "Bị động",
+      "pattern": "be ở thì phù hợp + V3 (+ by ...)",
+      "explanation": "Dùng bị động khi tập trung vào người hoặc vật chịu tác động thay vì người thực hiện. Chọn is/are cho hiện tại, was/were cho quá khứ. Có thể nêu tác nhân bằng by.",
+      "example": { "en": "This bridge was built in 1998.", "vi": "Cây cầu này được xây năm 1998." },
+      "caution": "Sau be trong bị động dùng V3, không dùng động từ nguyên mẫu.",
+      "exercise": {
+        "prompt": "These rooms ___ every day.",
+        "options": ["are cleaned", "are cleaning", "cleaning"],
+        "answer": 0,
+        "explanation": "Chọn “are cleaned”. Mẫu cần áp dụng: be ở thì phù hợp + V3 (+ by ...). Sau be trong bị động dùng V3, không dùng động từ nguyên mẫu."
+      },
+      "theoryPage": 51,
+      "exercisePage": 52,
+      "keyPages": [286]
+    },
+    {
+      "id": 22,
+      "title": "is being done / has been done",
+      "titleVi": "Bị động tiếp diễn và hoàn thành",
+      "category": "Bị động",
+      "pattern": "am/is/are being + V3; have/has been + V3",
+      "explanation": "Being thể hiện việc đang được thực hiện; been trong cấu trúc hoàn thành thể hiện việc đã được thực hiện và có liên hệ hiện tại. Đừng bỏ thành phần be ở giữa.",
+      "example": { "en": "The road is being repaired.", "vi": "Con đường đang được sửa chữa." },
+      "caution": "Is being repaired khác is repairing: câu thứ hai có chủ ngữ thực hiện hành động.",
+      "exercise": {
+        "prompt": "The documents have ___ sent.",
+        "options": ["being", "been", "be"],
+        "answer": 1,
+        "explanation": "Chọn “been”. Mẫu cần áp dụng: am/is/are being + V3; have/has been + V3. Is being repaired khác is repairing: câu thứ hai có chủ ngữ thực hiện hành động."
+      },
+      "theoryPage": 53,
+      "exercisePage": 54,
+      "keyPages": [286]
+    },
+    {
+      "id": 23,
+      "title": "be / have / do",
+      "titleVi": "Ba trợ động từ quan trọng",
+      "category": "Các dạng động từ",
+      "pattern": "be + V-ing/V3; have + V3; do + V nguyên mẫu",
+      "explanation": "Be hỗ trợ thì tiếp diễn và bị động; have hỗ trợ thì hoàn thành; do hỗ trợ hỏi và phủ định ở hiện tại đơn hoặc quá khứ đơn. Chúng cũng có thể là động từ chính.",
+      "example": { "en": "Do you have enough time?", "vi": "Bạn có đủ thời gian không?" },
+      "caution": "Trong câu hỏi này do là trợ động từ, have là động từ chính; không đảo have theo kiểu thì hoàn thành.",
+      "exercise": {
+        "prompt": "What ___ you doing now?",
+        "options": ["do", "are", "have"],
+        "answer": 1,
+        "explanation": "Chọn “are”. Mẫu cần áp dụng: be + V-ing/V3; have + V3; do + V nguyên mẫu. Trong câu hỏi này do là trợ động từ, have là động từ chính; không đảo have theo kiểu thì hoàn thành."
+      },
+      "theoryPage": 55,
+      "exercisePage": 56,
+      "keyPages": [286]
+    },
+    {
+      "id": 24,
+      "title": "Regular and irregular verbs",
+      "titleVi": "Động từ có quy tắc và bất quy tắc",
+      "category": "Các dạng động từ",
+      "pattern": "work–worked–worked; go–went–gone",
+      "explanation": "Phân biệt nguyên mẫu, quá khứ đơn V2 và phân từ V3. Với động từ có quy tắc, V2/V3 thường giống nhau. Động từ bất quy tắc có thể giữ nguyên hoặc thay đổi theo cách riêng.",
+      "example": {
+        "en": "He has written three emails today.",
+        "vi": "Hôm nay anh ấy đã viết ba email."
+      },
+      "caution": "Sau have/has dùng V3: written, không dùng wrote.",
+      "exercise": {
+        "prompt": "The past participle of “take” is ___.",
+        "options": ["took", "taken", "taking"],
+        "answer": 1,
+        "explanation": "Chọn “taken”. Mẫu cần áp dụng: work–worked–worked; go–went–gone. Sau have/has dùng V3: written, không dùng wrote."
+      },
+      "theoryPage": 57,
+      "exercisePage": 58,
+      "keyPages": [286]
+    },
+    {
+      "id": 25,
+      "title": "What are you doing tomorrow?",
+      "titleVi": "Hiện tại tiếp diễn cho kế hoạch",
+      "category": "Tương lai",
+      "pattern": "am/is/are + V-ing + thời gian tương lai",
+      "explanation": "Hiện tại tiếp diễn còn dùng cho việc đã sắp xếp trong tương lai, thường có thời gian hoặc người tham gia rõ ràng. Ngữ cảnh phân biệt kế hoạch tương lai với việc đang diễn ra.",
+      "example": {
+        "en": "I’m meeting Hoa tomorrow morning.",
+        "vi": "Tôi có hẹn gặp Hoa vào sáng mai."
+      },
+      "caution": "Không dùng hiện tại đơn thay mọi kế hoạch cá nhân; hiện tại đơn thường hợp lịch trình cố định.",
+      "exercise": {
+        "prompt": "We ___ our friends this evening. It’s arranged.",
+        "options": ["are meeting", "meet every", "met"],
+        "answer": 0,
+        "explanation": "Chọn “are meeting”. Mẫu cần áp dụng: am/is/are + V-ing + thời gian tương lai. Không dùng hiện tại đơn thay mọi kế hoạch cá nhân; hiện tại đơn thường hợp lịch trình cố định."
+      },
+      "theoryPage": 59,
+      "exercisePage": 60,
+      "keyPages": [287]
+    },
+    {
+      "id": 26,
+      "title": "I’m going to ...",
+      "titleVi": "Dự định và dự đoán có căn cứ",
+      "category": "Tương lai",
+      "pattern": "am/is/are + going to + V nguyên mẫu",
+      "explanation": "Going to nói về dự định đã có hoặc dự đoán từ dấu hiệu hiện tại. Be phải chia đúng chủ ngữ. Động từ sau to ở dạng nguyên mẫu.",
+      "example": {
+        "en": "Look at those clouds. It’s going to rain.",
+        "vi": "Nhìn những đám mây kia. Trời sắp mưa rồi."
+      },
+      "caution": "Going to ở đây là cấu trúc tương lai, không phải lúc nào cũng dịch là đi tới.",
+      "exercise": {
+        "prompt": "She is going to ___ a new course.",
+        "options": ["starts", "starting", "start"],
+        "answer": 2,
+        "explanation": "Chọn “start”. Mẫu cần áp dụng: am/is/are + going to + V nguyên mẫu. Going to ở đây là cấu trúc tương lai, không phải lúc nào cũng dịch là đi tới."
+      },
+      "theoryPage": 61,
+      "exercisePage": 62,
+      "keyPages": [287]
+    },
+    {
+      "id": 27,
+      "title": "will / shall 1",
+      "titleVi": "Will: dự đoán và tương lai",
+      "category": "Tương lai",
+      "pattern": "will/won’t + V nguyên mẫu",
+      "explanation": "Will thường dùng để dự đoán hoặc nêu điều ta nghĩ sẽ xảy ra. Will dùng giống nhau với mọi chủ ngữ. Phủ định là will not, viết gọn won’t.",
+      "example": {
+        "en": "I think the journey will take two hours.",
+        "vi": "Tôi nghĩ chuyến đi sẽ mất hai giờ."
+      },
+      "caution": "Không thêm -s hay to sau will.",
+      "exercise": {
+        "prompt": "I think they ___ arrive soon.",
+        "options": ["will", "will to", "wills"],
+        "answer": 0,
+        "explanation": "Chọn “will”. Mẫu cần áp dụng: will/won’t + V nguyên mẫu. Không thêm -s hay to sau will."
+      },
+      "theoryPage": 63,
+      "exercisePage": 64,
+      "keyPages": [287]
+    },
+    {
+      "id": 28,
+      "title": "will / shall 2",
+      "titleVi": "Quyết định tức thì, đề nghị và lời hứa",
+      "category": "Tương lai",
+      "pattern": "I’ll + V; Shall I/we + V ...?",
+      "explanation": "Dùng I’ll khi quyết định ngay lúc nói, đưa ra lời giúp đỡ hoặc lời hứa. Shall I ...? đề nghị giúp; Shall we ...? gợi ý cùng làm gì. Với dự định đã có, cân nhắc going to.",
+      "example": {
+        "en": "You look tired. I’ll carry your bag.",
+        "vi": "Bạn có vẻ mệt. Để tôi xách túi giúp bạn."
+      },
+      "caution": "Không dùng Shall he ...? như mẫu đề nghị Shall I/we trong cách học cơ bản này.",
+      "exercise": {
+        "prompt": "___ we take a break?",
+        "options": ["Will to", "Shall", "Are"],
+        "answer": 1,
+        "explanation": "Chọn “Shall”. Mẫu cần áp dụng: I’ll + V; Shall I/we + V ...?. Không dùng Shall he ...? như mẫu đề nghị Shall I/we trong cách học cơ bản này."
+      },
+      "theoryPage": 65,
+      "exercisePage": 66,
+      "keyPages": [287]
+    },
+    {
+      "id": 29,
+      "title": "might",
+      "titleVi": "Có thể xảy ra nhưng chưa chắc",
+      "category": "Động từ tình thái và mệnh lệnh",
+      "pattern": "might / might not + V nguyên mẫu",
+      "explanation": "Might diễn tả khả năng chưa chắc chắn ở hiện tại hoặc tương lai. Không thay đổi theo chủ ngữ và không cần to trước động từ. Might not nghĩa là có thể không.",
+      "example": { "en": "I might stay at home tonight.", "vi": "Tối nay có thể tôi sẽ ở nhà." },
+      "caution": "Might not diễn tả khả năng không xảy ra; không phải lệnh cấm như mustn’t.",
+      "exercise": {
+        "prompt": "She might ___ us later.",
+        "options": ["calls", "call", "to call"],
+        "answer": 1,
+        "explanation": "Chọn “call”. Mẫu cần áp dụng: might / might not + V nguyên mẫu. Might not diễn tả khả năng không xảy ra; không phải lệnh cấm như mustn’t."
+      },
+      "theoryPage": 67,
+      "exercisePage": 68,
+      "keyPages": [287]
+    },
+    {
+      "id": 30,
+      "title": "can and could",
+      "titleVi": "Khả năng, xin phép và nhờ vả",
+      "category": "Động từ tình thái và mệnh lệnh",
+      "pattern": "can/can’t; could/couldn’t + V nguyên mẫu",
+      "explanation": "Can diễn tả khả năng hiện tại hoặc xin phép; could có thể nói khả năng nói chung trong quá khứ và thường làm lời nhờ vả lịch sự hơn. Sau cả hai dùng nguyên mẫu.",
+      "example": {
+        "en": "Could you open the window, please?",
+        "vi": "Bạn mở cửa sổ giúp tôi được không?"
+      },
+      "caution": "Không thêm to sau can/could; không thêm -s ở ngôi thứ ba.",
+      "exercise": {
+        "prompt": "My brother can ___ very well.",
+        "options": ["swims", "swim", "to swim"],
+        "answer": 1,
+        "explanation": "Chọn “swim”. Mẫu cần áp dụng: can/can’t; could/couldn’t + V nguyên mẫu. Không thêm to sau can/could; không thêm -s ở ngôi thứ ba."
+      },
+      "theoryPage": 69,
+      "exercisePage": 70,
+      "keyPages": [288]
+    },
+    {
+      "id": 31,
+      "title": "must / mustn’t / don’t need to",
+      "titleVi": "Bắt buộc, cấm và không cần",
+      "category": "Động từ tình thái và mệnh lệnh",
+      "pattern": "must + V; mustn’t + V; don’t need to + V",
+      "explanation": "Must thể hiện sự cần thiết hoặc bắt buộc. Mustn’t là không được phép. Don’t need to nghĩa là không cần làm, nhưng vẫn có thể làm nếu muốn.",
+      "example": { "en": "You don’t need to print the email.", "vi": "Bạn không cần in email đó." },
+      "caution": "Mustn’t và don’t need to không đồng nghĩa: một bên cấm, một bên không cần.",
+      "exercise": {
+        "prompt": "The sign says NO SMOKING. You ___ smoke here.",
+        "options": ["mustn’t", "don’t need to", "might"],
+        "answer": 0,
+        "explanation": "Chọn “mustn’t”. Mẫu cần áp dụng: must + V; mustn’t + V; don’t need to + V. Mustn’t và don’t need to không đồng nghĩa: một bên cấm, một bên không cần."
+      },
+      "theoryPage": 71,
+      "exercisePage": 72,
+      "keyPages": [288]
+    },
+    {
+      "id": 32,
+      "title": "should",
+      "titleVi": "Lời khuyên và điều nên làm",
+      "category": "Động từ tình thái và mệnh lệnh",
+      "pattern": "should / shouldn’t + V nguyên mẫu",
+      "explanation": "Dùng should để đưa ra lời khuyên hoặc nói điều nên làm. Shouldn’t khuyên không nên làm. Mức độ nhẹ hơn yêu cầu bắt buộc bằng must hoặc have to.",
+      "example": { "en": "You should get some rest.", "vi": "Bạn nên nghỉ ngơi một chút." },
+      "caution": "Không dùng should to; sau should là nguyên mẫu.",
+      "exercise": {
+        "prompt": "You look ill. You ___ see a doctor.",
+        "options": ["should", "should to", "shoulds"],
+        "answer": 0,
+        "explanation": "Chọn “should”. Mẫu cần áp dụng: should / shouldn’t + V nguyên mẫu. Không dùng should to; sau should là nguyên mẫu."
+      },
+      "theoryPage": 73,
+      "exercisePage": 74,
+      "keyPages": [288]
+    },
+    {
+      "id": 33,
+      "title": "I have to ...",
+      "titleVi": "Sự cần thiết do quy định hoặc hoàn cảnh",
+      "category": "Động từ tình thái và mệnh lệnh",
+      "pattern": "have/has to + V; don’t/doesn’t have to + V",
+      "explanation": "Have to nói việc cần làm theo yêu cầu hoặc hoàn cảnh. Cấu trúc này chia theo thì: has to, had to. Hỏi và phủ định thường dùng do/does/did.",
+      "example": {
+        "en": "She has to wear a uniform at work.",
+        "vi": "Cô ấy phải mặc đồng phục ở nơi làm việc."
+      },
+      "caution": "Don’t have to là không bắt buộc, không phải bị cấm.",
+      "exercise": {
+        "prompt": "___ you have to work on Sundays?",
+        "options": ["Are", "Do", "Have"],
+        "answer": 1,
+        "explanation": "Chọn “Do”. Mẫu cần áp dụng: have/has to + V; don’t/doesn’t have to + V. Don’t have to là không bắt buộc, không phải bị cấm."
+      },
+      "theoryPage": 75,
+      "exercisePage": 76,
+      "keyPages": [288]
+    },
+    {
+      "id": 34,
+      "title": "Would you like ...? I’d like ...",
+      "titleVi": "Mời và bày tỏ mong muốn lịch sự",
+      "category": "Động từ tình thái và mệnh lệnh",
+      "pattern": "Would you like + danh từ/to V?; I’d like + danh từ/to V",
+      "explanation": "Would like là cách lịch sự để nói muốn hoặc mời ai dùng gì, làm gì. Khác với like nói sở thích nói chung. Sau would like, nếu có động từ thì dùng to.",
+      "example": {
+        "en": "Would you like to have some tea?",
+        "vi": "Bạn có muốn uống chút trà không?"
+      },
+      "caution": "I’d like to go khác I like going: một bên mong muốn, một bên sở thích.",
+      "exercise": {
+        "prompt": "I’d like ___ a table for two.",
+        "options": ["book", "booking", "to book"],
+        "answer": 2,
+        "explanation": "Chọn “to book”. Mẫu cần áp dụng: Would you like + danh từ/to V?; I’d like + danh từ/to V. I’d like to go khác I like going: một bên mong muốn, một bên sở thích."
+      },
+      "theoryPage": 77,
+      "exercisePage": 78,
+      "keyPages": [289]
+    },
+    {
+      "id": 35,
+      "title": "Do this! Don’t do that! Let’s ...",
+      "titleVi": "Mệnh lệnh và lời rủ cùng làm",
+      "category": "Động từ tình thái và mệnh lệnh",
+      "pattern": "V nguyên mẫu; Don’t + V; Let’s + V",
+      "explanation": "Câu mệnh lệnh thường bỏ chủ ngữ you. Thêm please để lịch sự. Don’t dùng cho yêu cầu không làm; let’s gợi ý người nói và người nghe cùng làm.",
+      "example": { "en": "Let’s walk to the station.", "vi": "Chúng ta đi bộ đến ga nhé." },
+      "caution": "Không thêm to sau let’s; viết Let’s go, không viết Let’s to go.",
+      "exercise": {
+        "prompt": "___ touch that wire. It’s dangerous.",
+        "options": ["Not", "Don’t", "Doesn’t"],
+        "answer": 1,
+        "explanation": "Chọn “Don’t”. Mẫu cần áp dụng: V nguyên mẫu; Don’t + V; Let’s + V. Không thêm to sau let’s; viết Let’s go, không viết Let’s to go."
+      },
+      "theoryPage": 79,
+      "exercisePage": 80,
+      "keyPages": [289]
+    },
+    {
+      "id": 36,
+      "title": "I used to ...",
+      "titleVi": "Thói quen hoặc trạng thái đã thay đổi",
+      "category": "Động từ tình thái và mệnh lệnh",
+      "pattern": "used to + V; didn’t use to + V",
+      "explanation": "Used to diễn tả điều từng đúng hoặc thường xảy ra trước đây nhưng nay không còn như vậy. Không dùng để kể một lần xảy ra riêng lẻ. Hỏi/phủ định theo cấu trúc với did.",
+      "example": {
+        "en": "I used to live near the sea.",
+        "vi": "Trước đây tôi từng sống gần biển."
+      },
+      "caution": "Used to do khác be used to doing; bài này nói thói quen trong quá khứ.",
+      "exercise": {
+        "prompt": "He used to ___ football every weekend.",
+        "options": ["played", "playing", "play"],
+        "answer": 2,
+        "explanation": "Chọn “play”. Mẫu cần áp dụng: used to + V; didn’t use to + V. Used to do khác be used to doing; bài này nói thói quen trong quá khứ."
+      },
+      "theoryPage": 81,
+      "exercisePage": 82,
+      "keyPages": [289]
+    },
+    {
+      "id": 37,
+      "title": "there is / there are",
+      "titleVi": "Nói có ai hoặc vật gì ở đâu",
+      "category": "There và it",
+      "pattern": "There is + số ít/không đếm được; There are + số nhiều",
+      "explanation": "There is/are giới thiệu sự tồn tại của người hoặc vật. Hỏi bằng Is there ...? / Are there ...? Chọn dạng theo danh từ theo sau, không theo địa điểm.",
+      "example": {
+        "en": "There are two chairs in the kitchen.",
+        "vi": "Có hai chiếc ghế trong bếp."
+      },
+      "caution": "There are khác They are: giới thiệu sự tồn tại khác với mô tả những thứ đã biết.",
+      "exercise": {
+        "prompt": "There ___ some milk in the fridge.",
+        "options": ["are", "is", "have"],
+        "answer": 1,
+        "explanation": "Chọn “is”. Mẫu cần áp dụng: There is + số ít/không đếm được; There are + số nhiều. There are khác They are: giới thiệu sự tồn tại khác với mô tả những thứ đã biết."
+      },
+      "theoryPage": 83,
+      "exercisePage": 84,
+      "keyPages": [289]
+    },
+    {
+      "id": 38,
+      "title": "there was / were / has been / will be",
+      "titleVi": "There ở các thì khác nhau",
+      "category": "There và it",
+      "pattern": "there was/were; there has/have been; there will be",
+      "explanation": "Giữ there làm chủ ngữ hình thức và thay phần be theo thời gian. Was/were nói về quá khứ; has/have been nối tới hiện tại; will be nói về tương lai.",
+      "example": {
+        "en": "There will be a meeting tomorrow.",
+        "vi": "Ngày mai sẽ có một cuộc họp."
+      },
+      "caution": "Không bỏ be sau will: There will a meeting là thiếu động từ.",
+      "exercise": {
+        "prompt": "There ___ a lot of people at the concert yesterday.",
+        "options": ["was", "were", "will be"],
+        "answer": 1,
+        "explanation": "Chọn “were”. Mẫu cần áp dụng: there was/were; there has/have been; there will be. Không bỏ be sau will: There will a meeting là thiếu động từ."
+      },
+      "theoryPage": 85,
+      "exercisePage": 86,
+      "keyPages": [289]
+    },
+    {
+      "id": 39,
+      "title": "It",
+      "titleVi": "Chủ ngữ it cho thời tiết, giờ và khoảng cách",
+      "category": "There và it",
+      "pattern": "It + be + thời tiết/giờ/ngày/khoảng cách",
+      "explanation": "Tiếng Anh cần chủ ngữ it khi nói trời mưa, mấy giờ, hôm nay là ngày nào hoặc khoảng cách bao xa. It trong các câu này không chỉ một đồ vật cụ thể.",
+      "example": {
+        "en": "It’s about five kilometres to the airport.",
+        "vi": "Từ đây đến sân bay khoảng năm kilômét."
+      },
+      "caution": "Không dịch câu Trời lạnh thành Is cold; cần It is cold.",
+      "exercise": {
+        "prompt": "___ is raining outside.",
+        "options": ["There", "It", "They"],
+        "answer": 1,
+        "explanation": "Chọn “It”. Mẫu cần áp dụng: It + be + thời tiết/giờ/ngày/khoảng cách. Không dịch câu Trời lạnh thành Is cold; cần It is cold."
+      },
+      "theoryPage": 87,
+      "exercisePage": 88,
+      "keyPages": [290]
+    },
+    {
+      "id": 40,
+      "title": "I am / I don’t ...",
+      "titleVi": "Dùng trợ động từ để tránh lặp",
+      "category": "Trợ động từ",
+      "pattern": "Đại từ + be/have/do/trợ động từ phù hợp",
+      "explanation": "Có thể dùng trợ động từ thay cho phần đã được nhắc đến. Chọn be với be, have với thì hoàn thành, do/does/did với động từ thường và giữ cùng thì với ý trước.",
+      "example": {
+        "en": "I like coffee, but my sister doesn’t.",
+        "vi": "Tôi thích cà phê, nhưng chị tôi thì không."
+      },
+      "caution": "Không chọn trợ động từ theo bản dịch tiếng Việt; cần xem động từ và thì của câu gốc.",
+      "exercise": {
+        "prompt": "He works here, but I ___.",
+        "options": ["am not", "don’t", "haven’t"],
+        "answer": 1,
+        "explanation": "Chọn “don’t”. Mẫu cần áp dụng: Đại từ + be/have/do/trợ động từ phù hợp. Không chọn trợ động từ theo bản dịch tiếng Việt; cần xem động từ và thì của câu gốc."
+      },
+      "theoryPage": 89,
+      "exercisePage": 90,
+      "keyPages": [290]
+    },
+    {
+      "id": 41,
+      "title": "Have you? Are you? Don’t you?",
+      "titleVi": "Câu phản hồi và câu hỏi đuôi",
+      "category": "Trợ động từ",
+      "pattern": "Trợ động từ + đại từ?; mệnh đề, trợ động từ đối lập + đại từ?",
+      "explanation": "Có thể dùng câu hỏi ngắn để thể hiện quan tâm hoặc ngạc nhiên. Câu hỏi đuôi thường dùng dạng phủ định sau câu khẳng định và ngược lại; giữ đúng trợ động từ và đại từ.",
+      "example": { "en": "You’re busy, aren’t you?", "vi": "Bạn đang bận, phải không?" },
+      "caution": "Câu phản hồi Really? Are you? và câu hỏi đuôi gắn cuối câu là hai cách dùng khác nhau.",
+      "exercise": {
+        "prompt": "She likes music, ___ she?",
+        "options": ["isn’t", "doesn’t", "don’t"],
+        "answer": 1,
+        "explanation": "Chọn “doesn’t”. Mẫu cần áp dụng: Trợ động từ + đại từ?; mệnh đề, trợ động từ đối lập + đại từ?. Câu phản hồi Really? Are you? và câu hỏi đuôi gắn cuối câu là hai cách dùng khác nhau."
+      },
+      "theoryPage": 91,
+      "exercisePage": 92,
+      "keyPages": [290]
+    },
+    {
+      "id": 42,
+      "title": "too / either / so / neither",
+      "titleVi": "Nói mình cũng vậy",
+      "category": "Trợ động từ",
+      "pattern": "So + trợ động từ + chủ ngữ; Neither + trợ động từ + chủ ngữ",
+      "explanation": "Dùng too hoặc so để đồng tình với câu khẳng định. Dùng either hoặc neither với ý phủ định. So/neither đi với trợ động từ đứng trước chủ ngữ.",
+      "example": { "en": "I’m tired. So am I.", "vi": "Tôi mệt. Tôi cũng vậy." },
+      "caution": "Sau neither không thêm phủ định lần nữa: Neither do I, không phải Neither don’t I.",
+      "exercise": {
+        "prompt": "“I don’t eat meat.” “Neither ___ I.”",
+        "options": ["am", "do", "don’t"],
+        "answer": 1,
+        "explanation": "Chọn “do”. Mẫu cần áp dụng: So + trợ động từ + chủ ngữ; Neither + trợ động từ + chủ ngữ. Sau neither không thêm phủ định lần nữa: Neither do I, không phải Neither don’t I."
+      },
+      "theoryPage": 93,
+      "exercisePage": 94,
+      "keyPages": [290]
+    },
+    {
+      "id": 43,
+      "title": "isn’t / haven’t / don’t",
+      "titleVi": "Cách tạo câu phủ định",
+      "category": "Trợ động từ",
+      "pattern": "be/have/trợ động từ + not; don’t/doesn’t/didn’t + V",
+      "explanation": "Đặt not sau be hoặc trợ động từ đầu tiên. Với động từ thường ở các thì đơn, dùng do/does/did rồi thêm not. Some thường chuyển thành any khi phủ định trong ngữ cảnh cơ bản.",
+      "example": { "en": "We haven’t seen that film.", "vi": "Chúng tôi chưa xem bộ phim đó." },
+      "caution": "Động từ be tự tạo phủ định; không nói She doesn’t is ready.",
+      "exercise": {
+        "prompt": "He ___ understand the question.",
+        "options": ["isn’t", "doesn’t", "hasn’t"],
+        "answer": 1,
+        "explanation": "Chọn “doesn’t”. Mẫu cần áp dụng: be/have/trợ động từ + not; don’t/doesn’t/didn’t + V. Động từ be tự tạo phủ định; không nói She doesn’t is ready."
+      },
+      "theoryPage": 95,
+      "exercisePage": 96,
+      "keyPages": [290]
+    },
+    {
+      "id": 44,
+      "title": "Questions 1",
+      "titleVi": "Trật tự cơ bản trong câu hỏi",
+      "category": "Câu hỏi",
+      "pattern": "Từ hỏi + trợ động từ + chủ ngữ + động từ ...?",
+      "explanation": "Trong câu hỏi có tân ngữ hoặc thông tin cần hỏi, trợ động từ thường đứng trước chủ ngữ. Với động từ thường ở thì đơn, thêm do/does/did rồi dùng nguyên mẫu.",
+      "example": { "en": "Where does your sister live?", "vi": "Chị bạn sống ở đâu?" },
+      "caution": "Không giữ trật tự câu kể trong câu hỏi trực tiếp như Where your sister lives?",
+      "exercise": {
+        "prompt": "Where ___ you go last night?",
+        "options": ["did", "do", "were"],
+        "answer": 0,
+        "explanation": "Chọn “did”. Mẫu cần áp dụng: Từ hỏi + trợ động từ + chủ ngữ + động từ ...?. Không giữ trật tự câu kể trong câu hỏi trực tiếp như Where your sister lives?"
+      },
+      "theoryPage": 97,
+      "exercisePage": 98,
+      "keyPages": [291]
+    },
+    {
+      "id": 45,
+      "title": "Who saw you? Who did you see?",
+      "titleVi": "Hỏi chủ ngữ và hỏi tân ngữ",
+      "category": "Câu hỏi",
+      "pattern": "Who + V ...?; Who + do/does/did + chủ ngữ + V ...?",
+      "explanation": "Nếu who/what chính là chủ ngữ cần tìm, thường không thêm do/does/did trong câu khẳng định. Nếu hỏi người/vật chịu tác động, dùng cấu trúc câu hỏi thông thường.",
+      "example": { "en": "Who called you this morning?", "vi": "Ai đã gọi cho bạn sáng nay?" },
+      "caution": "Who called you? hỏi ai gọi; Who did you call? hỏi bạn gọi ai.",
+      "exercise": {
+        "prompt": "___ broke the window?",
+        "options": ["Who", "Who did", "Who was"],
+        "answer": 0,
+        "explanation": "Chọn “Who”. Mẫu cần áp dụng: Who + V ...?; Who + do/does/did + chủ ngữ + V ...?. Who called you? hỏi ai gọi; Who did you call? hỏi bạn gọi ai."
+      },
+      "theoryPage": 99,
+      "exercisePage": 100,
+      "keyPages": [291]
+    },
+    {
+      "id": 46,
+      "title": "Who is she talking to? What is it like?",
+      "titleVi": "Giới từ trong câu hỏi và hỏi đặc điểm",
+      "category": "Câu hỏi",
+      "pattern": "Who ... to/with?; What is ... like?",
+      "explanation": "Câu hỏi thông dụng thường để giới từ ở cuối. What is ... like? hỏi đặc điểm, tính chất hoặc trải nghiệm; khác với What does ... look like? hỏi diện mạo.",
+      "example": { "en": "What is your new job like?", "vi": "Công việc mới của bạn thế nào?" },
+      "caution": "What is he like? không có nghĩa anh ấy thích gì; sở thích dùng What does he like?",
+      "exercise": {
+        "prompt": "Who are you waiting ___?",
+        "options": ["to", "for", "at"],
+        "answer": 1,
+        "explanation": "Chọn “for”. Mẫu cần áp dụng: Who ... to/with?; What is ... like?. What is he like? không có nghĩa anh ấy thích gì; sở thích dùng What does he like?"
+      },
+      "theoryPage": 101,
+      "exercisePage": 102,
+      "keyPages": [291]
+    },
+    {
+      "id": 47,
+      "title": "What / Which / How",
+      "titleVi": "Chọn từ hỏi phù hợp",
+      "category": "Câu hỏi",
+      "pattern": "what + danh từ; which + lựa chọn; how + tính từ/trạng từ",
+      "explanation": "What hỏi thông tin mở. Which chọn trong một nhóm đã biết. How hỏi cách thức và kết hợp với old, often, far, much để hỏi tuổi, tần suất, khoảng cách hoặc lượng.",
+      "example": {
+        "en": "How often do you exercise?",
+        "vi": "Bạn tập thể dục thường xuyên thế nào?"
+      },
+      "caution": "How much dùng cho lượng/giá; how many dùng với danh từ đếm được số nhiều.",
+      "exercise": {
+        "prompt": "___ bag is yours, the red one or the blue one?",
+        "options": ["How", "Which", "Who"],
+        "answer": 1,
+        "explanation": "Chọn “Which”. Mẫu cần áp dụng: what + danh từ; which + lựa chọn; how + tính từ/trạng từ. How much dùng cho lượng/giá; how many dùng với danh từ đếm được số nhiều."
+      },
+      "theoryPage": 103,
+      "exercisePage": 104,
+      "keyPages": [291]
+    },
+    {
+      "id": 48,
+      "title": "How long does it take ...?",
+      "titleVi": "Hỏi mất bao lâu",
+      "category": "Câu hỏi",
+      "pattern": "It takes + người + khoảng thời gian + to V",
+      "explanation": "Take trong mẫu này diễn tả thời gian cần để làm việc gì. Người thực hiện có thể là tân ngữ như me, him, us. Chia takes/took/will take theo thời điểm.",
+      "example": {
+        "en": "It takes me twenty minutes to get to work.",
+        "vi": "Tôi mất hai mươi phút để đến chỗ làm."
+      },
+      "caution": "Sau khoảng thời gian dùng to + động từ, không dùng for do.",
+      "exercise": {
+        "prompt": "How long does it ___ to cook rice?",
+        "options": ["takes", "take", "taking"],
+        "answer": 1,
+        "explanation": "Chọn “take”. Mẫu cần áp dụng: It takes + người + khoảng thời gian + to V. Sau khoảng thời gian dùng to + động từ, không dùng for do."
+      },
+      "theoryPage": 105,
+      "exercisePage": 106,
+      "keyPages": [292]
+    },
+    {
+      "id": 49,
+      "title": "Do you know where ...?",
+      "titleVi": "Câu hỏi nằm trong một câu khác",
+      "category": "Câu hỏi",
+      "pattern": "Do you know + từ hỏi + chủ ngữ + động từ ...?",
+      "explanation": "Sau Do you know ...?, I don’t know ... hoặc Can you tell me ...?, phần thông tin theo sau dùng trật tự câu kể. Nếu câu hỏi có/không, có thể dùng if hoặc whether.",
+      "example": {
+        "en": "Do you know where she lives?",
+        "vi": "Bạn có biết cô ấy sống ở đâu không?"
+      },
+      "caution": "Không đảo trợ động từ trong phần câu hỏi gián tiếp: where she lives, không phải where does she live.",
+      "exercise": {
+        "prompt": "Do you know what time ___?",
+        "options": ["is it", "it is", "does it"],
+        "answer": 1,
+        "explanation": "Chọn “it is”. Mẫu cần áp dụng: Do you know + từ hỏi + chủ ngữ + động từ ...?. Không đảo trợ động từ trong phần câu hỏi gián tiếp: where she lives, không phải where does she live."
+      },
+      "theoryPage": 107,
+      "exercisePage": 108,
+      "keyPages": [292]
+    },
+    {
+      "id": 50,
+      "title": "She said that ... He told me that ...",
+      "titleVi": "Lời nói gián tiếp",
+      "category": "Lời nói gián tiếp",
+      "pattern": "said (that) ...; told + người + (that) ...",
+      "explanation": "Tường thuật lại lời nói bằng said hoặc told. Told cần nêu người nghe; said thường không có tân ngữ người ngay sau. Khi chuyển góc nhìn, đại từ và thì có thể thay đổi theo ngữ cảnh.",
+      "example": {
+        "en": "She told me that she was busy.",
+        "vi": "Cô ấy nói với tôi rằng cô ấy đang bận."
+      },
+      "caution": "Không nói said me; dùng told me hoặc said to me.",
+      "exercise": {
+        "prompt": "He ___ me that he was tired.",
+        "options": ["said", "told", "say"],
+        "answer": 1,
+        "explanation": "Chọn “told”. Mẫu cần áp dụng: said (that) ...; told + người + (that) .... Không nói said me; dùng told me hoặc said to me."
+      },
+      "theoryPage": 109,
+      "exercisePage": 110,
+      "keyPages": [292]
+    },
+    {
+      "id": 51,
+      "title": "work / working / to work",
+      "titleVi": "Chọn dạng động từ",
+      "category": "V-ing và to V",
+      "pattern": "Nguyên mẫu; to + V; V-ing",
+      "explanation": "Dạng động từ phụ thuộc từ đứng trước: trợ động từ tình thái đi với nguyên mẫu; want cần to V; một số động từ và giới từ đi với V-ing. Hãy học theo cụm.",
+      "example": {
+        "en": "I can swim, and I enjoy swimming.",
+        "vi": "Tôi biết bơi và tôi thích bơi."
+      },
+      "caution": "Không tự thêm to hoặc -ing chỉ vì hai động từ đứng cạnh nhau.",
+      "exercise": {
+        "prompt": "You must ___ your seat belt.",
+        "options": ["wear", "to wear", "wearing"],
+        "answer": 0,
+        "explanation": "Chọn “wear”. Mẫu cần áp dụng: Nguyên mẫu; to + V; V-ing. Không tự thêm to hoặc -ing chỉ vì hai động từ đứng cạnh nhau."
+      },
+      "theoryPage": 111,
+      "exercisePage": 112,
+      "keyPages": [292]
+    },
+    {
+      "id": 52,
+      "title": "to ... and -ing",
+      "titleVi": "Sau động từ dùng to V hay V-ing?",
+      "category": "V-ing và to V",
+      "pattern": "want/decide/hope + to V; enjoy/finish/mind + V-ing",
+      "explanation": "Một số động từ cần theo sau bằng to V, số khác cần V-ing. Like/love/hate có thể dùng cả hai trong nhiều ngữ cảnh; would like thường đi với to V.",
+      "example": { "en": "I enjoy learning new words.", "vi": "Tôi thích học từ mới." },
+      "caution": "Enjoy không đi với to V trong cấu trúc này; dùng enjoy doing.",
+      "exercise": {
+        "prompt": "We decided ___ at home.",
+        "options": ["staying", "to stay", "stay"],
+        "answer": 1,
+        "explanation": "Chọn “to stay”. Mẫu cần áp dụng: want/decide/hope + to V; enjoy/finish/mind + V-ing. Enjoy không đi với to V trong cấu trúc này; dùng enjoy doing."
+      },
+      "theoryPage": 113,
+      "exercisePage": 114,
+      "keyPages": [293]
+    },
+    {
+      "id": 53,
+      "title": "I want you to ...",
+      "titleVi": "Muốn hoặc yêu cầu ai làm gì",
+      "category": "V-ing và to V",
+      "pattern": "want/ask/tell + người + to V; make/let + người + V",
+      "explanation": "Khi có người nhận yêu cầu, đặt người đó trước to V. Tell someone not to do diễn tả bảo ai đừng làm. Make và let dùng nguyên mẫu không to trong cấu trúc cơ bản.",
+      "example": { "en": "She asked me to wait outside.", "vi": "Cô ấy bảo tôi đợi bên ngoài." },
+      "caution": "Không bỏ người sau tell khi muốn diễn đạt bảo ai làm gì.",
+      "exercise": {
+        "prompt": "My teacher told us ___ quiet.",
+        "options": ["be", "to be", "being"],
+        "answer": 1,
+        "explanation": "Chọn “to be”. Mẫu cần áp dụng: want/ask/tell + người + to V; make/let + người + V. Không bỏ người sau tell khi muốn diễn đạt bảo ai làm gì."
+      },
+      "theoryPage": 115,
+      "exercisePage": 116,
+      "keyPages": [293]
+    },
+    {
+      "id": 54,
+      "title": "I went to the shop to ...",
+      "titleVi": "Diễn tả mục đích",
+      "category": "V-ing và to V",
+      "pattern": "to + V nguyên mẫu; for + danh từ",
+      "explanation": "Dùng to V để nói làm một việc nhằm mục đích gì. For + danh từ nói mục đích liên quan tới một đồ vật hoặc hoạt động được gọi bằng danh từ. Có thể dùng for someone to V.",
+      "example": { "en": "I went to the library to study.", "vi": "Tôi đến thư viện để học." },
+      "caution": "Không dùng for study thay cho to study khi nêu mục đích bằng động từ.",
+      "exercise": {
+        "prompt": "She called me ___ for help.",
+        "options": ["for ask", "to ask", "asking"],
+        "answer": 1,
+        "explanation": "Chọn “to ask”. Mẫu cần áp dụng: to + V nguyên mẫu; for + danh từ. Không dùng for study thay cho to study khi nêu mục đích bằng động từ."
+      },
+      "theoryPage": 117,
+      "exercisePage": 118,
+      "keyPages": [293]
+    },
+    {
+      "id": 55,
+      "title": "go to / go on / go for / go -ing",
+      "titleVi": "Các cụm thông dụng với go",
+      "category": "Go, get, do, make, have",
+      "pattern": "go to + nơi; go on + chuyến; go for + hoạt động; go + V-ing",
+      "explanation": "Go kết hợp với giới từ hoặc V-ing theo cụm: go to work, go on holiday, go for a walk, go swimming. Học cả cụm và chú ý các ngoại lệ như go home.",
+      "example": {
+        "en": "Let’s go for a walk after dinner.",
+        "vi": "Sau bữa tối chúng ta đi dạo nhé."
+      },
+      "caution": "Home sau go thường không cần to.",
+      "exercise": {
+        "prompt": "We often go ___ on Sundays.",
+        "options": ["swim", "swimming", "to swimming"],
+        "answer": 1,
+        "explanation": "Chọn “swimming”. Mẫu cần áp dụng: go to + nơi; go on + chuyến; go for + hoạt động; go + V-ing. Home sau go thường không cần to."
+      },
+      "theoryPage": 119,
+      "exercisePage": 120,
+      "keyPages": [293]
+    },
+    {
+      "id": 56,
+      "title": "get",
+      "titleVi": "Các nghĩa thường gặp của get",
+      "category": "Go, get, do, make, have",
+      "pattern": "get + danh từ; get + tính từ; get to + nơi",
+      "explanation": "Get có thể nghĩa là nhận, mua, lấy hoặc đến nơi. Get + tính từ thường chỉ sự thay đổi trạng thái như get cold. Get on/off và get in/out of dùng theo phương tiện.",
+      "example": {
+        "en": "It’s getting dark. Let’s go home.",
+        "vi": "Trời đang tối dần. Chúng ta về nhà thôi."
+      },
+      "caution": "Không dịch get cố định thành nhận; nghĩa phụ thuộc cả cụm.",
+      "exercise": {
+        "prompt": "What time did you get ___ the station?",
+        "options": ["to", "at", "in"],
+        "answer": 0,
+        "explanation": "Chọn “to”. Mẫu cần áp dụng: get + danh từ; get + tính từ; get to + nơi. Không dịch get cố định thành nhận; nghĩa phụ thuộc cả cụm."
+      },
+      "theoryPage": 121,
+      "exercisePage": 122,
+      "keyPages": [294]
+    },
+    {
+      "id": 57,
+      "title": "do and make",
+      "titleVi": "Phân biệt do và make",
+      "category": "Go, get, do, make, have",
+      "pattern": "do + công việc/hoạt động; make + sản phẩm/kết quả",
+      "explanation": "Do thường đi với công việc và hoạt động; make thường đi với thứ được tạo ra hoặc kết quả. Nhiều cách dùng là cụm cố định nên cần học cả cụm như do homework, make a mistake.",
+      "example": {
+        "en": "I made a mistake in the report.",
+        "vi": "Tôi đã mắc một lỗi trong bản báo cáo."
+      },
+      "caution": "Không nói do a mistake; dùng make a mistake.",
+      "exercise": {
+        "prompt": "Have you ___ your homework?",
+        "options": ["made", "done", "make"],
+        "answer": 1,
+        "explanation": "Chọn “done”. Mẫu cần áp dụng: do + công việc/hoạt động; make + sản phẩm/kết quả. Không nói do a mistake; dùng make a mistake."
+      },
+      "theoryPage": 123,
+      "exercisePage": 124,
+      "keyPages": [294]
+    },
+    {
+      "id": 58,
+      "title": "have",
+      "titleVi": "Have ngoài nghĩa sở hữu",
+      "category": "Go, get, do, make, have",
+      "pattern": "have breakfast/a shower/a good time ...",
+      "explanation": "Have còn dùng trong nhiều cụm diễn tả ăn uống, hoạt động hoặc trải nghiệm. Khi mang nghĩa hoạt động, have có thể dùng ở thì tiếp diễn. Hỏi/phủ định thường với do/does/did.",
+      "example": { "en": "We’re having lunch now.", "vi": "Bây giờ chúng tôi đang ăn trưa." },
+      "caution": "Have got không thay have trong mọi cụm hoạt động: không dùng have got lunch cho nghĩa ăn trưa.",
+      "exercise": {
+        "prompt": "She ___ a shower when I called.",
+        "options": ["was having", "had got", "has got"],
+        "answer": 0,
+        "explanation": "Chọn “was having”. Mẫu cần áp dụng: have breakfast/a shower/a good time .... Have got không thay have trong mọi cụm hoạt động: không dùng have got lunch cho nghĩa ăn trưa."
+      },
+      "theoryPage": 125,
+      "exercisePage": 126,
+      "keyPages": [294]
+    },
+    {
+      "id": 59,
+      "title": "I / me / he / him / they / them",
+      "titleVi": "Đại từ chủ ngữ và tân ngữ",
+      "category": "Đại từ và sở hữu",
+      "pattern": "Chủ ngữ: I/he/she/we/they; tân ngữ: me/him/her/us/them",
+      "explanation": "Dùng I, he, she... khi đại từ làm chủ ngữ. Dùng me, him, her... sau động từ hoặc giới từ. It và you giữ nguyên ở cả hai vị trí.",
+      "example": {
+        "en": "I know her, and she knows me.",
+        "vi": "Tôi biết cô ấy, và cô ấy biết tôi."
+      },
+      "caution": "Sau giới từ dùng tân ngữ: with me, không phải with I.",
+      "exercise": {
+        "prompt": "Can you help ___?",
+        "options": ["I", "me", "my"],
+        "answer": 1,
+        "explanation": "Chọn “me”. Mẫu cần áp dụng: Chủ ngữ: I/he/she/we/they; tân ngữ: me/him/her/us/them. Sau giới từ dùng tân ngữ: with me, không phải with I."
+      },
+      "theoryPage": 127,
+      "exercisePage": 128,
+      "keyPages": [294]
+    },
+    {
+      "id": 60,
+      "title": "my / your / his / her / their",
+      "titleVi": "Tính từ sở hữu",
+      "category": "Đại từ và sở hữu",
+      "pattern": "my/your/his/her/its/our/their + danh từ",
+      "explanation": "Tính từ sở hữu đứng trước danh từ và phụ thuộc người sở hữu, không phụ thuộc giới tính của đồ vật. Its chỉ sở hữu; it’s là it is hoặc it has.",
+      "example": { "en": "This is our classroom.", "vi": "Đây là lớp học của chúng tôi." },
+      "caution": "Không dùng dấu nháy trong its khi chỉ sở hữu.",
+      "exercise": {
+        "prompt": "Anna is with ___ brother.",
+        "options": ["his", "her", "hers"],
+        "answer": 1,
+        "explanation": "Chọn “her”. Mẫu cần áp dụng: my/your/his/her/its/our/their + danh từ. Không dùng dấu nháy trong its khi chỉ sở hữu."
+      },
+      "theoryPage": 129,
+      "exercisePage": 130,
+      "keyPages": [294]
+    },
+    {
+      "id": 61,
+      "title": "Whose is this? It’s mine",
+      "titleVi": "Đại từ sở hữu và hỏi của ai",
+      "category": "Đại từ và sở hữu",
+      "pattern": "Whose ...?; mine/yours/his/hers/ours/theirs",
+      "explanation": "Đại từ sở hữu thay cho cả cụm tính từ sở hữu và danh từ để tránh lặp. Whose hỏi người sở hữu. Đại từ sở hữu không cần danh từ đứng sau.",
+      "example": {
+        "en": "This book is mine. Is that one yours?",
+        "vi": "Cuốn này là của tôi. Cuốn kia là của bạn à?"
+      },
+      "caution": "Không viết your’s hoặc her’s; yours và hers không có dấu nháy.",
+      "exercise": {
+        "prompt": "This isn’t my bag. It’s ___.",
+        "options": ["her", "hers", "she"],
+        "answer": 1,
+        "explanation": "Chọn “hers”. Mẫu cần áp dụng: Whose ...?; mine/yours/his/hers/ours/theirs. Không viết your’s hoặc her’s; yours và hers không có dấu nháy."
+      },
+      "theoryPage": 131,
+      "exercisePage": 132,
+      "keyPages": [295]
+    },
+    {
+      "id": 62,
+      "title": "I / me / my / mine",
+      "titleVi": "Chọn đúng dạng đại từ",
+      "category": "Đại từ và sở hữu",
+      "pattern": "I + động từ; động từ + me; my + danh từ; mine đứng độc lập",
+      "explanation": "Xác định vai trò của từ trong câu trước khi chọn dạng: chủ ngữ, tân ngữ, từ bổ nghĩa sở hữu hay đại từ sở hữu. Có thể đối chiếu tương tự với he/him/his và they/them/their/theirs.",
+      "example": {
+        "en": "My brother called me yesterday.",
+        "vi": "Anh trai tôi đã gọi cho tôi hôm qua."
+      },
+      "caution": "My không đứng riêng để thay cho my book; phải dùng mine.",
+      "exercise": {
+        "prompt": "That seat is ___.",
+        "options": ["my", "me", "mine"],
+        "answer": 2,
+        "explanation": "Chọn “mine”. Mẫu cần áp dụng: I + động từ; động từ + me; my + danh từ; mine đứng độc lập. My không đứng riêng để thay cho my book; phải dùng mine."
+      },
+      "theoryPage": 133,
+      "exercisePage": 134,
+      "keyPages": [295]
+    },
+    {
+      "id": 63,
+      "title": "myself / yourself / themselves",
+      "titleVi": "Đại từ phản thân và each other",
+      "category": "Đại từ và sở hữu",
+      "pattern": "Chủ ngữ và tân ngữ cùng người: myself/yourself/...",
+      "explanation": "Dùng đại từ phản thân khi người thực hiện cũng là người chịu tác động. By myself nghĩa là một mình hoặc tự làm. Each other chỉ hai hay nhiều người tác động qua lại.",
+      "example": {
+        "en": "They looked at each other and smiled.",
+        "vi": "Họ nhìn nhau rồi mỉm cười."
+      },
+      "caution": "They helped themselves là mỗi người tự giúp mình; they helped each other là họ giúp nhau.",
+      "exercise": {
+        "prompt": "I cut ___ while cooking.",
+        "options": ["me", "myself", "mine"],
+        "answer": 1,
+        "explanation": "Chọn “myself”. Mẫu cần áp dụng: Chủ ngữ và tân ngữ cùng người: myself/yourself/.... They helped themselves là mỗi người tự giúp mình; they helped each other là họ giúp nhau."
+      },
+      "theoryPage": 135,
+      "exercisePage": 136,
+      "keyPages": [295]
+    },
+    {
+      "id": 64,
+      "title": "Kate’s camera",
+      "titleVi": "Sở hữu với ’s và of",
+      "category": "Đại từ và sở hữu",
+      "pattern": "Tên/người + ’s + danh từ; số nhiều tận cùng s + ’",
+      "explanation": "Dùng ’s để chỉ sở hữu, quan hệ hoặc liên hệ, đặc biệt với người. Với danh từ số nhiều đã có s, thường chỉ thêm dấu nháy. Of thường dùng trong nhiều cụm chỉ bộ phận của vật.",
+      "example": { "en": "This is my brother’s bicycle.", "vi": "Đây là xe đạp của anh tôi." },
+      "caution": "Phân biệt the girl’s bags với the girls’ bags: một cô gái và nhiều cô gái.",
+      "exercise": {
+        "prompt": "The office of my parents is my ___ office.",
+        "options": ["parents’", "parent’s", "parents"],
+        "answer": 0,
+        "explanation": "Chọn “parents’”. Mẫu cần áp dụng: Tên/người + ’s + danh từ; số nhiều tận cùng s + ’. Phân biệt the girl’s bags với the girls’ bags: một cô gái và nhiều cô gái."
+      },
+      "theoryPage": 137,
+      "exercisePage": 138,
+      "keyPages": [295]
+    },
+    {
+      "id": 65,
+      "title": "a / an",
+      "titleVi": "Mạo từ không xác định",
+      "category": "Danh từ và mạo từ",
+      "pattern": "a/an + danh từ đếm được số ít",
+      "explanation": "Dùng a/an khi nói một người hay vật chưa xác định hoặc một nghề nghiệp. Chọn a/an theo âm bắt đầu của từ theo sau, không chỉ theo chữ cái viết.",
+      "example": { "en": "She is an engineer.", "vi": "Cô ấy là kỹ sư." },
+      "caution": "An hour nhưng a university: xét âm đầu khi đọc.",
+      "exercise": {
+        "prompt": "He works at ___ university.",
+        "options": ["an", "a", "any"],
+        "answer": 1,
+        "explanation": "Chọn “a”. Mẫu cần áp dụng: a/an + danh từ đếm được số ít. An hour nhưng a university: xét âm đầu khi đọc."
+      },
+      "theoryPage": 139,
+      "exercisePage": 140,
+      "keyPages": [296]
+    },
+    {
+      "id": 66,
+      "title": "train(s) / bus(es)",
+      "titleVi": "Danh từ số ít và số nhiều",
+      "category": "Danh từ và mạo từ",
+      "pattern": "Danh từ + s/es; một số dạng bất quy tắc",
+      "explanation": "Danh từ đếm được có dạng số ít và số nhiều. Nhiều từ thêm -s/-es; một số đổi dạng như child → children. Dạng động từ và từ chỉ định cũng cần phù hợp số lượng.",
+      "example": {
+        "en": "There are three children in the garden.",
+        "vi": "Có ba đứa trẻ trong vườn."
+      },
+      "caution": "Không thêm -s vào children vì đây đã là số nhiều.",
+      "exercise": {
+        "prompt": "One child, two ___.",
+        "options": ["childs", "children", "childes"],
+        "answer": 1,
+        "explanation": "Chọn “children”. Mẫu cần áp dụng: Danh từ + s/es; một số dạng bất quy tắc. Không thêm -s vào children vì đây đã là số nhiều."
+      },
+      "theoryPage": 141,
+      "exercisePage": 142,
+      "keyPages": [296]
+    },
+    {
+      "id": 67,
+      "title": "a bottle / some water",
+      "titleVi": "Đếm được và không đếm được 1",
+      "category": "Danh từ và mạo từ",
+      "pattern": "a/an + danh từ đếm được số ít; some + số nhiều/không đếm được",
+      "explanation": "Danh từ đếm được có thể đếm từng đơn vị. Danh từ không đếm được thường không có số nhiều và không dùng trực tiếp với a/an. Muốn đếm, thêm đơn vị như a bottle of water.",
+      "example": {
+        "en": "Can I have some water, please?",
+        "vi": "Cho tôi xin một ít nước được không?"
+      },
+      "caution": "Không nói a water trong cách dùng cơ bản chỉ chất lỏng; nói a glass of water.",
+      "exercise": {
+        "prompt": "We need ___ rice for dinner.",
+        "options": ["a", "some", "many"],
+        "answer": 1,
+        "explanation": "Chọn “some”. Mẫu cần áp dụng: a/an + danh từ đếm được số ít; some + số nhiều/không đếm được. Không nói a water trong cách dùng cơ bản chỉ chất lỏng; nói a glass of water."
+      },
+      "theoryPage": 143,
+      "exercisePage": 144,
+      "keyPages": [296]
+    },
+    {
+      "id": 68,
+      "title": "a cake / some cake / some cakes",
+      "titleVi": "Đếm được và không đếm được 2",
+      "category": "Danh từ và mạo từ",
+      "pattern": "a cake = một chiếc; some cake = một phần bánh",
+      "explanation": "Một số danh từ thay đổi cách hiểu theo ngữ cảnh: đếm từng vật hoặc nói chất/liệu nói chung. Một số từ như information, advice, furniture không đếm được trong cách dùng thông thường.",
+      "example": {
+        "en": "I need some information about the course.",
+        "vi": "Tôi cần một ít thông tin về khóa học."
+      },
+      "caution": "Không dùng informations hoặc an advice; dùng some information, a piece of advice.",
+      "exercise": {
+        "prompt": "She gave me some useful ___.",
+        "options": ["advices", "advice", "an advice"],
+        "answer": 1,
+        "explanation": "Chọn “advice”. Mẫu cần áp dụng: a cake = một chiếc; some cake = một phần bánh. Không dùng informations hoặc an advice; dùng some information, a piece of advice."
+      },
+      "theoryPage": 145,
+      "exercisePage": 146,
+      "keyPages": [296]
+    },
+    {
+      "id": 69,
+      "title": "a / an and the",
+      "titleVi": "Giới thiệu mới và nhắc lại",
+      "category": "Danh từ và mạo từ",
+      "pattern": "a/an: chưa xác định; the: người/vật đã xác định",
+      "explanation": "Dùng a/an để giới thiệu một đối tượng chưa rõ cho người nghe. Dùng the khi người nghe biết đối tượng nào, chẳng hạn vì đã nhắc tới hoặc có ngữ cảnh xác định.",
+      "example": {
+        "en": "I bought a book. The book is about birds.",
+        "vi": "Tôi mua một cuốn sách. Cuốn sách đó viết về các loài chim."
+      },
+      "caution": "The không chỉ có nghĩa đã nhắc ở câu trước; ngữ cảnh cũng có thể xác định vật đang nói.",
+      "exercise": {
+        "prompt": "I saw a dog. ___ dog was very small.",
+        "options": ["A", "An", "The"],
+        "answer": 2,
+        "explanation": "Chọn “The”. Mẫu cần áp dụng: a/an: chưa xác định; the: người/vật đã xác định. The không chỉ có nghĩa đã nhắc ở câu trước; ngữ cảnh cũng có thể xác định vật đang nói."
+      },
+      "theoryPage": 147,
+      "exercisePage": 148,
+      "keyPages": [296]
+    },
+    {
+      "id": 70,
+      "title": "the",
+      "titleVi": "Những cách dùng thông dụng của the",
+      "category": "Danh từ và mạo từ",
+      "pattern": "the + đối tượng được xác định rõ",
+      "explanation": "The dùng khi đối tượng là duy nhất trong ngữ cảnh hoặc được xác định cụ thể. Có các cụm cố định liên quan tới phương tiện truyền thông, nhạc cụ và địa điểm cần học theo cụm.",
+      "example": {
+        "en": "Could you close the door, please?",
+        "vi": "Bạn đóng cánh cửa giúp tôi được không?"
+      },
+      "caution": "Không thêm the trước mọi danh từ; cần xét ý nghĩa chung hay đối tượng cụ thể.",
+      "exercise": {
+        "prompt": "Please turn off ___ light in this room.",
+        "options": ["a", "the", "an"],
+        "answer": 1,
+        "explanation": "Chọn “the”. Mẫu cần áp dụng: the + đối tượng được xác định rõ. Không thêm the trước mọi danh từ; cần xét ý nghĩa chung hay đối tượng cụ thể."
+      },
+      "theoryPage": 149,
+      "exercisePage": 150,
+      "keyPages": [297]
+    },
+    {
+      "id": 71,
+      "title": "go to work / go home / go to the cinema",
+      "titleVi": "Có hoặc không có mạo từ ở địa điểm",
+      "category": "Danh từ và mạo từ",
+      "pattern": "go to work/school/bed; go home; go to the cinema",
+      "explanation": "Một số địa điểm dùng không có the khi nói hoạt động thông thường ở đó như đi làm, đi học, đi ngủ. Khi nói một tòa nhà hoặc vật cụ thể, cách dùng mạo từ có thể thay đổi.",
+      "example": { "en": "I usually go to work by bus.", "vi": "Tôi thường đi làm bằng xe buýt." },
+      "caution": "Go home không có to; go to bed thường không có the khi nghĩa là đi ngủ.",
+      "exercise": {
+        "prompt": "I’m tired. I’m going to ___.",
+        "options": ["the bed for sleep", "bed", "a bed sleeping"],
+        "answer": 1,
+        "explanation": "Chọn “bed”. Mẫu cần áp dụng: go to work/school/bed; go home; go to the cinema. Go home không có to; go to bed thường không có the khi nghĩa là đi ngủ."
+      },
+      "theoryPage": 151,
+      "exercisePage": 152,
+      "keyPages": [297]
+    },
+    {
+      "id": 72,
+      "title": "I like music / I hate exams",
+      "titleVi": "Nói chung về sự vật",
+      "category": "Danh từ và mạo từ",
+      "pattern": "Danh từ số nhiều/không đếm được: thường không có the khi nói chung",
+      "explanation": "Khi nói về cả một loại sự vật, dùng danh từ số nhiều hoặc không đếm được không có the. Thêm the khi chỉ một nhóm hoặc lượng cụ thể mà người nghe nhận biết.",
+      "example": {
+        "en": "I like music, but I don’t like loud music.",
+        "vi": "Tôi thích âm nhạc, nhưng không thích nhạc quá ồn."
+      },
+      "caution": "I like the music nghĩa là thích phần nhạc cụ thể trong ngữ cảnh, không phải âm nhạc nói chung.",
+      "exercise": {
+        "prompt": "___ are good for your health in general.",
+        "options": ["The vegetables", "Vegetables", "A vegetables"],
+        "answer": 1,
+        "explanation": "Chọn “Vegetables”. Mẫu cần áp dụng: Danh từ số nhiều/không đếm được: thường không có the khi nói chung. I like the music nghĩa là thích phần nhạc cụ thể trong ngữ cảnh, không phải âm nhạc nói chung."
+      },
+      "theoryPage": 153,
+      "exercisePage": 154,
+      "keyPages": [297]
+    },
+    {
+      "id": 73,
+      "title": "the: names of places",
+      "titleVi": "Mạo từ trong tên địa danh",
+      "category": "Danh từ và mạo từ",
+      "pattern": "Đa số tên riêng không có the; một số tên có the",
+      "explanation": "Nhiều tên thành phố, quốc gia và đường phố không dùng the. Tên sông, biển, nhóm đảo và một số tên nước có cấu trúc đặc biệt thường dùng the. Nên học tên đầy đủ.",
+      "example": {
+        "en": "We visited the United Kingdom last year.",
+        "vi": "Chúng tôi đã đến Vương quốc Anh năm ngoái."
+      },
+      "caution": "Không tự áp một quy tắc cho mọi địa danh; ví dụ Vietnam nhưng the United States.",
+      "exercise": {
+        "prompt": "Paris is in ___ France.",
+        "options": ["the", "a", "— (không có mạo từ)"],
+        "answer": 2,
+        "explanation": "Chọn “— (không có mạo từ)”. Mẫu cần áp dụng: Đa số tên riêng không có the; một số tên có the. Không tự áp một quy tắc cho mọi địa danh; ví dụ Vietnam nhưng the United States."
+      },
+      "theoryPage": 155,
+      "exercisePage": 156,
+      "keyPages": [297]
+    },
+    {
+      "id": 74,
+      "title": "this / that / these / those",
+      "titleVi": "Chỉ định gần, xa và số lượng",
+      "category": "Từ chỉ định và chỉ lượng",
+      "pattern": "this/that + số ít; these/those + số nhiều",
+      "explanation": "This và these thường chỉ thứ ở gần; that và those thường chỉ thứ ở xa hoặc đã được nhắc tới. Cần chọn số ít/số nhiều phù hợp với danh từ và động từ.",
+      "example": {
+        "en": "These shoes are very comfortable.",
+        "vi": "Đôi giày này đi rất thoải mái."
+      },
+      "caution": "Không dùng this shoes; shoes là số nhiều nên dùng these/those.",
+      "exercise": {
+        "prompt": "___ books over there are mine.",
+        "options": ["This", "That", "Those"],
+        "answer": 2,
+        "explanation": "Chọn “Those”. Mẫu cần áp dụng: this/that + số ít; these/those + số nhiều. Không dùng this shoes; shoes là số nhiều nên dùng these/those."
+      },
+      "theoryPage": 157,
+      "exercisePage": 158,
+      "keyPages": [298]
+    },
+    {
+      "id": 75,
+      "title": "one / ones",
+      "titleVi": "Thay danh từ để tránh lặp",
+      "category": "Từ chỉ định và chỉ lượng",
+      "pattern": "one: danh từ đếm được số ít; ones: số nhiều",
+      "explanation": "Dùng one/ones thay danh từ đếm được đã rõ trong ngữ cảnh. Có thể đi với tính từ hoặc từ chỉ định. Không dùng one để thay danh từ không đếm được như water.",
+      "example": {
+        "en": "I like the blue shirt, not the red one.",
+        "vi": "Tôi thích chiếc áo sơ mi màu xanh, không phải chiếc màu đỏ."
+      },
+      "caution": "One trong cách dùng này không thay được mọi loại danh từ.",
+      "exercise": {
+        "prompt": "These glasses are dirty. Can I have clean ___?",
+        "options": ["one", "ones", "it"],
+        "answer": 1,
+        "explanation": "Chọn “ones”. Mẫu cần áp dụng: one: danh từ đếm được số ít; ones: số nhiều. One trong cách dùng này không thay được mọi loại danh từ."
+      },
+      "theoryPage": 159,
+      "exercisePage": 160,
+      "keyPages": [298]
+    },
+    {
+      "id": 76,
+      "title": "some and any",
+      "titleVi": "Một ít, một vài và bất kỳ",
+      "category": "Từ chỉ định và chỉ lượng",
+      "pattern": "some: thường câu khẳng định; any: thường câu hỏi/phủ định",
+      "explanation": "Dùng some và any với danh từ số nhiều hoặc không đếm được. Some cũng thường xuất hiện trong lời mời hoặc yêu cầu khi mong đợi câu trả lời đồng ý. Any có thể mang nghĩa bất kỳ.",
+      "example": { "en": "Would you like some tea?", "vi": "Bạn có muốn uống chút trà không?" },
+      "caution": "Không áp quy tắc mọi câu hỏi đều dùng any; lời mời thường dùng some.",
+      "exercise": {
+        "prompt": "There isn’t ___ milk left.",
+        "options": ["some", "any", "a"],
+        "answer": 1,
+        "explanation": "Chọn “any”. Mẫu cần áp dụng: some: thường câu khẳng định; any: thường câu hỏi/phủ định. Không áp quy tắc mọi câu hỏi đều dùng any; lời mời thường dùng some."
+      },
+      "theoryPage": 161,
+      "exercisePage": 162,
+      "keyPages": [298]
+    },
+    {
+      "id": 77,
+      "title": "not ... any / no / none",
+      "titleVi": "Diễn tả không có",
+      "category": "Từ chỉ định và chỉ lượng",
+      "pattern": "not ... any + danh từ; no + danh từ; none đứng độc lập",
+      "explanation": "No trực tiếp bổ nghĩa cho danh từ. Not ... any diễn đạt ý tương tự bằng câu phủ định. None thay cả cụm danh từ khi đã rõ đang nói tới cái gì hoặc bao nhiêu.",
+      "example": {
+        "en": "How much money do you have? None.",
+        "vi": "Bạn có bao nhiêu tiền? Không có đồng nào."
+      },
+      "caution": "Không dùng no đứng riêng như đại từ thay cho none trong câu trả lời chỉ lượng.",
+      "exercise": {
+        "prompt": "We have ___ time to waste.",
+        "options": ["no", "none", "not"],
+        "answer": 0,
+        "explanation": "Chọn “no”. Mẫu cần áp dụng: not ... any + danh từ; no + danh từ; none đứng độc lập. Không dùng no đứng riêng như đại từ thay cho none trong câu trả lời chỉ lượng."
+      },
+      "theoryPage": 163,
+      "exercisePage": 164,
+      "keyPages": [298]
+    },
+    {
+      "id": 78,
+      "title": "nobody / no-one / nothing",
+      "titleVi": "Không ai, không thứ gì",
+      "category": "Từ chỉ định và chỉ lượng",
+      "pattern": "nobody/no-one/nothing + động từ khẳng định về hình thức",
+      "explanation": "Nobody/no-one chỉ không người nào; nothing chỉ không thứ gì. Những từ này tự mang nghĩa phủ định. Có thể dùng not ... anybody/anything để diễn đạt ý tương tự.",
+      "example": { "en": "Nobody knows the answer.", "vi": "Không ai biết câu trả lời." },
+      "caution": "Tránh phủ định kép như Nobody doesn’t know trong cách nói chuẩn của bài này.",
+      "exercise": {
+        "prompt": "I opened the box, but there was ___ inside.",
+        "options": ["nothing", "anything", "nobody"],
+        "answer": 0,
+        "explanation": "Chọn “nothing”. Mẫu cần áp dụng: nobody/no-one/nothing + động từ khẳng định về hình thức. Tránh phủ định kép như Nobody doesn’t know trong cách nói chuẩn của bài này."
+      },
+      "theoryPage": 165,
+      "exercisePage": 166,
+      "keyPages": [298]
+    },
+    {
+      "id": 79,
+      "title": "somebody / anything / nowhere",
+      "titleVi": "Người, vật và nơi không xác định",
+      "category": "Từ chỉ định và chỉ lượng",
+      "pattern": "someone/something/somewhere; anyone/anything/anywhere",
+      "explanation": "Các nhóm some-, any-, no-, every- kết hợp với người, vật hoặc nơi chốn. Khi dùng làm chủ ngữ, somebody/everybody thường đi với động từ số ít. Tính từ đứng sau something/anything.",
+      "example": {
+        "en": "I need something warm to wear.",
+        "vi": "Tôi cần một thứ gì đó ấm để mặc."
+      },
+      "caution": "Nói something interesting, không nói interesting something.",
+      "exercise": {
+        "prompt": "Is there ___ I can do to help?",
+        "options": ["anywhere", "anything", "anybody"],
+        "answer": 1,
+        "explanation": "Chọn “anything”. Mẫu cần áp dụng: someone/something/somewhere; anyone/anything/anywhere. Nói something interesting, không nói interesting something."
+      },
+      "theoryPage": 167,
+      "exercisePage": 168,
+      "keyPages": [299]
+    },
+    {
+      "id": 80,
+      "title": "every and all",
+      "titleVi": "Mỗi và tất cả",
+      "category": "Từ chỉ định và chỉ lượng",
+      "pattern": "every + danh từ số ít; all + danh từ số nhiều/không đếm được",
+      "explanation": "Every nhìn từng thành viên trong một nhóm; all nhìn cả nhóm hoặc toàn bộ lượng. Everybody/everything thường đi với động từ số ít. Every day nghĩa là mỗi ngày.",
+      "example": {
+        "en": "Every student has a notebook.",
+        "vi": "Mỗi học sinh đều có một cuốn vở."
+      },
+      "caution": "Không dùng every students; sau every là danh từ số ít.",
+      "exercise": {
+        "prompt": "Every room ___ a window.",
+        "options": ["have", "has", "are"],
+        "answer": 1,
+        "explanation": "Chọn “has”. Mẫu cần áp dụng: every + danh từ số ít; all + danh từ số nhiều/không đếm được. Không dùng every students; sau every là danh từ số ít."
+      },
+      "theoryPage": 169,
+      "exercisePage": 170,
+      "keyPages": [299]
+    },
+    {
+      "id": 81,
+      "title": "all / most / some / any / no / none",
+      "titleVi": "Từ chỉ lượng và cấu trúc với of",
+      "category": "Từ chỉ định và chỉ lượng",
+      "pattern": "most people; most of the people; none of them",
+      "explanation": "Không dùng of trước một danh từ chỉ loại nói chung. Dùng of trước the, this, my... hoặc đại từ tân ngữ. No đứng trước danh từ; none có thể đứng riêng hoặc dùng none of.",
+      "example": {
+        "en": "Most of my friends live nearby.",
+        "vi": "Phần lớn bạn bè tôi sống gần đây."
+      },
+      "caution": "Nói most people hoặc most of the people, không nói most of people.",
+      "exercise": {
+        "prompt": "___ my classmates are friendly.",
+        "options": ["Most of", "Most", "The most"],
+        "answer": 0,
+        "explanation": "Chọn “Most of”. Mẫu cần áp dụng: most people; most of the people; none of them. Nói most people hoặc most of the people, không nói most of people."
+      },
+      "theoryPage": 171,
+      "exercisePage": 172,
+      "keyPages": [299]
+    },
+    {
+      "id": 82,
+      "title": "both / either / neither",
+      "titleVi": "Nói về hai người hoặc hai vật",
+      "category": "Từ chỉ định và chỉ lượng",
+      "pattern": "both = cả hai; either = một trong hai; neither = không bên nào",
+      "explanation": "Both diễn tả cả hai đối tượng. Either chọn một trong hai hoặc dùng trong câu phủ định mang nghĩa không bên nào. Neither tự mang nghĩa phủ định; có thể đi với of trước đại từ.",
+      "example": {
+        "en": "Both of them speak English.",
+        "vi": "Cả hai người họ đều nói tiếng Anh."
+      },
+      "caution": "Neither không thêm not để tạo phủ định kép trong cách dùng chuẩn cơ bản.",
+      "exercise": {
+        "prompt": "Tea or coffee? ___ is fine. I like both.",
+        "options": ["Neither", "Either", "None"],
+        "answer": 1,
+        "explanation": "Chọn “Either”. Mẫu cần áp dụng: both = cả hai; either = một trong hai; neither = không bên nào. Neither không thêm not để tạo phủ định kép trong cách dùng chuẩn cơ bản."
+      },
+      "theoryPage": 173,
+      "exercisePage": 174,
+      "keyPages": [299]
+    },
+    {
+      "id": 83,
+      "title": "a lot / much / many",
+      "titleVi": "Nói về số lượng lớn",
+      "category": "Từ chỉ định và chỉ lượng",
+      "pattern": "many + đếm được số nhiều; much + không đếm được; a lot of + cả hai",
+      "explanation": "Chọn many hay much theo loại danh từ. A lot of dùng được với cả hai nhóm và rất thông dụng trong câu khẳng định. A lot có thể bổ nghĩa cho động từ mà không có danh từ.",
+      "example": { "en": "We don’t have much time.", "vi": "Chúng tôi không có nhiều thời gian." },
+      "caution": "Phải có of trong a lot of books, nhưng không có of trong I read a lot.",
+      "exercise": {
+        "prompt": "How ___ people came to the meeting?",
+        "options": ["much", "many", "a lot"],
+        "answer": 1,
+        "explanation": "Chọn “many”. Mẫu cần áp dụng: many + đếm được số nhiều; much + không đếm được; a lot of + cả hai. Phải có of trong a lot of books, nhưng không có of trong I read a lot."
+      },
+      "theoryPage": 175,
+      "exercisePage": 176,
+      "keyPages": [300]
+    },
+    {
+      "id": 84,
+      "title": "(a) little / (a) few",
+      "titleVi": "Một ít và quá ít",
+      "category": "Từ chỉ định và chỉ lượng",
+      "pattern": "a little/little + không đếm được; a few/few + số nhiều",
+      "explanation": "A little và a few nghĩa là có một ít, một vài. Bỏ a thường nhấn mạnh rất ít, gần như không đủ. Chọn little/few theo danh từ không đếm được hay đếm được.",
+      "example": {
+        "en": "We have a little time before the train leaves.",
+        "vi": "Chúng tôi còn một chút thời gian trước khi tàu chạy."
+      },
+      "caution": "A few đi với danh từ đếm được số nhiều; không dùng a few water.",
+      "exercise": {
+        "prompt": "I have ___ close friends, and we meet often.",
+        "options": ["a little", "a few", "much"],
+        "answer": 1,
+        "explanation": "Chọn “a few”. Mẫu cần áp dụng: a little/little + không đếm được; a few/few + số nhiều. A few đi với danh từ đếm được số nhiều; không dùng a few water."
+      },
+      "theoryPage": 177,
+      "exercisePage": 178,
+      "keyPages": [300]
+    },
+    {
+      "id": 85,
+      "title": "Adjectives",
+      "titleVi": "Vị trí và cách dùng tính từ",
+      "category": "Tính từ và trạng từ",
+      "pattern": "tính từ + danh từ; be/seem/look/feel + tính từ",
+      "explanation": "Tính từ bổ nghĩa cho danh từ hoặc mô tả chủ ngữ sau be và một số động từ chỉ trạng thái/cảm giác. Tính từ không thêm -s khi danh từ số nhiều.",
+      "example": { "en": "They live in a small house.", "vi": "Họ sống trong một ngôi nhà nhỏ." },
+      "caution": "Trong cụm danh từ cơ bản, tính từ đứng trước danh từ; không nói a house small.",
+      "exercise": {
+        "prompt": "She has ___ eyes.",
+        "options": ["beautiful", "beautifully", "beauty"],
+        "answer": 0,
+        "explanation": "Chọn “beautiful”. Mẫu cần áp dụng: tính từ + danh từ; be/seem/look/feel + tính từ. Trong cụm danh từ cơ bản, tính từ đứng trước danh từ; không nói a house small."
+      },
+      "theoryPage": 179,
+      "exercisePage": 180,
+      "keyPages": [300]
+    },
+    {
+      "id": 86,
+      "title": "Adverbs",
+      "titleVi": "Trạng từ chỉ cách thức",
+      "category": "Tính từ và trạng từ",
+      "pattern": "Động từ + trạng từ; thường tính từ + -ly",
+      "explanation": "Trạng từ thường mô tả cách thực hiện một hành động. Nhiều từ thêm -ly, nhưng có ngoại lệ như good → well; fast có thể là cả tính từ và trạng từ. Sau feel/look chỉ trạng thái thường dùng tính từ.",
+      "example": { "en": "She speaks English clearly.", "vi": "Cô ấy nói tiếng Anh rõ ràng." },
+      "caution": "Good là tính từ; well thường là trạng từ, nhưng well còn có thể chỉ sức khỏe.",
+      "exercise": {
+        "prompt": "He drives very ___.",
+        "options": ["careful", "carefully", "care"],
+        "answer": 1,
+        "explanation": "Chọn “carefully”. Mẫu cần áp dụng: Động từ + trạng từ; thường tính từ + -ly. Good là tính từ; well thường là trạng từ, nhưng well còn có thể chỉ sức khỏe."
+      },
+      "theoryPage": 181,
+      "exercisePage": 182,
+      "keyPages": [300]
+    },
+    {
+      "id": 87,
+      "title": "older / more expensive",
+      "titleVi": "Tạo dạng so sánh hơn",
+      "category": "Tính từ và trạng từ",
+      "pattern": "tính từ ngắn + -er; more + tính từ dài",
+      "explanation": "So sánh hơn mô tả mức độ cao hơn giữa các đối tượng. Nhiều tính từ ngắn thêm -er; nhiều tính từ dài dùng more. Một số dạng bất quy tắc như good → better.",
+      "example": {
+        "en": "This exercise is easier than the last one.",
+        "vi": "Bài tập này dễ hơn bài trước."
+      },
+      "caution": "Không dùng more easier; mỗi cấu trúc chỉ đánh dấu so sánh một lần.",
+      "exercise": {
+        "prompt": "This chair is ___ than that one.",
+        "options": ["more comfortable", "comfortabler", "more comfortabler"],
+        "answer": 0,
+        "explanation": "Chọn “more comfortable”. Mẫu cần áp dụng: tính từ ngắn + -er; more + tính từ dài. Không dùng more easier; mỗi cấu trúc chỉ đánh dấu so sánh một lần."
+      },
+      "theoryPage": 183,
+      "exercisePage": 184,
+      "keyPages": [300]
+    },
+    {
+      "id": 88,
+      "title": "older than / more expensive than",
+      "titleVi": "Dùng so sánh hơn với than",
+      "category": "Tính từ và trạng từ",
+      "pattern": "So sánh hơn + than; much/a little + so sánh hơn",
+      "explanation": "Dùng than để nêu đối tượng so sánh. Có thể tăng hoặc giảm mức chênh lệch bằng much, a lot, a little. Sau than dùng đại từ tân ngữ hoặc mệnh đề đầy đủ tùy cách diễn đạt.",
+      "example": {
+        "en": "Today is much warmer than yesterday.",
+        "vi": "Hôm nay ấm hơn hôm qua nhiều."
+      },
+      "caution": "Dùng much better để tăng mức so sánh, không dùng very better.",
+      "exercise": {
+        "prompt": "My bag is heavier ___ yours.",
+        "options": ["as", "than", "that"],
+        "answer": 1,
+        "explanation": "Chọn “than”. Mẫu cần áp dụng: So sánh hơn + than; much/a little + so sánh hơn. Dùng much better để tăng mức so sánh, không dùng very better."
+      },
+      "theoryPage": 185,
+      "exercisePage": 186,
+      "keyPages": [301]
+    },
+    {
+      "id": 89,
+      "title": "not as ... as",
+      "titleVi": "So sánh ngang bằng và không bằng",
+      "category": "Tính từ và trạng từ",
+      "pattern": "as + tính từ/trạng từ + as; not as ... as",
+      "explanation": "Dùng as ... as để nói ngang bằng. Thêm not để nói không bằng. Tính từ nằm giữa hai as ở dạng gốc, không dùng dạng so sánh hơn.",
+      "example": {
+        "en": "This room isn’t as quiet as the other one.",
+        "vi": "Phòng này không yên tĩnh bằng phòng kia."
+      },
+      "caution": "Không dùng as quieter as. The same đi với as trong mẫu the same as.",
+      "exercise": {
+        "prompt": "She is as ___ as her sister.",
+        "options": ["taller", "tall", "tallest"],
+        "answer": 1,
+        "explanation": "Chọn “tall”. Mẫu cần áp dụng: as + tính từ/trạng từ + as; not as ... as. Không dùng as quieter as. The same đi với as trong mẫu the same as."
+      },
+      "theoryPage": 187,
+      "exercisePage": 188,
+      "keyPages": [301]
+    },
+    {
+      "id": 90,
+      "title": "the oldest / the most expensive",
+      "titleVi": "So sánh nhất",
+      "category": "Tính từ và trạng từ",
+      "pattern": "the + tính từ-est; the most + tính từ dài",
+      "explanation": "Dùng so sánh nhất khi so một đối tượng với cả nhóm. Thường có the, nhưng có thể dùng từ sở hữu như my best friend. Một số dạng bất quy tắc: best, worst.",
+      "example": {
+        "en": "This is the most interesting book I own.",
+        "vi": "Đây là cuốn sách thú vị nhất tôi có."
+      },
+      "caution": "Không dùng the most tallest; chọn một cách tạo so sánh nhất.",
+      "exercise": {
+        "prompt": "He is the ___ person in our team.",
+        "options": ["younger", "youngest", "most younggest"],
+        "answer": 1,
+        "explanation": "Chọn “youngest”. Mẫu cần áp dụng: the + tính từ-est; the most + tính từ dài. Không dùng the most tallest; chọn một cách tạo so sánh nhất."
+      },
+      "theoryPage": 189,
+      "exercisePage": 190,
+      "keyPages": [301]
+    },
+    {
+      "id": 91,
+      "title": "enough",
+      "titleVi": "Đủ để làm gì",
+      "category": "Tính từ và trạng từ",
+      "pattern": "tính từ/trạng từ + enough; enough + danh từ; enough to V",
+      "explanation": "Enough đứng sau tính từ hoặc trạng từ, nhưng đứng trước danh từ. Có thể thêm to V để nói đủ điều kiện làm việc gì, hoặc for + người/vật khi cần.",
+      "example": {
+        "en": "We have enough money to buy the tickets.",
+        "vi": "Chúng tôi có đủ tiền để mua vé."
+      },
+      "caution": "Vị trí thay đổi: good enough nhưng enough money.",
+      "exercise": {
+        "prompt": "The water is warm ___ to swim in.",
+        "options": ["enough", "too", "very"],
+        "answer": 0,
+        "explanation": "Chọn “enough”. Mẫu cần áp dụng: tính từ/trạng từ + enough; enough + danh từ; enough to V. Vị trí thay đổi: good enough nhưng enough money."
+      },
+      "theoryPage": 191,
+      "exercisePage": 192,
+      "keyPages": [301]
+    },
+    {
+      "id": 92,
+      "title": "too",
+      "titleVi": "Quá mức cần thiết",
+      "category": "Tính từ và trạng từ",
+      "pattern": "too + tính từ/trạng từ; too much/many + danh từ; too ... to V",
+      "explanation": "Too nói mức độ vượt quá giới hạn, thường dẫn tới vấn đề hoặc việc không thể làm. Dùng too much với không đếm được và too many với đếm được số nhiều.",
+      "example": {
+        "en": "The bag is too heavy for me to carry.",
+        "vi": "Chiếc túi quá nặng để tôi xách."
+      },
+      "caution": "Too không chỉ có nghĩa rất; too hot thường là nóng đến mức có vấn đề.",
+      "exercise": {
+        "prompt": "There are too ___ cars on this road.",
+        "options": ["much", "many", "enough"],
+        "answer": 1,
+        "explanation": "Chọn “many”. Mẫu cần áp dụng: too + tính từ/trạng từ; too much/many + danh từ; too ... to V. Too không chỉ có nghĩa rất; too hot thường là nóng đến mức có vấn đề."
+      },
+      "theoryPage": 193,
+      "exercisePage": 194,
+      "keyPages": [302]
+    },
+    {
+      "id": 93,
+      "title": "Word order 1",
+      "titleVi": "Trật tự từ trong câu",
+      "category": "Trật tự từ",
+      "pattern": "Chủ ngữ + động từ + tân ngữ; nơi chốn thường trước thời gian",
+      "explanation": "Trong câu kể cơ bản, tân ngữ thường đi ngay sau động từ. Cụm chỉ nơi chốn và thời gian thường đi sau phần chính. Không chèn trạng từ cách thức giữa động từ và tân ngữ theo mẫu đơn giản.",
+      "example": {
+        "en": "I met my friends at the café yesterday.",
+        "vi": "Hôm qua tôi gặp bạn bè ở quán cà phê."
+      },
+      "caution": "Thường nói speak English well, không nói speak well English.",
+      "exercise": {
+        "prompt": "Choose the usual word order.",
+        "options": [
+          "She speaks well English.",
+          "She English speaks well.",
+          "She speaks English well."
+        ],
+        "answer": 2,
+        "explanation": "Chọn “She speaks English well.”. Mẫu cần áp dụng: Chủ ngữ + động từ + tân ngữ; nơi chốn thường trước thời gian. Thường nói speak English well, không nói speak well English."
+      },
+      "theoryPage": 195,
+      "exercisePage": 196,
+      "keyPages": [302]
+    },
+    {
+      "id": 94,
+      "title": "always / usually / often",
+      "titleVi": "Vị trí trạng từ tần suất",
+      "category": "Trật tự từ",
+      "pattern": "Trước động từ thường; sau be; sau trợ động từ đầu tiên",
+      "explanation": "Always, usually, often, sometimes và never thường đứng trước động từ chính. Với be, chúng thường đứng sau be. Trong cụm nhiều động từ, chúng thường đứng sau trợ động từ đầu tiên.",
+      "example": { "en": "She is always on time.", "vi": "Cô ấy luôn đúng giờ." },
+      "caution": "Never tự mang nghĩa phủ định; không thêm don’t khi ý là không bao giờ.",
+      "exercise": {
+        "prompt": "Choose the usual sentence.",
+        "options": ["I always drink tea.", "I drink always tea.", "Always I tea drink."],
+        "answer": 0,
+        "explanation": "Chọn “I always drink tea.”. Mẫu cần áp dụng: Trước động từ thường; sau be; sau trợ động từ đầu tiên. Never tự mang nghĩa phủ định; không thêm don’t khi ý là không bao giờ."
+      },
+      "theoryPage": 197,
+      "exercisePage": 198,
+      "keyPages": [302]
+    },
+    {
+      "id": 95,
+      "title": "still / yet / already",
+      "titleVi": "Vẫn, chưa và đã",
+      "category": "Trật tự từ",
+      "pattern": "still: thường giữa câu; yet: thường cuối câu hỏi/phủ định; already: đã rồi",
+      "explanation": "Still nói tình trạng tiếp tục. Yet hỏi hoặc phủ định một việc được mong chờ. Already nói việc đã xảy ra trước thời điểm đang xét. Vị trí của mỗi từ cần phù hợp cấu trúc.",
+      "example": { "en": "She is still at work.", "vi": "Cô ấy vẫn đang ở chỗ làm." },
+      "caution": "Not ... yet là chưa, khác not ... still; đừng dịch từng từ từ tiếng Việt.",
+      "exercise": {
+        "prompt": "Has the bus arrived ___?",
+        "options": ["still", "yet", "ever"],
+        "answer": 1,
+        "explanation": "Chọn “yet”. Mẫu cần áp dụng: still: thường giữa câu; yet: thường cuối câu hỏi/phủ định; already: đã rồi. Not ... yet là chưa, khác not ... still; đừng dịch từng từ từ tiếng Việt."
+      },
+      "theoryPage": 199,
+      "exercisePage": 200,
+      "keyPages": [303]
+    },
+    {
+      "id": 96,
+      "title": "Give me that book! Give it to me!",
+      "titleVi": "Động từ với hai tân ngữ",
+      "category": "Trật tự từ",
+      "pattern": "give + người + vật; give + vật + to + người",
+      "explanation": "Một số động từ cho phép đặt người nhận trước vật, hoặc đặt vật trước rồi dùng giới từ. Give/send/show thường dùng to; buy/make thường dùng for trong cách nêu người hưởng lợi.",
+      "example": {
+        "en": "Can you send me the address?",
+        "vi": "Bạn gửi địa chỉ cho tôi được không?"
+      },
+      "caution": "Khi tân ngữ là it/them, mẫu give it to me thường tự nhiên hơn give me it.",
+      "exercise": {
+        "prompt": "Please give it ___ her.",
+        "options": ["for", "to", "at"],
+        "answer": 1,
+        "explanation": "Chọn “to”. Mẫu cần áp dụng: give + người + vật; give + vật + to + người. Khi tân ngữ là it/them, mẫu give it to me thường tự nhiên hơn give me it."
+      },
+      "theoryPage": 201,
+      "exercisePage": 202,
+      "keyPages": [303]
+    },
+    {
+      "id": 97,
+      "title": "and / but / or / so / because",
+      "titleVi": "Nối các ý trong câu",
+      "category": "Từ nối và mệnh đề",
+      "pattern": "and: thêm; but: đối lập; or: lựa chọn; so: kết quả; because: lý do",
+      "explanation": "Chọn từ nối theo quan hệ ý nghĩa giữa hai phần. Because nêu lý do; so dẫn tới kết quả. Khi because mở đầu câu, mệnh đề chính theo sau sau dấu phẩy.",
+      "example": { "en": "I stayed home because I was tired.", "vi": "Tôi ở nhà vì tôi mệt." },
+      "caution": "Không ghép Because ... so ... thành hai dấu nối cho cùng quan hệ trong cấu trúc cơ bản.",
+      "exercise": {
+        "prompt": "I was hungry, ___ I made a sandwich.",
+        "options": ["because", "so", "or"],
+        "answer": 1,
+        "explanation": "Chọn “so”. Mẫu cần áp dụng: and: thêm; but: đối lập; or: lựa chọn; so: kết quả; because: lý do. Không ghép Because ... so ... thành hai dấu nối cho cùng quan hệ trong cấu trúc cơ bản."
+      },
+      "theoryPage": 203,
+      "exercisePage": 204,
+      "keyPages": [303]
+    },
+    {
+      "id": 98,
+      "title": "When ...",
+      "titleVi": "Mệnh đề thời gian",
+      "category": "Từ nối và mệnh đề",
+      "pattern": "when/before/after/as soon as + hiện tại đơn cho ý tương lai",
+      "explanation": "Trong mệnh đề thời gian nói về tương lai, thường dùng hiện tại đơn thay vì will. Mệnh đề chính có thể dùng will. Before và after diễn tả thứ tự trước/sau của các sự việc.",
+      "example": { "en": "I’ll call you when I get home.", "vi": "Tôi sẽ gọi bạn khi về đến nhà." },
+      "caution": "Không dùng when I will get home trong mệnh đề thời gian thông thường này.",
+      "exercise": {
+        "prompt": "I’ll tell her when I ___ her.",
+        "options": ["will see", "see", "saw"],
+        "answer": 1,
+        "explanation": "Chọn “see”. Mẫu cần áp dụng: when/before/after/as soon as + hiện tại đơn cho ý tương lai. Không dùng when I will get home trong mệnh đề thời gian thông thường này."
+      },
+      "theoryPage": 205,
+      "exercisePage": 206,
+      "keyPages": [303]
+    },
+    {
+      "id": 99,
+      "title": "If we go ... If you see ...",
+      "titleVi": "Điều kiện có thể xảy ra",
+      "category": "Từ nối và mệnh đề",
+      "pattern": "If + hiện tại đơn, will/can/mệnh lệnh + V",
+      "explanation": "Câu điều kiện này nói khả năng thực tế ở hiện tại hoặc tương lai. Phần if thường dùng hiện tại đơn; phần kết quả dùng will, can hoặc lời yêu cầu tùy ý nghĩa.",
+      "example": {
+        "en": "If it rains, we’ll stay inside.",
+        "vi": "Nếu trời mưa, chúng tôi sẽ ở trong nhà."
+      },
+      "caution": "Không dùng will trong phần if của mẫu điều kiện cơ bản này.",
+      "exercise": {
+        "prompt": "If she ___ early, we’ll have dinner together.",
+        "options": ["will arrive", "arrives", "arrived"],
+        "answer": 1,
+        "explanation": "Chọn “arrives”. Mẫu cần áp dụng: If + hiện tại đơn, will/can/mệnh lệnh + V. Không dùng will trong phần if của mẫu điều kiện cơ bản này."
+      },
+      "theoryPage": 207,
+      "exercisePage": 208,
+      "keyPages": [304]
+    },
+    {
+      "id": 100,
+      "title": "If I had ... If we went ...",
+      "titleVi": "Giả định không thực tế hoặc khó xảy ra",
+      "category": "Từ nối và mệnh đề",
+      "pattern": "If + quá khứ đơn, would + V nguyên mẫu",
+      "explanation": "Dùng quá khứ trong phần if để đặt tình huống giả định ở hiện tại hoặc tương lai, không nhất thiết nói quá khứ. Kết quả dùng would. If I were you thường dùng để đưa lời khuyên.",
+      "example": {
+        "en": "If I had more time, I would travel more.",
+        "vi": "Nếu có nhiều thời gian hơn, tôi sẽ đi du lịch nhiều hơn."
+      },
+      "caution": "Không đặt would ở cả hai vế theo mẫu If I would have ...",
+      "exercise": {
+        "prompt": "If I knew the answer, I ___ tell you.",
+        "options": ["will", "would", "can to"],
+        "answer": 1,
+        "explanation": "Chọn “would”. Mẫu cần áp dụng: If + quá khứ đơn, would + V nguyên mẫu. Không đặt would ở cả hai vế theo mẫu If I would have ..."
+      },
+      "theoryPage": 209,
+      "exercisePage": 210,
+      "keyPages": [304]
+    },
+    {
+      "id": 101,
+      "title": "a person who ... a thing that / which ...",
+      "titleVi": "Mệnh đề quan hệ: who, that, which",
+      "category": "Từ nối và mệnh đề",
+      "pattern": "người + who/that + V; vật + that/which + V",
+      "explanation": "Mệnh đề quan hệ giúp xác định người hoặc vật đang nói đến. Trong bài này, who/that/which làm chủ ngữ của phần theo sau, nên không thêm một đại từ chủ ngữ nữa.",
+      "example": {
+        "en": "I know a woman who speaks five languages.",
+        "vi": "Tôi biết một người phụ nữ nói được năm ngôn ngữ."
+      },
+      "caution": "Không viết a woman who she speaks ... vì đã có who làm chủ ngữ.",
+      "exercise": {
+        "prompt": "The man ___ lives next door is a doctor.",
+        "options": ["who", "which", "what"],
+        "answer": 0,
+        "explanation": "Chọn “who”. Mẫu cần áp dụng: người + who/that + V; vật + that/which + V. Không viết a woman who she speaks ... vì đã có who làm chủ ngữ."
+      },
+      "theoryPage": 211,
+      "exercisePage": 212,
+      "keyPages": [304]
+    },
+    {
+      "id": 102,
+      "title": "the people we met / the hotel you stayed at",
+      "titleVi": "Mệnh đề quan hệ khi đại từ là tân ngữ",
+      "category": "Từ nối và mệnh đề",
+      "pattern": "Danh từ + (who/that/which) + chủ ngữ + động từ",
+      "explanation": "Có thể bỏ đại từ quan hệ khi nó làm tân ngữ trong mệnh đề xác định. Giới từ thường nằm cuối trong cách nói thông dụng. Không bỏ đại từ nếu nó là chủ ngữ.",
+      "example": {
+        "en": "The book I bought yesterday is excellent.",
+        "vi": "Cuốn sách tôi mua hôm qua rất hay."
+      },
+      "caution": "Không thêm it sau bought khi the book đã là tân ngữ cần xác định.",
+      "exercise": {
+        "prompt": "This is the hotel we stayed ___.",
+        "options": ["at", "to", "on"],
+        "answer": 0,
+        "explanation": "Chọn “at”. Mẫu cần áp dụng: Danh từ + (who/that/which) + chủ ngữ + động từ. Không thêm it sau bought khi the book đã là tân ngữ cần xác định."
+      },
+      "theoryPage": 213,
+      "exercisePage": 214,
+      "keyPages": [304]
+    },
+    {
+      "id": 103,
+      "title": "at 8 o’clock / on Monday / in April",
+      "titleVi": "Giới từ thời gian at, on, in",
+      "category": "Giới từ",
+      "pattern": "at + giờ; on + ngày; in + tháng/năm/buổi",
+      "explanation": "Dùng at cho thời điểm cụ thể, on cho ngày và ngày tháng, in cho tháng, năm và nhiều khoảng dài hơn. Một số cụm có cách dùng riêng như at night; last/next/every thường không cần giới từ.",
+      "example": {
+        "en": "My class starts at nine on Monday.",
+        "vi": "Lớp tôi bắt đầu lúc chín giờ thứ Hai."
+      },
+      "caution": "Không thêm on trước every Monday hoặc next Monday trong mẫu thông thường.",
+      "exercise": {
+        "prompt": "We’re meeting ___ Friday.",
+        "options": ["at", "in", "on"],
+        "answer": 2,
+        "explanation": "Chọn “on”. Mẫu cần áp dụng: at + giờ; on + ngày; in + tháng/năm/buổi. Không thêm on trước every Monday hoặc next Monday trong mẫu thông thường."
+      },
+      "theoryPage": 215,
+      "exercisePage": 216,
+      "keyPages": [305]
+    },
+    {
+      "id": 104,
+      "title": "from ... to / until / since / for",
+      "titleVi": "Từ, đến, cho đến và suốt",
+      "category": "Giới từ",
+      "pattern": "from A to B; until + mốc kết thúc; since + mốc bắt đầu; for + khoảng",
+      "explanation": "From ... to ... đánh dấu hai đầu khoảng thời gian. Until chỉ thời điểm một trạng thái/hành động tiếp tục đến. Since hướng từ điểm bắt đầu tới mốc đang xét. For nói độ dài.",
+      "example": {
+        "en": "The shop is open from nine to six.",
+        "vi": "Cửa hàng mở cửa từ chín giờ đến sáu giờ."
+      },
+      "caution": "Until chỉ kéo dài tới mốc; by thường nhấn hạn chót phải hoàn thành, không hoàn toàn giống nhau.",
+      "exercise": {
+        "prompt": "I’ve worked here ___ three years.",
+        "options": ["since", "for", "until"],
+        "answer": 1,
+        "explanation": "Chọn “for”. Mẫu cần áp dụng: from A to B; until + mốc kết thúc; since + mốc bắt đầu; for + khoảng. Until chỉ kéo dài tới mốc; by thường nhấn hạn chót phải hoàn thành, không hoàn toàn giống nhau."
+      },
+      "theoryPage": 217,
+      "exercisePage": 218,
+      "keyPages": [305]
+    },
+    {
+      "id": 105,
+      "title": "before / after / during / while",
+      "titleVi": "Trước, sau và trong khi",
+      "category": "Giới từ",
+      "pattern": "during + danh từ; while + chủ ngữ + động từ; before/after + danh từ/V-ing",
+      "explanation": "During đi với một sự kiện hoặc khoảng thời gian gọi bằng danh từ. While thường mở đầu một mệnh đề. Sau before/after, có thể dùng danh từ, mệnh đề hoặc V-ing tùy cấu trúc.",
+      "example": {
+        "en": "I listened to music while I was cooking.",
+        "vi": "Tôi nghe nhạc trong khi đang nấu ăn."
+      },
+      "caution": "Không dùng during I was cooking; cần while với mệnh đề có chủ ngữ và động từ.",
+      "exercise": {
+        "prompt": "We talked ___ the journey.",
+        "options": ["during", "while", "when of"],
+        "answer": 0,
+        "explanation": "Chọn “during”. Mẫu cần áp dụng: during + danh từ; while + chủ ngữ + động từ; before/after + danh từ/V-ing. Không dùng during I was cooking; cần while với mệnh đề có chủ ngữ và động từ."
+      },
+      "theoryPage": 219,
+      "exercisePage": 220,
+      "keyPages": [305]
+    },
+    {
+      "id": 106,
+      "title": "in / at / on: places 1",
+      "titleVi": "Giới từ vị trí cơ bản",
+      "category": "Giới từ",
+      "pattern": "in: bên trong; at: điểm/vị trí; on: bề mặt",
+      "explanation": "In thường nhấn bên trong một không gian; at xem nơi như một điểm; on chỉ nằm trên bề mặt hoặc đường thẳng. Ngoài nghĩa cơ bản, cần học các cụm như at the top, on the left.",
+      "example": { "en": "The keys are on the table.", "vi": "Chìa khóa ở trên bàn." },
+      "caution": "On the wall khác in the wall: ở trên bề mặt khác nằm trong kết cấu bức tường.",
+      "exercise": {
+        "prompt": "There is a picture ___ the wall.",
+        "options": ["in", "on", "at"],
+        "answer": 1,
+        "explanation": "Chọn “on”. Mẫu cần áp dụng: in: bên trong; at: điểm/vị trí; on: bề mặt. On the wall khác in the wall: ở trên bề mặt khác nằm trong kết cấu bức tường."
+      },
+      "theoryPage": 221,
+      "exercisePage": 222,
+      "keyPages": [305]
+    },
+    {
+      "id": 107,
+      "title": "in / at / on: places 2",
+      "titleVi": "Các cụm địa điểm thường gặp",
+      "category": "Giới từ",
+      "pattern": "in a city/country; at work/home; on a floor",
+      "explanation": "Tiếp tục học giới từ theo cụm địa điểm như in a country, at a station, on the first floor. Một nơi có thể dùng in hoặc at tùy xem bên trong hay điểm hẹn/hoạt động.",
+      "example": { "en": "She works on the third floor.", "vi": "Cô ấy làm việc ở tầng ba." },
+      "caution": "Không chọn giới từ chỉ bằng bản dịch ở trong tiếng Việt; học cụm đầy đủ.",
+      "exercise": {
+        "prompt": "My grandparents live ___ a small village.",
+        "options": ["on", "in", "at on"],
+        "answer": 1,
+        "explanation": "Chọn “in”. Mẫu cần áp dụng: in a city/country; at work/home; on a floor. Không chọn giới từ chỉ bằng bản dịch ở trong tiếng Việt; học cụm đầy đủ."
+      },
+      "theoryPage": 223,
+      "exercisePage": 224,
+      "keyPages": [306]
+    },
+    {
+      "id": 108,
+      "title": "to / in / at: places 3",
+      "titleVi": "Di chuyển đến và vị trí ở",
+      "category": "Giới từ",
+      "pattern": "go to; arrive in + thành phố/nước; arrive at + điểm cụ thể",
+      "explanation": "To thường đi với chuyển động hướng đến nơi. In/at thường chỉ vị trí hoặc đi với arrive. Dùng arrive in cho khu vực rộng và arrive at cho điểm cụ thể. Home có nhiều mẫu không dùng giới từ.",
+      "example": { "en": "We arrived at the airport early.", "vi": "Chúng tôi đến sân bay sớm." },
+      "caution": "Không nói arrive to trong những mẫu địa điểm của bài.",
+      "exercise": {
+        "prompt": "They’re going ___ Japan next month.",
+        "options": ["at", "in", "to"],
+        "answer": 2,
+        "explanation": "Chọn “to”. Mẫu cần áp dụng: go to; arrive in + thành phố/nước; arrive at + điểm cụ thể. Không nói arrive to trong những mẫu địa điểm của bài."
+      },
+      "theoryPage": 225,
+      "exercisePage": 226,
+      "keyPages": [306]
+    },
+    {
+      "id": 109,
+      "title": "under / behind / opposite",
+      "titleVi": "Mô tả vị trí tương đối",
+      "category": "Giới từ",
+      "pattern": "under, above, behind, opposite, next to, between ...",
+      "explanation": "Chọn giới từ theo quan hệ vị trí: dưới, trên cao, phía sau, đối diện, kế bên hoặc ở giữa. Between thường nêu rõ các đối tượng làm mốc. In front of chỉ phía trước bên ngoài.",
+      "example": {
+        "en": "The bank is opposite the supermarket.",
+        "vi": "Ngân hàng nằm đối diện siêu thị."
+      },
+      "caution": "In front of khác in the front of: phía trước bên ngoài khác phần phía trước bên trong.",
+      "exercise": {
+        "prompt": "The café is ___ the bank and the library.",
+        "options": ["between", "behind of", "among of"],
+        "answer": 0,
+        "explanation": "Chọn “between”. Mẫu cần áp dụng: under, above, behind, opposite, next to, between .... In front of khác in the front of: phía trước bên ngoài khác phần phía trước bên trong."
+      },
+      "theoryPage": 227,
+      "exercisePage": 228,
+      "keyPages": [306]
+    },
+    {
+      "id": 110,
+      "title": "up / over / through",
+      "titleVi": "Giới từ chỉ hướng di chuyển",
+      "category": "Giới từ",
+      "pattern": "up/down; over/under; across/through; into/out of",
+      "explanation": "Giới từ hướng diễn tả đường đi của chuyển động. Across đi qua một bề mặt hoặc từ bờ này sang bờ kia; through đi xuyên qua không gian hoặc vật bao quanh. Into nhấn chuyển động vào bên trong.",
+      "example": {
+        "en": "We walked through the forest.",
+        "vi": "Chúng tôi đi xuyên qua khu rừng."
+      },
+      "caution": "In chỉ vị trí; into nhấn di chuyển vào. Không thay chúng cho nhau trong mọi câu.",
+      "exercise": {
+        "prompt": "The train went ___ the tunnel.",
+        "options": ["through", "over", "on to"],
+        "answer": 0,
+        "explanation": "Chọn “through”. Mẫu cần áp dụng: up/down; over/under; across/through; into/out of. In chỉ vị trí; into nhấn di chuyển vào. Không thay chúng cho nhau trong mọi câu."
+      },
+      "theoryPage": 229,
+      "exercisePage": 230,
+      "keyPages": [306]
+    },
+    {
+      "id": 111,
+      "title": "on / at / by / with / about",
+      "titleVi": "Những cụm giới từ thông dụng",
+      "category": "Giới từ",
+      "pattern": "on holiday; by bus; with a friend; about a topic",
+      "explanation": "Nhiều giới từ đi thành cụm cố định: on holiday, by train, with someone, about something. By thường chỉ phương thức hoặc tác giả/tác nhân; with có thể chỉ người đi cùng hoặc công cụ.",
+      "example": { "en": "We travelled by train.", "vi": "Chúng tôi đi bằng tàu hỏa." },
+      "caution": "By car thường không có mạo từ; in a car là cấu trúc khác.",
+      "exercise": {
+        "prompt": "She cut the paper ___ scissors.",
+        "options": ["by", "with", "about"],
+        "answer": 1,
+        "explanation": "Chọn “with”. Mẫu cần áp dụng: on holiday; by bus; with a friend; about a topic. By car thường không có mạo từ; in a car là cấu trúc khác."
+      },
+      "theoryPage": 231,
+      "exercisePage": 232,
+      "keyPages": [306]
+    },
+    {
+      "id": 112,
+      "title": "afraid of / good at ...",
+      "titleVi": "Tính từ đi với giới từ",
+      "category": "Giới từ",
+      "pattern": "tính từ + giới từ + danh từ/V-ing",
+      "explanation": "Học tính từ cùng giới từ đi kèm như afraid of, good at, interested in, different from. Khi sau giới từ là một hành động, dùng V-ing thay vì động từ nguyên mẫu.",
+      "example": {
+        "en": "He is good at solving problems.",
+        "vi": "Anh ấy giỏi giải quyết vấn đề."
+      },
+      "caution": "Sau at/in/of là giới từ, dùng V-ing nếu cần một động từ.",
+      "exercise": {
+        "prompt": "She’s interested ___ learning Japanese.",
+        "options": ["on", "at", "in"],
+        "answer": 2,
+        "explanation": "Chọn “in”. Mẫu cần áp dụng: tính từ + giới từ + danh từ/V-ing. Sau at/in/of là giới từ, dùng V-ing nếu cần một động từ."
+      },
+      "theoryPage": 233,
+      "exercisePage": 234,
+      "keyPages": [307]
+    },
+    {
+      "id": 113,
+      "title": "listen to / look at ...",
+      "titleVi": "Động từ đi với giới từ",
+      "category": "Giới từ",
+      "pattern": "listen to; wait for; depend on; look at ...",
+      "explanation": "Một số động từ cần giới từ trước tân ngữ. Một số động từ khác không cần, như phone someone. Giới từ có thể đứng cuối câu hỏi; sau giới từ dùng tân ngữ hoặc V-ing.",
+      "example": { "en": "I’m waiting for the bus.", "vi": "Tôi đang chờ xe buýt." },
+      "caution": "Listen to someone có to; phone someone thường không có to trong mẫu này.",
+      "exercise": {
+        "prompt": "Please listen ___ me.",
+        "options": ["at", "to", "for"],
+        "answer": 1,
+        "explanation": "Chọn “to”. Mẫu cần áp dụng: listen to; wait for; depend on; look at .... Listen to someone có to; phone someone thường không có to trong mẫu này."
+      },
+      "theoryPage": 235,
+      "exercisePage": 236,
+      "keyPages": [307]
+    },
+    {
+      "id": 114,
+      "title": "go in / fall off / run away",
+      "titleVi": "Cụm động từ 1",
+      "category": "Cụm động từ",
+      "pattern": "động từ + tiểu từ: in/out/up/down/away ...",
+      "explanation": "Động từ kết hợp với từ nhỏ phía sau có thể diễn tả hướng hoặc tạo nghĩa mới. Học cả cụm trong ngữ cảnh và nhận biết cụm có cần tân ngữ hay không.",
+      "example": {
+        "en": "The children ran away when they saw the dog.",
+        "vi": "Bọn trẻ chạy đi khi nhìn thấy con chó."
+      },
+      "caution": "Không phải nghĩa của mọi cụm đều đoán được bằng dịch từng từ; give up nghĩa là từ bỏ.",
+      "exercise": {
+        "prompt": "I wake ___ at six every morning.",
+        "options": ["up", "off", "out of"],
+        "answer": 0,
+        "explanation": "Chọn “up”. Mẫu cần áp dụng: động từ + tiểu từ: in/out/up/down/away .... Không phải nghĩa của mọi cụm đều đoán được bằng dịch từng từ; give up nghĩa là từ bỏ."
+      },
+      "theoryPage": 237,
+      "exercisePage": 238,
+      "keyPages": [307]
+    },
+    {
+      "id": 115,
+      "title": "put on your shoes / put your shoes on",
+      "titleVi": "Cụm động từ 2: vị trí tân ngữ",
+      "category": "Cụm động từ",
+      "pattern": "turn on the light / turn the light on; turn it on",
+      "explanation": "Với một số cụm động từ tách được, danh từ có thể đứng trước hoặc sau tiểu từ. Nếu tân ngữ là đại từ như it/them, đặt giữa động từ và tiểu từ. Không phải mọi cụm đều tách được.",
+      "example": {
+        "en": "Please turn it off before you leave.",
+        "vi": "Hãy tắt nó trước khi bạn rời đi."
+      },
+      "caution": "Dùng turn it off, không dùng turn off it trong cấu trúc này.",
+      "exercise": {
+        "prompt": "Your shoes are dirty. Take ___.",
+        "options": ["off them", "them off", "them to off"],
+        "answer": 1,
+        "explanation": "Chọn “them off”. Mẫu cần áp dụng: turn on the light / turn the light on; turn it on. Dùng turn it off, không dùng turn off it trong cấu trúc này."
+      },
+      "theoryPage": 239,
+      "exercisePage": 240,
+      "keyPages": [307]
+    }
+  ]
+}
