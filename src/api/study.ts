@@ -44,14 +44,9 @@ export interface WrongAnswer { id: number; lessonId: number; exerciseId: number;
 
 const base = '/api/nihongo-user/study'
 export const getMyCourses = async (signal?: AbortSignal) => (await gatewayUrl.get<MyCourse[]>('/api/nihongo-user/my-courses-dto', { signal })).data
-export const getResults = async () => (await gatewayUrl.get<LessonResult[]>('/api/nihongo-user/userExerciseAttempt')).data
-export const getCards = async (lessonId?: number) => (await gatewayUrl.get<StudyCard[]>(`${base}/cards`, { params: lessonId ? { lessonId } : {} })).data
-export const getOverview = async () => (await gatewayUrl.get<{ dueCards: number; weakLessons: number }>(`${base}/overview`)).data
-export const getDueCards = async () => (await gatewayUrl.get<StudyCard[]>(`${base}/cards/due`)).data
+export const getCards = async (lessonId: number) => (await gatewayUrl.get<StudyCard[]>(`${base}/cards`, { params: { lessonId } })).data
 export const saveCard = async (input: CardInput) => (await gatewayUrl.put<StudyCard>(`${base}/cards`, input)).data
 export const deleteCard = async (id: number) => gatewayUrl.delete(`${base}/cards/${id}`)
-export const reviewCard = async (id: number, remembered: boolean) => (await gatewayUrl.post<StudyCard>(`${base}/cards/${id}/review`, null, { params: { remembered } })).data
-export const getWrongAnswers = async (lessonId?: number) => (await gatewayUrl.get<WrongAnswer[]>(`${base}/wrong-answers`, { params: lessonId ? { lessonId } : {} })).data
 
 export interface StudyPage<T> { content: T[]; totalElements: number; number: number; totalPages: number }
 export interface StudyGoal { dailyCards: number; dailyAttempts: number; remindersEnabled: boolean }

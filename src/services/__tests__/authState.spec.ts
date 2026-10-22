@@ -3,7 +3,7 @@ import { AxiosError } from 'axios'
 const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), refresh: vi.fn(), privateGet: vi.fn(), connect: vi.fn(), disconnect: vi.fn() }))
 vi.mock('@/api/authApi', () => ({ publicClient: { get: mocks.get, post: mocks.post }, gatewayUrl: { get: mocks.privateGet }, refreshAccessToken: mocks.refresh }))
 vi.mock('@/services/websocketService', () => ({ wsService: { connect: mocks.connect, disconnect: mocks.disconnect } }))
-import { initAuth, useAuthState } from '../authState'
+import { initAuth, useAuthState, SESSION_POLL_MS, SESSION_RECHECK_MIN_MS } from '../authState'
 beforeEach(() => { vi.useFakeTimers(); vi.clearAllMocks(); sessionStorage.clear(); window.dispatchEvent(new Event('auth:expired')); vi.spyOn(console, 'log').mockImplementation(() => {}) })
 afterEach(() => { window.dispatchEvent(new Event('auth:expired')); vi.useRealTimers(); vi.restoreAllMocks() })
 const unauthorized = () => new AxiosError('unauthorized', 'ERR_BAD_RESPONSE', undefined, undefined, { status: 401 } as any)
@@ -35,7 +35,7 @@ it('clears stale identity and stops polling when initialization becomes anonymou
   expect(sessionStorage.getItem('sessionId')).toBeNull()
   expect(localStorage.getItem('display-theme')).toBe('soft')
   expect(sessionStorage.getItem('purchase-retry')).toBe('key')
-  await vi.advanceTimersByTimeAsync(16000)
+  await vi.advanceTimersByTimeAsync(SESSION_POLL_MS * 2)
   expect(mocks.privateGet).not.toHaveBeenCalled()
 })
 
@@ -56,10 +56,27 @@ it('ignores a polling response after the session expires', async () => {
   await initAuth()
   let resolve!: (response: any) => void
   mocks.privateGet.mockImplementationOnce(() => new Promise(done => { resolve = done }))
-  await vi.advanceTimersByTimeAsync(8000)
+  await vi.advanceTimersByTimeAsync(SESSION_POLL_MS)
   window.dispatchEvent(new Event('auth:expired'))
   resolve({ data: { isLoggedIn: true, sessionId: 'sid', email: 'u@example.com' } })
   await Promise.resolve()
   expect(useAuthState().isAuthenticated.value).toBe(false)
   expect(sessionStorage.getItem('sessionId')).toBeNull()
+})
+
+it('polls the session once per interval and rechecks on focus only after the minimum gap', async () => {
+  mocks.get.mockResolvedValueOnce({ data: { isLoggedIn: true, sessionId: 'sid', email: 'u@example.com' } })
+  mocks.privateGet.mockResolvedValue({ data: { isLoggedIn: true, sessionId: 'sid', email: 'u@example.com' } })
+  await initAuth()
+  await vi.advanceTimersByTimeAsync(SESSION_POLL_MS - 1)
+  expect(mocks.privateGet).not.toHaveBeenCalled()
+  await vi.advanceTimersByTimeAsync(1)
+  expect(mocks.privateGet).toHaveBeenCalledOnce()
+  window.dispatchEvent(new Event('focus'))
+  await Promise.resolve()
+  expect(mocks.privateGet).toHaveBeenCalledOnce()
+  await vi.advanceTimersByTimeAsync(SESSION_RECHECK_MIN_MS)
+  window.dispatchEvent(new Event('focus'))
+  await Promise.resolve()
+  expect(mocks.privateGet).toHaveBeenCalledTimes(2)
 })

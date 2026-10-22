@@ -9,8 +9,13 @@ const isAuthReady = ref(false)
 const userName = ref('')
 const userEmail = ref('')
 const userRole = ref('')
+// Logout and session replacement are pushed over the auth WebSocket; polling is only a fallback.
+export const SESSION_POLL_MS = 60_000
+// Returning to the tab rechecks sooner, but not more often than this.
+export const SESSION_RECHECK_MIN_MS = 15_000
 let pollingTimer: ReturnType<typeof setInterval> | null = null
 let isChecking = false
+let lastCheckedAt = 0
 let isLoggingOut = false
 let sessionVersion = 0
 
@@ -41,19 +46,29 @@ const applySession = (session: Session) => {
     expireAuth()
     window.location.replace('/login')
   })
+  lastCheckedAt = Date.now()
   if (pollingTimer !== null) return
-  pollingTimer = setInterval(async () => {
-    if (!isAuthenticated.value || isChecking || isLoggingOut || document.visibilityState === 'hidden') return
-    isChecking = true
-    const version = sessionVersion
-    try {
-      const { data } = await gatewayUrl.get<Session>('/api/auth/checkLogin')
-      if (version === sessionVersion && !isLoggingOut) applySession(data)
-    } catch {
-      // The API interceptor handles expiration. Keep the session during network outages.
-    } finally { isChecking = false }
-  }, 8000)
+  pollingTimer = setInterval(() => { void checkSession() }, SESSION_POLL_MS)
 }
+
+const checkSession = async () => {
+  if (!isAuthenticated.value || isChecking || isLoggingOut || document.visibilityState === 'hidden') return
+  isChecking = true
+  lastCheckedAt = Date.now()
+  const version = sessionVersion
+  try {
+    const { data } = await gatewayUrl.get<Session>('/api/auth/checkLogin')
+    if (version === sessionVersion && !isLoggingOut) applySession(data)
+  } catch {
+    // The API interceptor handles expiration. Keep the session during network outages.
+  } finally { isChecking = false }
+}
+
+const recheckOnReturn = () => {
+  if (document.visibilityState !== 'hidden' && Date.now() - lastCheckedAt >= SESSION_RECHECK_MIN_MS) void checkSession()
+}
+document.addEventListener('visibilitychange', recheckOnReturn)
+window.addEventListener('focus', recheckOnReturn)
 
 export const logout = async () => {
   if (isLoggingOut) return
@@ -96,6 +111,8 @@ if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     clearAuth()
     window.removeEventListener('auth:expired', expireAuth)
+    document.removeEventListener('visibilitychange', recheckOnReturn)
+    window.removeEventListener('focus', recheckOnReturn)
   })
 }
 export const useAuthState = () => ({ isAuthenticated, isAuthReady, userName, userEmail, userRole })
