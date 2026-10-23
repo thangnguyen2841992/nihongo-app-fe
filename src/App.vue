@@ -16,8 +16,9 @@ const isLearner = computed(() => signedIn.value && userRole.value.replace(/^ROLE
 let stopActivity: (() => void) | undefined
 onMounted(() => {
   initAuth()
+  // ADMIN (30 min) and STAFF (2 h) sessions have an idle limit that only real interactions extend.
   stopActivity = trackAdminActivity(
-    () => isAuthenticated.value && userRole.value.replace(/^ROLE_/, '') === 'ADMIN',
+    () => isAuthenticated.value && ['ADMIN', 'STAFF'].includes(userRole.value.replace(/^ROLE_/, '')),
     () => gatewayUrl.post('/api/auth/activity'),
   )
 })

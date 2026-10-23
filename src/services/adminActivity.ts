@@ -1,4 +1,4 @@
-// Only real foreground interactions extend the server's admin idle deadline.
+// Only real foreground interactions extend the server's idle deadline for ADMIN and STAFF sessions.
 // Polling, timers, focus and WebSocket heartbeats never call this endpoint.
 export function trackAdminActivity(isAdmin: () => boolean, send: () => Promise<unknown>) {
   let lastAttempt = -Infinity
