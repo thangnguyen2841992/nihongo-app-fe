@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import {computed, onMounted, onUnmounted, ref, watch} from "vue"
-import { useRouter } from "vue-router"
+import { useRoute, useRouter } from "vue-router"
+import { getWallet } from "@/services/walletApi"
 import { purchaseCourse } from "@/services/coursePurchase"
 import { useAuthState } from "@/services/authState"
 import {gatewayUrl, publicClient} from "@/api/authApi"
 import { saveLearningPosition } from '@/api/learningPosition'
 
 const router = useRouter()
+const route = useRoute()
 const { isAuthenticated, userEmail } = useAuthState()
 const loading = ref(true)
 const loadError = ref("")
@@ -23,12 +25,14 @@ interface Course {
   courseId: number
   courseName: string
   courseDescription: string
+  levelId?: number | null
   active: string
   packages: CoursePackage[]
 }
 
 interface MyCourse {
   courseId: number
+  packageId?: number | null
   expiredAt: string
   startedAt: string | null
   lastBookId: number | null
@@ -44,6 +48,33 @@ const myCourses = ref<MyCourse[]>([])
 const subscriptionsByCourse = computed(() => new Map(myCourses.value.map(course => [course.courseId, course])))
 let subscriptionRequest: AbortController | undefined
 let catalogRequest: AbortController | undefined
+// Messages stay on the page (no browser dialogs): errors inside the package window, success above the catalog.
+const purchaseError = ref('')
+const insufficientFunds = ref(false)
+const purchased = ref<{ courseId: number; courseName: string; renewal: boolean; expiredAt?: string } | null>(null)
+const balance = ref<number | null>(null)
+interface SyllabusBook { bookId: number; bookName: string; lessons: number }
+const syllabus = ref<Record<number, SyllabusBook[] | 'loading' | 'error'>>({})
+async function toggleSyllabus(course: Course) {
+  const current = syllabus.value[course.courseId]
+  if (current && current !== 'error') { const next = { ...syllabus.value }; delete next[course.courseId]; syllabus.value = next; return }
+  if (!course.levelId) { syllabus.value = { ...syllabus.value, [course.courseId]: [] }; return }
+  syllabus.value = { ...syllabus.value, [course.courseId]: 'loading' }
+  try {
+    const { data } = await publicClient.get<SyllabusBook[]>(`/api/staff/public/levels/${course.levelId}/syllabus`, { withCredentials: false })
+    syllabus.value = { ...syllabus.value, [course.courseId]: Array.isArray(data) ? data : [] }
+  } catch { syllabus.value = { ...syllabus.value, [course.courseId]: 'error' } }
+}
+/** Early renewal keeps the current package (the server enforces it); after expiry any package can be chosen. */
+const modalPackages = computed(() => {
+  const course = selectedCourse.value
+  if (!course) return []
+  const current = subscriptionsByCourse.value.get(course.courseId)
+  if (isRenewMode.value && current && !isExpired(course.courseId) && current.packageId)
+    return course.packages.filter(p => p.packageId === current.packageId)
+  return course.packages
+})
+const payable = (p: CoursePackage) => couponQuotes.value[p.packageId]?.payable ?? p.price
 const couponCode = ref('')
 const couponBusy = ref(false)
 const couponError = ref('')
@@ -66,7 +97,15 @@ const openPackageModal = (course: Course, renew = false) => {
   selectedCourse.value = course
   couponCode.value = ''; couponQuotes.value = {}; couponError.value = ''
   isRenewMode.value = renew
+  purchaseError.value = ''; insufficientFunds.value = false; purchased.value = null
   showPackageModal.value = true
+  balance.value = null
+  void getWallet().then(wallet => { if (showPackageModal.value) balance.value = wallet.balance }).catch(() => { balance.value = null })
+}
+function purchaseFailed(e: any, fallback: string) {
+  const message: string = e?.response?.data?.message || fallback
+  insufficientFunds.value = /số dư không đủ/i.test(message)
+  purchaseError.value = message
 }
 
 const subscribe = async (packageId: number) => {
@@ -78,14 +117,15 @@ const subscribe = async (packageId: number) => {
 
     await purchaseCourse(userEmail?.value || "current", selectedCourse.value.courseId, packageId, false, couponCode.value.trim() || undefined, couponQuotes.value[packageId]?.payable ?? selectedCourse.value.packages.find(p => p.packageId === packageId)?.price)
 
-    await loadMyCourses();
-
+    const course = selectedCourse.value
+    await loadMyCourses().catch(() => {})
+    purchased.value = { courseId: course.courseId, courseName: course.courseName, renewal: false }
     showPackageModal.value = false
     selectedCourse.value = null
 
   } catch (e: any) {
     console.error(e)
-    alert(e.response?.data?.message || "Đăng ký thất bại. Có thể thử lại cùng yêu cầu.")
+    purchaseFailed(e, "Đăng ký thất bại. Có thể thử lại cùng yêu cầu.")
   } finally {
     registering.value = null
   }
@@ -145,17 +185,16 @@ const renewSubscription = async (packageId: number) => {
 
     await purchaseCourse(userEmail?.value || "current", selectedCourse.value.courseId, packageId, true, couponCode.value.trim() || undefined, couponQuotes.value[packageId]?.payable ?? selectedCourse.value.packages.find(p => p.packageId === packageId)?.price)
 
-    alert("Gia hạn thành công!")
-
+    const course = selectedCourse.value
     showPackageModal.value = false
     selectedCourse.value = null
-
-    await loadMyCourses()
+    await loadMyCourses().catch(() => {})
+    purchased.value = { courseId: course.courseId, courseName: course.courseName, renewal: true, expiredAt: subscriptionsByCourse.value.get(course.courseId)?.expiredAt }
 
   } catch (e: any) {
 
     console.error(e)
-    alert(e.response?.data?.message || "Gia hạn thất bại. Có thể thử lại cùng yêu cầu.")
+    purchaseFailed(e, "Gia hạn thất bại. Có thể thử lại cùng yêu cầu.")
 
   } finally {
 
@@ -201,6 +240,15 @@ const continueLearning = async (courseId: number) => {
 }
 
 onMounted(() => { void loadCourses() })
+// "Gia hạn" links from My courses / reminders arrive as /courses?renew=<courseId>.
+watch(() => [route.query.renew, courses.value, myCourses.value] as const, ([renew]) => {
+  const id = Number(renew)
+  if (!Number.isInteger(id) || id <= 0 || showPackageModal.value || !isRegistered(id)) return
+  const course = courses.value.find(c => c.courseId === id)
+  if (!course) return
+  openPackageModal(course, true)
+  void router.replace({ query: { ...route.query, renew: undefined } })
+})
 watch(() => [isAuthenticated.value, userEmail.value] as const, ([authenticated], _, cleanup) => {
   subscriptionRequest?.abort()
   cleanup(() => subscriptionRequest?.abort())
@@ -227,8 +275,14 @@ onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
     </div>
     <div class="catalog-heading"><span class="catalog-icon"><i class="bi bi-compass" aria-hidden="true"></i></span><div><p class="catalog-eyebrow">LỘ TRÌNH THEO TRÌNH ĐỘ</p><h2 class="title">Khóa học tiếng Nhật</h2><p>Chọn khóa học và gói phù hợp với mục tiêu của bạn.</p></div></div>
     <p v-if="loading" role="status" class="empty">Đang tải khóa học...</p>
-    <div v-else-if="loadError" role="alert" class="alert alert-warning">
-      {{ loadError }} <button type="button" class="btn btn-link" @click="loadCourses">Thử lại</button>
+    <div v-else-if="loadError" role="alert" class="learn-alert warning">
+      <i class="bi bi-wifi-off" aria-hidden="true"></i><span>{{ loadError }}</span> <button type="button" @click="loadCourses">Thử lại</button>
+    </div>
+
+    <div v-if="purchased" class="purchase-done" role="status">
+      <p><i class="bi bi-check-circle" aria-hidden="true"></i>
+        {{ purchased.renewal ? 'Đã gia hạn' : 'Đã đăng ký' }} <strong>{{ purchased.courseName }}</strong><template v-if="purchased.expiredAt"> · học đến {{ new Date(purchased.expiredAt).toLocaleDateString('vi-VN') }}</template>.</p>
+      <div class="purchase-actions"><button type="button" class="btn primary" @click="continueLearning(purchased.courseId)">Vào học ngay</button><button type="button" class="link-button" @click="purchased = null">Đóng</button></div>
     </div>
 
     <div v-if="!loading && !loadError && courses.length" class="grid">
@@ -261,7 +315,7 @@ onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
       v-if="isExpired(course.courseId)"
       class="expired"
     >
-      🔴 Đã hết hạn
+      <i class="bi bi-circle-fill" aria-hidden="true"></i> Đã hết hạn
       {{ getExpiredDate(course.courseId) }}
     </span>
 
@@ -269,7 +323,7 @@ onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
               v-else
               class="active"
             >
-      🟢 Đang học
+      <i class="bi bi-circle-fill" aria-hidden="true"></i> Đang học
     </span>
 
           </template>
@@ -296,6 +350,18 @@ onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
           </div>
         </div>
 
+        <div class="syllabus">
+          <button type="button" class="link-button" :aria-expanded="Boolean(syllabus[course.courseId] && syllabus[course.courseId] !== 'error')" @click="toggleSyllabus(course)">
+            <i class="bi bi-journals" aria-hidden="true"></i> {{ syllabus[course.courseId] && syllabus[course.courseId] !== 'error' ? 'Ẩn giáo trình' : 'Xem giáo trình trong khóa' }}
+          </button>
+          <p v-if="syllabus[course.courseId] === 'loading'" role="status">Đang tải giáo trình...</p>
+          <p v-else-if="syllabus[course.courseId] === 'error'" role="alert">Chưa tải được giáo trình. <button type="button" class="link-button" @click="toggleSyllabus(course)">Thử lại</button></p>
+          <template v-else-if="Array.isArray(syllabus[course.courseId])">
+            <ul v-if="(syllabus[course.courseId] as SyllabusBook[]).length"><li v-for="book in (syllabus[course.courseId] as SyllabusBook[])" :key="book.bookId">{{ book.bookName }} <small>· {{ book.lessons }} bài</small></li></ul>
+            <p v-else>Giáo trình đang được chuẩn bị.</p>
+          </template>
+        </div>
+
         <!-- FOOTER -->
         <div class="footer">
 
@@ -314,16 +380,20 @@ onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
             : continueLearning(course.courseId)
         : openPackageModal(course)">
            <span v-if="isRegistered(course.courseId)">
-    {{ isExpired(course.courseId) ? "🔄 Gia hạn" : "▶ Học tiếp" }}
+    <i class="bi" :class="isExpired(course.courseId) ? 'bi-arrow-repeat' : 'bi-play-fill'" aria-hidden="true"></i> {{ isExpired(course.courseId) ? "Gia hạn" : "Học tiếp" }}
 </span>
 
             <span v-else-if="registering === course.courseId">
-              ⏳ Đang xử lý
+              <i class="bi bi-hourglass-split" aria-hidden="true"></i> Đang xử lý
             </span>
 
             <span v-else>
-              {{ isAuthenticated ? "🚀 Mua khóa học" : "Đăng nhập để đăng ký" }}
+              <template v-if="isAuthenticated"><i class="bi bi-bag-plus" aria-hidden="true"></i> Mua khóa học</template><template v-else>Đăng nhập để đăng ký</template>
             </span>
+          </button>
+          <button v-if="isRegistered(course.courseId) && !isExpired(course.courseId)" type="button" class="btn renew-early"
+                  :disabled="registering === course.courseId" @click="renewCourse(course.courseId)">
+            Gia hạn thêm
           </button>
 
         </div>
@@ -353,11 +423,14 @@ onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
         </p>
 
         <p class="sub">Thanh toán bằng số dư ví. Số tiền của gói sẽ được trừ khi đăng ký hoặc gia hạn thành công.</p>
+        <p class="sub wallet-line">Số dư hiện tại: <strong>{{ balance === null ? '…' : `${balance.toLocaleString('vi-VN')}đ` }}</strong> · <RouterLink to="/wallet">Nạp tiền vào ví</RouterLink></p>
+        <p v-if="isRenewMode && selectedCourse && !isExpired(selectedCourse.courseId)" class="sub">Khóa học còn hạn: thời gian mới được cộng tiếp vào ngày hết hạn hiện tại, giữ nguyên gói đang dùng.</p>
+        <p v-if="purchaseError" role="alert" class="purchase-error">{{ purchaseError }} <RouterLink v-if="insufficientFunds" to="/wallet">Nạp tiền ngay</RouterLink></p>
         <form class="coupon-form" @submit.prevent="applyCoupon"><label for="purchase-coupon">Mã giảm giá (nếu có)</label><div class="d-flex gap-2"><input id="purchase-coupon" v-model="couponCode" class="form-control" maxlength="32" :disabled="couponBusy || registering !== null" placeholder="Nhập mã giảm giá"><button class="btn btn-outline-primary" :disabled="couponBusy || registering !== null || !couponCode.trim()">{{ couponBusy ? 'Đang kiểm tra...' : 'Kiểm tra mã' }}</button></div><small>Mỗi mã dùng một lần cho mỗi tài khoản. Kiểm tra mã để xem số tiền thanh toán.</small><p v-if="couponError" role="alert" class="text-danger">{{ couponError }}</p></form>
         <div class="package-grid">
 
           <div
-            v-for="p in selectedCourse?.packages"
+            v-for="p in modalPackages"
             :key="p.packageId"
             class="package-card"
           >
@@ -372,8 +445,9 @@ onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
 
             <div class="pkg-price">
               <del v-if="couponQuotes[p.packageId]" class="d-block small text-muted">{{ p.price.toLocaleString('vi-VN') }}đ</del>
-              {{ (couponQuotes[p.packageId]?.payable ?? p.price).toLocaleString("vi-VN") }}đ
+              {{ payable(p).toLocaleString("vi-VN") }}đ
             </div>
+            <small v-if="balance !== null && payable(p) > balance" class="purchase-error">Cần nạp thêm {{ (payable(p) - balance).toLocaleString('vi-VN') }}đ</small>
 
             <button
               class="buy-btn"
@@ -402,8 +476,21 @@ onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
 </template>
 
 <style scoped>
+.course-status .bi-circle-fill { font-size: 8px; vertical-align: middle; margin-right: 4px; }
+.purchase-done { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; padding: 14px 16px; border: 1px solid #b7dfc6; border-radius: 12px; background: #eefaf2; color: #24583a; }
+.purchase-done p { margin: 0; }
+.purchase-done i { margin-right: 6px; }
+.purchase-error { color: #b42318; }
+.wallet-line a, .purchase-error a { font-weight: 600; }
+.syllabus { margin: 8px 0 4px; font-size: 13px; }
+.link-button { padding: 0; border: 0; background: none; color: #6b4f86; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.purchase-actions { display: flex; align-items: center; gap: 12px; }
+.purchase-actions .btn { width: auto; padding: 8px 16px; }
+.syllabus ul { margin: 6px 0 0; padding-left: 18px; }
+.syllabus small { color: #6b7280; }
+.btn.renew-early { margin-top: 8px; background: transparent; border: 1px solid #b9a6c4; color: #6b4f86; }
 .guest-intro { padding: 36px 0 30px; max-width: 760px; }
-.intro-label { color: #866692; font-size: 11px; font-weight: 750; letter-spacing: 1.5px; }
+.intro-label { color: #866692; font-size: var(--learn-text-xs); font-weight: 750; letter-spacing: 1.5px; }
 .guest-intro h1 { color: #50435e; font-size: clamp(28px, 4vw, 42px); font-weight: 750; margin: 14px 0; line-height: 1.25; }
 .guest-intro p { color: #64748b; font-size: 16px; line-height: 1.7; }
 .page {
@@ -416,7 +503,7 @@ onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
 
 .catalog-heading { display: flex; align-items: flex-start; gap: 13px; margin-bottom: 22px; }
 .catalog-icon { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; background: #eee5f1; color: #80628e; font-size: 20px; }
-.catalog-eyebrow { margin: 0 0 3px; color: #9a84a2; font-size: 9px; font-weight: 750; letter-spacing: .13em; }
+.catalog-eyebrow { margin: 0 0 3px; color: #9a84a2; font-size: var(--learn-text-xs); font-weight: 750; letter-spacing: .13em; }
 .catalog-heading > div > p:last-child { margin: 6px 0 0; color: #887b90; font-size: 13px; }
 
 .title {
@@ -499,7 +586,7 @@ onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
 }
 .pkg-copy { display: grid; gap: 2px; min-width: 0; }
 .pkg-copy strong { color: #695973; font-size: 12px; }
-.pkg-copy small, .pkg > small { color: #998aa1; font-size: 9px; }
+.pkg-copy small, .pkg > small { color: #998aa1; font-size: var(--learn-text-xs); }
 .pkg > small { grid-column: 1 / -1; }
 
 /* FOOTER */
@@ -566,7 +653,7 @@ onUnmounted(() => { catalogRequest?.abort(); subscriptionRequest?.abort() })
 .coupon-form { padding: 14px; margin-bottom: 16px; border: 1px solid #ece4ef; border-radius: 12px; background: #faf7fb; }
 .coupon-form > label { display: block; margin-bottom: 7px; color: #675a70; font-size: 12px; font-weight: 650; }
 .coupon-form .btn { width: auto; flex-shrink: 0; border: 1px solid #80628e; color: #705582; background: white; }
-.coupon-form small { display: block; margin-top: 7px; color: #968a9c; font-size: 10px; line-height: 1.5; }
+.coupon-form small { display: block; margin-top: 7px; color: #968a9c; font-size: var(--learn-text-xs); line-height: 1.5; }
 
 .package-grid {
   display: grid;

@@ -39,7 +39,7 @@ it('loads only the next page and refreshes only the newest page', async () => {
   }))
   const wrapper = mount(BroadcastInbox); await flushPromises()
   await wrapper.findAll('button').find(button => button.text() === 'Xem thêm')!.trigger('click'); await flushPromises()
-  window.dispatchEvent(new Event('focus')); await flushPromises()
+  window.dispatchEvent(new Event('broadcast:changed')); await flushPromises()
   expect(mocks.list.mock.calls.map(call => call[0])).toEqual([0, 1, 0])
   expect(wrapper.findAll('article')).toHaveLength(2)
   wrapper.unmount()
@@ -101,10 +101,23 @@ it('keeps a load-more action queued while a refresh is in progress', async () =>
     await flushPromises()
     let finish!: (value: typeof result) => void
     mocks.list.mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
-    window.dispatchEvent(new Event('focus'))
+    window.dispatchEvent(new Event('broadcast:changed'))
     await wrapper.findAll('button').find(button => button.text() === 'Xem thêm')!.trigger('click')
     finish(result)
     await flushPromises()
     expect(mocks.list.mock.calls.map(call => call[0])).toEqual([0, 0, 1])
+  } finally { wrapper.unmount() }
+})
+
+it('reloads once when returning to the tab, and not at all right after a refresh', async () => {
+  vi.useFakeTimers()
+  const wrapper = mount(BroadcastInbox)
+  try {
+    await flushPromises()
+    window.dispatchEvent(new Event('focus')); document.dispatchEvent(new Event('visibilitychange')); await flushPromises()
+    expect(mocks.list).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(6_000)
+    window.dispatchEvent(new Event('focus')); document.dispatchEvent(new Event('visibilitychange')); await flushPromises()
+    expect(mocks.list).toHaveBeenCalledTimes(2)
   } finally { wrapper.unmount() }
 })

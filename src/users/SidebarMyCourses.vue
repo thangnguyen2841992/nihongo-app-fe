@@ -237,13 +237,13 @@ onBeforeUnmount(() => {
   flex: 1;
 }
 .quick-course strong {
-  font-size: 11px;
+  font-size: var(--learn-text-xs);
   font-weight: 600;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
 .quick-course small {
-  font-size: 9px;
+  font-size: var(--learn-text-xs);
   color: #a392ad;
 }
 .quick-course:hover,
@@ -275,7 +275,7 @@ onBeforeUnmount(() => {
   padding: 6px;
   border-radius: 7px;
   color: #84728e;
-  font-size: 10px;
+  font-size: var(--learn-text-xs);
   line-height: 1.5;
   text-decoration: none;
 }
@@ -288,7 +288,7 @@ onBeforeUnmount(() => {
   padding: 7px 5px;
   margin: 0;
   color: #a18dab;
-  font-size: 10px;
+  font-size: var(--learn-text-xs);
   line-height: 1.6;
 }
 .course-error {

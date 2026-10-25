@@ -16,9 +16,9 @@ const solution = computed(() => props.visible ? bookAiAnswer(props.exercise, pro
 </template>
 
 <style scoped>
-.ai-solution { margin-top: 16px; border-left: 3px solid #94a3b8; padding: 8px 16px; background: #f8fafc; line-height: 1.8; }
-summary { cursor: pointer; color: #334155; font-weight: 600; }
+.ai-solution { margin-top: 16px; border-left: 3px solid var(--learn-subtle); padding: 8px 16px; background: var(--learn-surface-muted); line-height: 1.8; }
+summary { cursor: pointer; color: var(--learn-heading); font-weight: 600; }
 p { margin: 8px 0; white-space: pre-line; overflow-wrap: anywhere; }
 .ai-key { color: #166534; font-weight: 600; }
-.ai-evidence { color: #334155; }.ai-source { font-size: 12px; color: #64748b; }
+.ai-evidence { color: var(--learn-heading); }.ai-source { font-size: 12px; color: var(--learn-muted); }
 </style>

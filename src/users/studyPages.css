@@ -4,7 +4,7 @@
 .study-hero::after { content: ''; position: absolute; right: -42px; top: -68px; width: 190px; height: 190px; border: 26px solid #a9bdc722; border-radius: 50%; box-shadow: 0 0 0 20px #d6afb012; pointer-events: none; }
 .study-hero h1 { margin: 0 0 8px; color: #50435e; font-size: clamp(24px, 3vw, 34px); font-weight: 750; }
 .study-hero p { position: relative; z-index: 1; max-width: 720px; margin: 0; color: #74697d; line-height: 1.7; }
-.study-eyebrow { margin: 0 0 8px !important; color: #9a7da5 !important; font-size: 10px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+.study-eyebrow { margin: 0 0 8px !important; color: #9a7da5 !important; font-size: var(--learn-text-xs); font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
 .study-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
 .study-panel { min-width: 0; padding: 22px; border: 1px solid rgb(229 225 228 / 88%); border-radius: 19px; background: rgb(255 255 255 / 82%); box-shadow: 0 10px 30px #40556b10; backdrop-filter: blur(12px) saturate(108%); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
 .study-panel:hover { transform: translateY(-2px); border-color: #d9cdd7; box-shadow: 0 16px 36px #40556b18; }
@@ -32,7 +32,7 @@
 .study-empty { padding: 26px; text-align: center; border: 1px dashed #ccbed1; border-radius: 14px; background: #ffffffca; color: #73647c; }
 .study-loading { display: grid; justify-items: center; gap: 12px; padding: 52px 20px; color: #84778d; }
 .study-spinner { width: 28px; height: 28px; border: 3px solid #e7dce9; border-top-color: #8d6c9b; border-radius: 50%; animation: study-spin .7s linear infinite; }
-.study-badge { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 5px 9px; border-radius: 999px; background: #f0e8f3; color: #765684; font-size: 11px; font-weight: 700; }
+.study-badge { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 5px 9px; border-radius: 999px; background: #f0e8f3; color: #765684; font-size: var(--learn-text-xs); font-weight: 700; }
 .study-badge.success { background: #eaf5ef; color: #4e8065; }.study-badge.warning { background: #fff4df; color: #9b702c; }.study-badge.danger { background: #fae9eb; color: #a25667; }
 .study-progress { height: 9px; border-radius: 10px; background: #ede5ef; overflow: hidden; }
 .study-progress span { display: block; height: 100%; background: #a77faf; border-radius: inherit; }

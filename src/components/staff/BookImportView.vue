@@ -112,18 +112,29 @@ function schedulePoll() {
   if (disposed || !processing.value) return
   timer = setTimeout(poll, 2500)
 }
+// Set when progress changed while the editor was busy or dirty, so the draft is reloaded once it is safe.
+let detailStale = false
 async function poll() {
   if (!detail.value || disposed) return
   const id = detail.value.summary.id
   try {
-    await loadList(); const summary = sessions.value.find(s => s.id === id)
-    if (!summary || detail.value?.summary.id !== id || disposed) return
+    // Progress only; the draft and page text are reloaded when something actually changed.
+    const { data: summary } = await gatewayUrl.get<ImportSummary>(`${endpoint}/${id}/summary`)
+    if (detail.value?.summary.id !== id || disposed) return
+    const previous = detail.value.summary
+    const changed = previous.version !== summary.version || previous.state !== summary.state
+      || previous.processedPages !== summary.processedPages || previous.aiProcessedPages !== summary.aiProcessedPages
+      || previous.message !== summary.message
     detail.value.summary = summary
-    if (!busy.value && !dirty.value) {
+    const row = sessions.value.findIndex(s => s.id === id)
+    if (row >= 0) sessions.value[row] = summary
+    else await loadList()
+    if (changed) detailStale = true
+    if (detailStale && !busy.value && !dirty.value) {
       const { data } = await gatewayUrl.get<ImportDetail>(`${endpoint}/${id}`)
       if (!disposed && detail.value?.summary.id === id && !busy.value && !dirty.value) {
         const wasEditing = editing.value
-        apply(data); editing.value = wasEditing
+        apply(data); editing.value = wasEditing; detailStale = false
         if (!pageImage.value) await loadImage()
       }
     }

@@ -50,7 +50,7 @@ const drawScoreChart = async (id: number) => {
     data: {
       labels: chronological.map((_, i) => `Lần ${totalElements.value - page.value * 20 - results.value.length + i + 1}`),
       datasets: [
-        { label: 'Điểm', data: chronological.map(r => r.score), borderColor: '#1565C0', yAxisID: 'score' },
+        { label: 'Điểm', data: chronological.map(r => r.score), borderColor: '#6b4f86', yAxisID: 'score' },
         { label: 'Câu đúng', data: chronological.map(r => r.correctCount), borderColor: '#16803C', yAxisID: 'question' },
         { label: 'Câu sai', data: chronological.map(r => r.wrongCount), borderColor: '#C62828', yAxisID: 'question' },
         { label: 'Chưa trả lời', data: chronological.map(r => r.unansweredCount ?? null), borderColor: '#d97706', yAxisID: 'question' }
@@ -121,14 +121,14 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
       <div>
 
         <h1>
-          📊 Lịch sử làm bài
+          <i class="bi bi-bar-chart-line" aria-hidden="true"></i> Lịch sử làm bài
         </h1>
 
         <p
           v-if="results.length"
           class="lesson-name"
         >
-          📘 {{ results[0]?.lessonName }}
+          <i class="bi bi-journal-text" aria-hidden="true"></i> {{ results[0]?.lessonName }}
         </p>
 
       </div>
@@ -152,7 +152,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
       class="loading"
     >
       <div class="loading-icon">
-        ⏳
+        <i class="bi bi-hourglass-split" aria-hidden="true"></i>
       </div>
 
       Đang tải lịch sử...
@@ -175,7 +175,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
       >
 
         <div class="empty-icon">
-          📚
+          <i class="bi bi-book" aria-hidden="true"></i>
         </div>
 
         <h3>
@@ -216,7 +216,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
           <div class="summary-card">
 
             <div class="summary-icon">
-              📝
+              <i class="bi bi-journal-check" aria-hidden="true"></i>
             </div>
 
             <div class="summary-content">
@@ -239,7 +239,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
           <div class="summary-card">
 
             <div class="summary-icon">
-              📊
+              <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
             </div>
 
             <div class="summary-content">
@@ -262,7 +262,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
           <div class="summary-card">
 
             <div class="summary-icon">
-              📚
+              <i class="bi bi-book" aria-hidden="true"></i>
             </div>
 
             <div class="summary-content">
@@ -285,7 +285,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
           <div class="summary-card">
 
             <div class="summary-icon">
-              ✅
+              <i class="bi bi-check-circle" aria-hidden="true"></i>
             </div>
 
             <div class="summary-content">
@@ -308,7 +308,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
           <div class="summary-card">
 
             <div class="summary-icon">
-              ❌
+              <i class="bi bi-x-circle" aria-hidden="true"></i>
             </div>
 
             <div class="summary-content">
@@ -357,7 +357,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
             <div>
 
               <h2>
-                📈 Biểu đồ điểm
+                <i class="bi bi-graph-up" aria-hidden="true"></i> Biểu đồ điểm
               </h2>
 
               <p>
@@ -387,7 +387,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
             <div>
 
               <h2>
-                📋 Các lần làm bài
+                <i class="bi bi-list-check" aria-hidden="true"></i> Các lần làm bài
               </h2>
 
               <p>
@@ -475,7 +475,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
                   <div class="date">
 
                     <span class="date-icon">
-                      🕐
+                      <i class="bi bi-clock" aria-hidden="true"></i>
                     </span>
 
                     <span>
@@ -592,11 +592,11 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 <style scoped>
 .history-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; margin-top: 20px; }
 .legacy-note { padding: 12px; border-radius: 10px; background: #fff7e6; color: #785019; font-size: 14px; }
-.attempt-details { padding: 18px; margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; scroll-margin-top: 80px; }
+.attempt-details { padding: 18px; margin-bottom: 20px; border: 1px solid var(--learn-border); border-radius: 16px; background: #fff; scroll-margin-top: 80px; }
 .detail-heading { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
 .detail-heading h2 { font-size: 20px; margin: 0; }
-.answer-detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; padding: 12px 0; border-top: 1px solid #e2e8f0; }
-.detail-button { min-height: 44px; padding: 8px 12px; border: 1px solid #dbe7ff; border-radius: 10px; background: #eef4ff; color: #2454a6; white-space: nowrap; }
+.answer-detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; padding: 12px 0; border-top: 1px solid var(--learn-border); }
+.detail-button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--learn-primary-soft); border-radius: 10px; background: var(--learn-primary-soft); color: var(--learn-primary); white-space: nowrap; }
 
 .history-page {
 
@@ -632,7 +632,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   margin: 0;
 
-  color: #1e293b;
+  color: var(--learn-text);
 
   font-size: 30px;
 
@@ -645,7 +645,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   margin: 8px 0 0;
 
-  color: #64748b;
+  color: var(--learn-muted);
 
   font-size: 16px;
 
@@ -664,7 +664,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   background: white;
 
-  color: #334155;
+  color: var(--learn-heading);
 
   font-size: 14px;
 
@@ -672,7 +672,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   cursor: pointer;
 
-  box-shadow: 0 4px 14px rgba(15, 23, 42, .08);
+  box-shadow: 0 4px 14px rgba(63, 53, 72, .08);
 
   transition: .2s;
 
@@ -681,7 +681,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
 .back-btn:hover {
 
-  background: #f1f5f9;
+  background: var(--learn-surface-muted);
 
   transform: translateY(-1px);
 
@@ -706,7 +706,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   gap: 12px;
 
-  color: #64748b;
+  color: var(--learn-muted);
 
   font-size: 16px;
 
@@ -742,7 +742,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   text-align: center;
 
-  box-shadow: 0 4px 20px rgba(15, 23, 42, .05);
+  box-shadow: 0 4px 20px rgba(63, 53, 72, .05);
 
 }
 
@@ -760,7 +760,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   margin: 0 0 8px;
 
-  color: #334155;
+  color: var(--learn-heading);
 
 }
 
@@ -769,7 +769,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   margin: 0;
 
-  color: #94a3b8;
+  color: var(--learn-subtle);
 
 }
 
@@ -806,11 +806,11 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   background: white;
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--learn-border);
 
   border-radius: 16px;
 
-  box-shadow: 0 4px 18px rgba(15, 23, 42, .05);
+  box-shadow: 0 4px 18px rgba(63, 53, 72, .05);
 
 }
 
@@ -831,7 +831,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   border-radius: 12px;
 
-  background: #f1f5f9;
+  background: var(--learn-surface-muted);
 
   font-size: 22px;
 
@@ -847,7 +847,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
 .number {
 
-  color: #1e293b;
+  color: var(--learn-text);
 
   font-size: 25px;
 
@@ -883,7 +883,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   margin-top: 5px;
 
-  color: #64748b;
+  color: var(--learn-muted);
 
   font-size: 13px;
 
@@ -900,13 +900,13 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   background: white;
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--learn-border);
 
   border-radius: 20px;
 
   overflow: hidden;
 
-  box-shadow: 0 5px 24px rgba(15, 23, 42, .06);
+  box-shadow: 0 5px 24px rgba(63, 53, 72, .06);
 
 }
 
@@ -921,7 +921,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   padding: 22px 24px;
 
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--learn-border);
 
 }
 
@@ -930,7 +930,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   margin: 0;
 
-  color: #1e293b;
+  color: var(--learn-text);
 
   font-size: 21px;
 
@@ -943,7 +943,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   margin: 5px 0 0;
 
-  color: #94a3b8;
+  color: var(--learn-subtle);
 
   font-size: 14px;
 
@@ -956,9 +956,9 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   border-radius: 999px;
 
-  background: #eef4ff;
+  background: var(--learn-primary-soft);
 
-  color: #2563eb;
+  color: var(--learn-primary);
 
   font-size: 13px;
 
@@ -995,7 +995,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
 .history-table thead {
 
-  background: #f8fafc;
+  background: var(--learn-surface-muted);
 
 }
 
@@ -1004,7 +1004,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   padding: 15px 18px;
 
-  color: #64748b;
+  color: var(--learn-muted);
 
   font-size: 13px;
 
@@ -1014,7 +1014,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   white-space: nowrap;
 
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--learn-border);
 
 }
 
@@ -1023,11 +1023,11 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   padding: 16px 18px;
 
-  color: #334155;
+  color: var(--learn-heading);
 
   font-size: 14px;
 
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--learn-surface-muted);
 
 }
 
@@ -1041,7 +1041,7 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
 .history-table tbody tr:hover {
 
-  background: #f8fafc;
+  background: var(--learn-surface-muted);
 
 }
 
@@ -1080,9 +1080,9 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   border-radius: 10px;
 
-  background: #eef4ff;
+  background: var(--learn-primary-soft);
 
-  color: #2563eb;
+  color: var(--learn-primary);
 
   font-weight: 800;
 
@@ -1129,9 +1129,9 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
   border-radius: 8px;
 
-  background: #f1f5f9;
+  background: var(--learn-surface-muted);
 
-  color: #475569;
+  color: var(--learn-heading);
 
   font-weight: 700;
 
@@ -1223,9 +1223,9 @@ onBeforeUnmount(() => { disposed = true; ++requestId; controller?.abort(); destr
 
 .score.good {
 
-  background: #dbeafe;
+  background: var(--learn-primary-soft);
 
-  color: #1d4ed8;
+  color: var(--learn-primary);
 
 }
 

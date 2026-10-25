@@ -7,7 +7,7 @@ import ExerciseView from '../CourseLessonExerciseView.vue'
 import n4Layout from '@/data/try-n4-review-layout.json'
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.spyOn(window, 'alert').mockImplementation(() => {})
+  sessionStorage.clear()
   vi.mocked(gatewayUrl.get).mockImplementation(async (url) => ({ data:
     url === '/api/staff/exerciseTypes' ? [{ exerciseTypeId: 1, name: 'Test' }] :
     url?.includes('getAllExcercises') ? [{ exerciseKeywordId: 10, contentNihongo: 'Question', answerA: 'One', answerB: 'Two', answerC: 'Three', answerD: 'Four', correctAnswer: null, lessonId: 1, exerciseTypeId: 1, exerciseTypeName: 'Test' }] :
@@ -21,6 +21,10 @@ it('sends answers rather than a client score and allows retry after a failed sub
   vi.mocked(gatewayUrl.post).mockRejectedValueOnce(new Error('offline')).mockResolvedValue({ data: { totalQuestion: 1, correctCount: 0, wrongCount: 1, correctAnswers: { 10: 'B' } } })
   await wrapper.get('.start-btn').trigger('click')
   await wrapper.get('.submit-btn').trigger('click'); await flushPromises()
+  expect(gatewayUrl.post).not.toHaveBeenCalled()
+  expect(wrapper.text()).toContain('Còn 1 câu chưa trả lời')
+  await wrapper.get('.confirm-submit-btn').trigger('click'); await flushPromises()
+  expect(wrapper.text()).toContain('Chưa lưu được bài làm')
   expect(wrapper.get('.submit-btn').attributes('disabled')).toBeUndefined()
   expect(wrapper.get('.submit-btn').text()).toBe('Nộp lại')
   await wrapper.get('.submit-btn').trigger('click'); await flushPromises()
@@ -63,7 +67,8 @@ it('uses a new submission ID when starting another attempt and saves the selecte
     expect(first.answers).toEqual({ 10: 'A' })
     await wrapper.get('.result-dialog .restart-btn').trigger('click')
     await wrapper.get('.start-btn').trigger('click')
-    await wrapper.get('.submit-btn').trigger('click'); await flushPromises()
+    await wrapper.get('.submit-btn').trigger('click')
+    await wrapper.get('.confirm-submit-btn').trigger('click'); await flushPromises()
     const second = vi.mocked(gatewayUrl.post).mock.calls[1]![1] as typeof first
     expect(second.submissionId).not.toBe(first.submissionId)
     expect(second.answers).toEqual({})
@@ -96,4 +101,41 @@ it('distinguishes a loading failure from a lesson with no exercises', async () =
     wrapper.unmount()
     errorLog.mockRestore()
   }
+})
+
+async function mountExercise() {
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/lesson/:lessonId', component: ExerciseView }] })
+  await router.push('/lesson/1'); await router.isReady()
+  const wrapper = mount(ExerciseView, { global: { plugins: [router] } })
+  await flushPromises()
+  return wrapper
+}
+
+it('practises without a timer and still saves the attempt', async () => {
+  vi.mocked(gatewayUrl.post).mockResolvedValue({ data: { totalQuestion: 1, correctCount: 1, wrongCount: 0, unansweredCount: 0, correctAnswers: { 10: 'A' } } })
+  const wrapper = await mountExercise()
+  try {
+    await wrapper.get('.practice-btn').trigger('click')
+    expect(wrapper.get('[role="timer"]').text()).toBe('Đã làm 0/1')
+    await wrapper.findAll('.answer-item')[0]!.trigger('click')
+    expect(wrapper.get('[role="timer"]').text()).toBe('Đã làm 1/1')
+    await wrapper.get('.submit-btn').trigger('click'); await flushPromises()
+    expect(gatewayUrl.post).toHaveBeenCalledWith('/api/nihongo-user/userExerciseAttempt', expect.objectContaining({ answers: { 10: 'A' } }))
+  } finally { wrapper.unmount() }
+})
+
+it('keeps an attempt in progress across a reload and uses the original deadline', async () => {
+  vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] })
+  try {
+    let wrapper = await mountExercise()
+    await wrapper.get('.start-btn').trigger('click')
+    await wrapper.findAll('.answer-item')[1]!.trigger('click')
+    vi.advanceTimersByTime(10_000)
+    wrapper.unmount()
+    wrapper = await mountExercise()
+    expect(wrapper.text()).toContain('Đã khôi phục bài làm dở')
+    expect(wrapper.get('[role="timer"]').text()).toContain('00:20')
+    expect(wrapper.get('[role="timer"]').text()).toContain('Đã làm 1/1')
+    wrapper.unmount()
+  } finally { vi.useRealTimers() }
 })

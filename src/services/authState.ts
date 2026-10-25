@@ -11,6 +11,9 @@ const userEmail = ref('')
 const userRole = ref('')
 // Logout and session replacement are pushed over the auth WebSocket; polling is only a fallback.
 export const SESSION_POLL_MS = 60_000
+// While the realtime logout channel is open the server pushes session replacement instantly and every token
+// refresh (15 min) re-checks the session, so the periodic check only runs as a safety net this often.
+export const SESSION_POLL_CONNECTED_MS = 5 * 60_000
 // Returning to the tab rechecks sooner, but not more often than this.
 export const SESSION_RECHECK_MIN_MS = 15_000
 let pollingTimer: ReturnType<typeof setInterval> | null = null
@@ -48,7 +51,10 @@ const applySession = (session: Session) => {
   })
   lastCheckedAt = Date.now()
   if (pollingTimer !== null) return
-  pollingTimer = setInterval(() => { void checkSession() }, SESSION_POLL_MS)
+  pollingTimer = setInterval(() => {
+    if (wsService.isConnected() && Date.now() - lastCheckedAt < SESSION_POLL_CONNECTED_MS) return
+    void checkSession()
+  }, SESSION_POLL_MS)
 }
 
 const checkSession = async () => {

@@ -59,12 +59,12 @@ const sentenceExample = computed(() => props.examples?.find(example => example.n
 </template>
 
 <style scoped>
-.grammar-notes { margin-top: 20px; min-width: 0; color: #374151; }
+.grammar-notes { margin-top: 20px; min-width: 0; color: #443751; }
 .formula { padding: 20px; background: linear-gradient(120deg, #faf8fd, #f5f2fa); border: 1px solid #e3dcee; border-radius: 16px; margin-bottom: 24px; }
 .note-label { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #766489; margin-bottom: 12px; }
 .note-label i { font-size: 16px; }
 .formula-expression { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0; font-size: 18px; font-weight: 650; line-height: 1.8; }
-.formula-part { min-width: 0; max-width: 100%; padding: 8px 14px; border: 1px solid #e3dfeb; border-radius: 10px; background: #fff; color: #4e4660; overflow-wrap: anywhere; white-space: pre-line; }
+.formula-part { min-width: 0; max-width: 100%; padding: 8px 14px; border: 1px solid #e3dfeb; border-radius: 10px; background: #fff; color: #534660; overflow-wrap: anywhere; white-space: pre-line; }
 .formula-part.ending { border-color: #d5c7e6; background: #eee7f6; color: #634580; }
 .formula-join { color: #92849f; font-size: 20px; font-weight: 500; white-space: pre; }
 .formula-help { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin: 14px 0 0; font-size: 12px; line-height: 1.8; color: #80738e; }
@@ -76,7 +76,7 @@ const sentenceExample = computed(() => props.examples?.find(example => example.n
 .connection-card { min-width: 0; padding: 14px; border: 1px solid #e8e3ee; border-radius: 12px; background: #fdfcfe; }
 .connection-meta { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 10px; }
 .connection-meta > span { color: #665274; font-size: 12px; font-weight: 700; }
-.connection-meta small { font-size: 11px; color: #8b8095; }
+.connection-meta small { font-size: var(--learn-text-xs); color: #8b8095; }
 .word-transformation { font-size: 16px; line-height: 1.9; margin: 0; overflow-wrap: anywhere; }
 .word-transformation strong { color: #6b4e88; font-weight: 650; }
 .connection-arrow { color: #a294af; }
@@ -96,7 +96,7 @@ const sentenceExample = computed(() => props.examples?.find(example => example.n
 .note-body :deep(li) { padding: 4px 0 12px 6px; margin-bottom: 8px; border-bottom: 1px solid #f0edf3; }
 .note-body :deep(li)::marker { color: #a597b6; }
 .note-body :deep(li:last-child) { margin-bottom: 0; border-bottom: 0; }
-.note-body :deep(em) { display: inline-block; color: #78818e; font-size: 14px; font-style: normal; }
-.note-body :deep(ruby) { line-height: 2.4; }.note-body :deep(rt) { font-size: .6em; color: #78818e; }
+.note-body :deep(em) { display: inline-block; color: var(--learn-muted); font-size: 14px; font-style: normal; }
+.note-body :deep(ruby) { line-height: 2.4; }.note-body :deep(rt) { font-size: .6em; color: var(--learn-muted); }
 @media (max-width: 600px) { .formula { padding: 14px; border-radius: 14px; margin-bottom: 20px; }.formula-expression { font-size: 16px; gap: 6px; }.formula-part { padding: 7px 10px; }.formula-join { font-size: 18px; }.note-body :deep(h4) { padding: 10px 12px; } }
 </style>

@@ -20,6 +20,9 @@ watch(() => [isAuthenticated.value, userEmail.value, userRole.value] as const, (
   try { const saved: unknown = JSON.parse(localStorage.getItem(storage) || '[]'); if (Array.isArray(saved)) read.value = saved.filter((id): id is number => typeof id === 'number') } catch { /* Storage is optional. */ }
   let disposed = false, running = false
   let refreshQueued = false
+  // Returning to the tab fires both "focus" and "visibilitychange"; one reload is enough, and none if the list was
+  // refreshed moments ago. Realtime reconnects and explicit refreshes (after sending) still always reload.
+  let lastRefresh = 0
   let pageQueued: number | undefined
   const requests = new AbortController()
   let stopRealtime: (() => void) | undefined
@@ -38,6 +41,7 @@ watch(() => [isAuthenticated.value, userEmail.value, userRole.value] as const, (
       return
     }
     running = true
+    if (nextPage === 0) lastRefresh = Date.now()
     try {
       const result = await getBroadcasts(nextPage, requests.signal)
       if (disposed) return
@@ -68,15 +72,15 @@ watch(() => [isAuthenticated.value, userEmail.value, userRole.value] as const, (
     else void load()
   }, status => { if (!disposed) broadcastConnectionStatus.value = status })
   const timer = setInterval(() => { if (!document.hidden && broadcastConnectionStatus.value !== 'live') void load() }, 30000)
-  const refreshWhenVisible = () => { if (!document.hidden) void load() }
+  const refreshOnReturn = () => { if (!document.hidden && Date.now() - lastRefresh >= 5000) void load() }
   const markFromSpotlight = (event: Event) => {
     const detail = (event as CustomEvent<{ id?: unknown; owner?: unknown }>).detail
     if (detail?.owner === owner && typeof detail.id === 'number') markRead(detail.id)
   }
-  window.addEventListener('focus', refresh); window.addEventListener('broadcast:changed', refresh)
-  document.addEventListener('visibilitychange', refreshWhenVisible)
+  window.addEventListener('focus', refreshOnReturn); window.addEventListener('broadcast:changed', refresh)
+  document.addEventListener('visibilitychange', refreshOnReturn)
   window.addEventListener(BROADCAST_READ_EVENT, markFromSpotlight)
-  cleanup(() => { disposed = true; requests.abort(); stopRealtime?.(); clearInterval(timer); window.removeEventListener('focus', refresh!); window.removeEventListener('broadcast:changed', refresh!); document.removeEventListener('visibilitychange', refreshWhenVisible); window.removeEventListener(BROADCAST_READ_EVENT, markFromSpotlight); if (broadcastFeed.value.owner === owner) broadcastFeed.value = { owner: '', notices: [] }; refresh = undefined; loadMore = undefined; broadcastUnread.value = 0; broadcastConnectionStatus.value = 'offline' })
+  cleanup(() => { disposed = true; requests.abort(); stopRealtime?.(); clearInterval(timer); window.removeEventListener('focus', refreshOnReturn); window.removeEventListener('broadcast:changed', refresh!); document.removeEventListener('visibilitychange', refreshOnReturn); window.removeEventListener(BROADCAST_READ_EVENT, markFromSpotlight); if (broadcastFeed.value.owner === owner) broadcastFeed.value = { owner: '', notices: [] }; refresh = undefined; loadMore = undefined; broadcastUnread.value = 0; broadcastConnectionStatus.value = 'offline' })
 }, { immediate: true })
 function markRead(id: number) {
   read.value = [...new Set([...read.value, id])]

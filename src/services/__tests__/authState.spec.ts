@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AxiosError } from 'axios'
-const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), refresh: vi.fn(), privateGet: vi.fn(), connect: vi.fn(), disconnect: vi.fn() }))
+const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), refresh: vi.fn(), privateGet: vi.fn(), connect: vi.fn(), disconnect: vi.fn(), connected: false }))
 vi.mock('@/api/authApi', () => ({ publicClient: { get: mocks.get, post: mocks.post }, gatewayUrl: { get: mocks.privateGet }, refreshAccessToken: mocks.refresh }))
-vi.mock('@/services/websocketService', () => ({ wsService: { connect: mocks.connect, disconnect: mocks.disconnect } }))
-import { initAuth, useAuthState, SESSION_POLL_MS, SESSION_RECHECK_MIN_MS } from '../authState'
-beforeEach(() => { vi.useFakeTimers(); vi.clearAllMocks(); sessionStorage.clear(); window.dispatchEvent(new Event('auth:expired')); vi.spyOn(console, 'log').mockImplementation(() => {}) })
+vi.mock('@/services/websocketService', () => ({ wsService: { connect: mocks.connect, disconnect: mocks.disconnect, isConnected: () => mocks.connected } }))
+import { initAuth, useAuthState, SESSION_POLL_MS, SESSION_POLL_CONNECTED_MS, SESSION_RECHECK_MIN_MS } from '../authState'
+beforeEach(() => { vi.useFakeTimers(); vi.clearAllMocks(); mocks.connected = false; sessionStorage.clear(); window.dispatchEvent(new Event('auth:expired')); vi.spyOn(console, 'log').mockImplementation(() => {}) })
 afterEach(() => { window.dispatchEvent(new Event('auth:expired')); vi.useRealTimers(); vi.restoreAllMocks() })
 const unauthorized = () => new AxiosError('unauthorized', 'ERR_BAD_RESPONSE', undefined, undefined, { status: 401 } as any)
 it('restores the session after access expiration and uses server session ID', async () => {
@@ -78,5 +78,19 @@ it('polls the session once per interval and rechecks on focus only after the min
   await vi.advanceTimersByTimeAsync(SESSION_RECHECK_MIN_MS)
   window.dispatchEvent(new Event('focus'))
   await Promise.resolve()
+  expect(mocks.privateGet).toHaveBeenCalledTimes(2)
+})
+
+it('checks the session only every few minutes while the realtime logout channel is open', async () => {
+  mocks.get.mockResolvedValueOnce({ data: { isLoggedIn: true, sessionId: 'sid', email: 'u@example.com' } })
+  mocks.privateGet.mockResolvedValue({ data: { isLoggedIn: true, sessionId: 'sid', email: 'u@example.com' } })
+  await initAuth()
+  mocks.connected = true
+  await vi.advanceTimersByTimeAsync(SESSION_POLL_CONNECTED_MS - SESSION_POLL_MS)
+  expect(mocks.privateGet).not.toHaveBeenCalled()
+  await vi.advanceTimersByTimeAsync(SESSION_POLL_MS)
+  expect(mocks.privateGet).toHaveBeenCalledOnce()
+  mocks.connected = false
+  await vi.advanceTimersByTimeAsync(SESSION_POLL_MS)
   expect(mocks.privateGet).toHaveBeenCalledTimes(2)
 })

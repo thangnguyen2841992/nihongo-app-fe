@@ -80,6 +80,11 @@ class WebSocketService {
     client.activate()
   }
 
+  /** True while the logout channel is open, i.e. a session replacement would be pushed to this tab immediately. */
+  isConnected() {
+    return Boolean(this.client?.connected)
+  }
+
   disconnect() {
     const old = this.client
     this.client = null

@@ -7,6 +7,12 @@ import { grammarPackFixture } from '@/services/__tests__/grammarPackFixture'
 
 const auth = { isAuthenticated: ref(true), userEmail: ref('first@example.test') }
 vi.mock('@/services/authState', () => ({ useAuthState: () => auth }))
+const sync = vi.hoisted(() => ({ fetchRemoteStudy: vi.fn(), pushRemoteStudy: vi.fn() }))
+vi.mock('@/services/englishStudySync', async () => ({
+  ...(await vi.importActual<typeof import('@/services/englishStudySync')>('@/services/englishStudySync')),
+  fetchRemoteStudy: sync.fetchRemoteStudy,
+  pushRemoteStudy: sync.pushRemoteStudy,
+}))
 let wrapper: VueWrapper | undefined
 let sequence = 0
 beforeEach(() => {
@@ -14,6 +20,8 @@ beforeEach(() => {
   auth.isAuthenticated.value = true
   auth.userEmail.value = 'first@example.test'
   sequence = 0
+  sync.fetchRemoteStudy.mockReset().mockResolvedValue(null)
+  sync.pushRemoteStudy.mockReset().mockImplementation(async (version: number, data: unknown) => ({ version: version + 1, updatedAt: Date.now(), data }))
   vi.spyOn(URL, 'createObjectURL').mockImplementation(() => `blob:local-${++sequence}`)
   vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
@@ -177,4 +185,33 @@ it('shows all built-in bilingual units without opening any file and resumes save
   const reopened = await open()
   expect(reopened.get('#bilingual-lesson-title').text()).toContain('put on your shoes')
   expect(reopened.find('object').exists()).toBe(false)
+})
+
+it('saves notes automatically shortly after typing and syncs them to the account', async () => {
+  const view = await open()
+  vi.useFakeTimers()
+  try {
+    await view.get('#english-notes').setValue('Typed without pressing save')
+    expect(view.text()).toContain('Chưa lưu')
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(loadEnglishStudy('first@example.test')['essential-grammar'].notes).toBe('Typed without pressing save')
+    await vi.advanceTimersByTimeAsync(1500)
+    expect(sync.pushRemoteStudy).toHaveBeenLastCalledWith(0, expect.objectContaining({
+      'essential-grammar': expect.objectContaining({ notes: 'Typed without pressing save' }),
+    }))
+    await flushPromises()
+    expect(view.text()).toContain('Đã lưu và đồng bộ')
+  } finally { vi.useRealTimers() }
+})
+
+it('loads the notebook saved from another device and marks units as finished', async () => {
+  const remote = (await import('@/services/englishSelfStudy')).emptyEnglishStudy()
+  remote['essential-grammar'] = { ...remote['essential-grammar'], notes: 'Written on my phone', doneUnits: [1], completedUnits: 1, totalUnits: 115 }
+  sync.fetchRemoteStudy.mockResolvedValue({ version: 4, updatedAt: Date.now(), data: remote })
+  const view = await open()
+  await vi.waitFor(() => expect((view.get('#english-notes').element as HTMLTextAreaElement).value).toBe('Written on my phone'))
+  expect(view.get('.unit-list button.done').text()).toContain('đã học xong')
+  await view.get('.unit-done-toggle').trigger('click')
+  expect(view.findAll('.unit-list button.done')).toHaveLength(0)
+  expect((view.get('#english-completed').element as HTMLInputElement).value).toBe('0')
 })

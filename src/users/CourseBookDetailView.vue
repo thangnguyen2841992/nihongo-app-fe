@@ -4,12 +4,10 @@ import { bookAdditionalAudio } from '@/services/bookAdditionalAudio'
 import {computed, nextTick, onMounted, onUnmounted, ref} from "vue"
 
 import {useRoute, useRouter} from "vue-router"
+import { useAuthState } from '@/services/authState'
 
-import CreateLessonModal from "@/components/staff/CreateLessonModal.vue"
 
 import {gatewayUrl} from "@/api/authApi.ts"
-import ExampleModal from "@/components/staff/ExampleModal.vue"
-import GrammarModal from "@/components/staff/GrammarModal.vue";
 import { saveLearningPosition } from '@/api/learningPosition'
 import GrammarNotes from '@/components/GrammarNotes.vue'
 import LessonCompletionButton from '@/users/LessonCompletionButton.vue'
@@ -65,20 +63,29 @@ interface Example {
 /* =========================
    STATE
 ========================= */
-const showExampleModal = ref(false)
-
 const activeGrammarId =
   ref<number | null>(null)
 
-const selectedGrammarId =
-  ref<number | null>(null)
-
-const editingExample =
-  ref<Example | null>(null)
-
 const book =
   ref<Book | null>(null)
-
+const { userRole } = useAuthState()
+const pageError = ref('')
+// Lessons the learner marked as done, shown in the lesson tabs (one request for the whole book).
+const completedLessons = ref<Set<number>>(new Set())
+async function loadCompletedLessons() {
+  const ids = lessons.value.map(lesson => lesson.lessonId)
+  if (!ids.length || userRole.value !== 'USER') return
+  try {
+    const { data } = await gatewayUrl.get<number[]>('/api/nihongo-user/study/completions/among', { params: { lessonIds: ids.join(',') }, signal: pageController.signal })
+    if (!disposed && Array.isArray(data)) completedLessons.value = new Set(data)
+  } catch { /* the tabs simply show no marks */ }
+}
+function lessonCompletionChanged(lessonId: number, completed: boolean) {
+  const next = new Set(completedLessons.value)
+  if (completed) next.add(lessonId); else next.delete(lessonId)
+  completedLessons.value = next
+}
+function lessonTabLabel(lesson: Lesson, index: number) { return lesson.name?.trim() || `Bài ${index + 1}` }
 const lessons =
   ref<Lesson[]>([])
 
@@ -90,7 +97,6 @@ const selectedLesson =
 
 const readingTrack = computed(() => selectedLesson.value?.audioTrack || bookReadingAudioTrack(book.value?.bookName, selectedLesson.value?.name))
 const readingAudioSource = computed(() => importedAudioUrl(selectedLesson.value?.audioUrl))
-const isTryN3 = computed(() => book.value?.bookName?.startsWith('TRY! N3') ?? false)
 const { speechError, speechProvider, speakExample: playExample, stopSpeaking } = useJapaneseSpeech()
 const activeSpokenExampleId = ref<number | null>(null)
 const savedCards = ref<StudyCard[]>([])
@@ -174,13 +180,6 @@ function speakExample(example: Example, rate = 1) {
   if (example.grammarId) void playExample(example.exampleId, example.grammarId, japaneseSpeechText(example.nihongo), rate)
 }
 
-const showLessonModal =
-  ref(false)
-
-const editingLesson =
-  ref<Lesson | null>(null)
-
-
 const examples =
   ref<Record<number, Example[]>>({})
 type LessonContent = { grammars: Grammar[]; examples: Record<number, Example[]>; loadedAt: number }
@@ -208,12 +207,6 @@ let disposed = false
 
 const expandedGrammar =
   ref<Record<number, boolean>>({})
-
-const showGrammarModal =
-  ref(false)
-
-const editingGrammar =
-  ref<Grammar | null>(null)
 
 /* =========================
    TOOLBAR ACTIVE
@@ -295,143 +288,6 @@ const openImage = (
   )
 }
 
-const openCreateGrammarModal =
-  () => {
-
-    editingGrammar.value =
-      null
-
-    showGrammarModal.value =
-      true
-  }
-
-const openEditGrammarModal =
-  (grammar: Grammar) => {
-
-    editingGrammar.value =
-      grammar
-
-    showGrammarModal.value =
-      true
-  }
-
-const onGrammarSaved = async (
-  grammarId: number
-) => {
-
-  showGrammarModal.value = false
-
-  if (!selectedLesson.value) {
-    return
-  }
-
-  await fetchGrammars(
-    selectedLesson.value.lessonId
-  )
-
-  await nextTick()
-
-  document
-    .getElementById(
-      `grammar-${grammarId}`
-    )
-    ?.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    })
-}
-
-const deleteGrammar =
-  async (grammarId: number) => {
-    const confirmDelete =
-      confirm(
-        "Bạn có chắc muốn xóa grammar này?"
-      )
-    if (!confirmDelete) {
-      return
-    }
-    try {
-      await gatewayUrl.delete(
-        "/api/staff/grammars",
-        {
-          data: {
-            grammarId
-          }
-        }
-      )
-      if (
-        selectedLesson.value
-      ) {
-        await fetchGrammars(
-          selectedLesson.value.lessonId
-        )
-      }
-    } catch (e) {
-      console.error(e)
-      alert(
-        "Xóa grammar thất bại"
-      )
-    }
-  }
-
-const openCreateExampleModal = (
-  grammarId: number
-) => {
-
-  selectedGrammarId.value =
-    grammarId
-
-  editingExample.value =
-    null
-
-  showExampleModal.value =
-    true
-}
-
-const openEditExampleModal = (
-  example: Example
-) => {
-
-  selectedGrammarId.value =
-    example.grammarId
-
-  editingExample.value =
-    example
-
-  showExampleModal.value =
-    true
-}
-
-const onExampleSaved = async (
-  exampleId: number
-) => {
-
-  showExampleModal.value = false
-
-  if (!selectedGrammarId.value) {
-    return
-  }
-
-  // đảm bảo đang expand
-  expandedGrammar.value[
-    selectedGrammarId.value
-    ] = true
-
-  await fetchExamples(
-    selectedGrammarId.value
-  )
-
-  await nextTick()
-
-  document
-    .getElementById(
-      `example-${exampleId}`
-    )
-    ?.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    })
-}
 /* =========================
    BOOK ID
 ========================= */
@@ -477,10 +333,7 @@ const fetchBook =
 
       if (disposed) return
       console.error(e)
-
-      alert(
-        "Không thể tải thông tin sách"
-      )
+      pageError.value = "Không tải được thông tin sách. Vui lòng thử lại."
     }
   }
 
@@ -507,84 +360,14 @@ const fetchLessons =
       if (disposed) return
       lessons.value =
         bookLessonOrder(res.data)
+      void loadCompletedLessons()
 
     } catch (e) {
 
       if (disposed) return
       console.error(e)
-
-      alert(
-        "Không thể tải bài học"
-      )
+      pageError.value = "Không tải được danh sách bài học. Vui lòng thử lại."
     }
-  }
-
-/* =========================
-   FETCH GRAMMARS
-========================= */
-
-const fetchGrammars =
-  async (lessonId: number) => {
-
-    try {
-
-      const res =
-        await gatewayUrl.get(
-          "/api/staff/getAllGrammarByLesson",
-          {
-            params: {
-              lessonId
-            }
-          }
-        )
-
-      grammars.value = res.data
-      lessonContentCache.delete(lessonId)
-      clearStoredLesson(lessonId)
-
-    } catch (e) {
-
-      console.error(e)
-
-      alert(
-        "Không thể tải grammar"
-      )
-    }
-  }
-
-
-/* =========================
-   LESSON MODAL
-========================= */
-
-const openLessonModal =
-  () => {
-    editingLesson.value =
-      null
-
-    showLessonModal.value =
-      true
-  }
-
-const openEditLessonModal =
-  (lesson: Lesson) => {
-
-    editingLesson.value =
-      lesson
-
-    showLessonModal.value =
-      true
-  }
-
-const closeLessonModal =
-  async () => {
-
-    showLessonModal.value =
-      false
-    editingLesson.value =
-      null
-    await fetchLessons()
-    selectedLesson.value = lessons.value.find(l => l.lessonId === selectedLesson.value?.lessonId) || null
   }
 
 /* =========================
@@ -749,12 +532,23 @@ const toggleExamples =
    BACK
 ========================= */
 
+// Without a course (e.g. opened from a notebook card) learners go back where they came from, never to /staff.
 const goBack = () => {
   if (Number.isInteger(courseId) && courseId > 0) {
     router.push({ name: 'CourseBooks', params: { courseId } })
-  } else {
+  } else if (userRole.value === 'ADMIN' || userRole.value === 'STAFF') {
     router.push('/staff')
+  } else if (window.history.state?.back) {
+    router.back()
+  } else {
+    router.push('/user/my-courses')
   }
+}
+async function retryPage() {
+  pageError.value = ''
+  void fetchBook()
+  await fetchLessons()
+  if (!disposed && !selectedLesson.value && lessons.value.length) await openLesson(lessons.value[0]!)
 }
 
 const getStructureImage = (
@@ -854,6 +648,7 @@ const goToExercisePage =
   <div class="grammar-page">
     <p v-if="positionError" role="alert" class="position-error">{{ positionError }}</p>
     <p v-if="bookmarkError" role="alert" class="position-error">{{ bookmarkError }}</p>
+    <p v-if="pageError" role="alert" class="position-error">{{ pageError }} <button type="button" class="retry-link" @click="retryPage">Thử lại</button></p>
 
     <!-- HEADER -->
 
@@ -871,7 +666,7 @@ const goToExercisePage =
         <div>
 
           <h2 class="book-title mb-1">
-            📚 {{ book?.bookName }}
+            <i class="bi bi-book" aria-hidden="true"></i> {{ book?.bookName }}
           </h2>
 
           <div class="sub-title">
@@ -906,9 +701,12 @@ const goToExercisePage =
             selectedLesson?.lessonId ===
             lesson.lessonId
         }"
+        :title="lessonTabLabel(lesson, index)"
         @click="openLesson(lesson)"
       >
-        Bài {{ index + 1 }}
+        <i v-if="completedLessons.has(lesson.lessonId)" class="bi bi-check-circle-fill lesson-done" aria-hidden="true"></i>
+        <span class="lesson-tab-name">{{ lessonTabLabel(lesson, index) }}</span>
+        <span v-if="completedLessons.has(lesson.lessonId)" class="visually-hidden">(đã học xong)</span>
       </button>
 
     </div>
@@ -924,7 +722,7 @@ const goToExercisePage =
       >
 
         <div class="empty-icon">
-          📘
+          <i class="bi bi-journal-text" aria-hidden="true"></i>
         </div>
 
         <div class="empty-title">
@@ -949,7 +747,7 @@ const goToExercisePage =
             <div class="selected-lesson">
               {{ selectedLesson.name }}
             </div>
-            <LessonCompletionButton :key="selectedLesson.lessonId" :lesson-id="selectedLesson.lessonId" />
+            <LessonCompletionButton :key="selectedLesson.lessonId" :lesson-id="selectedLesson.lessonId" @changed="lessonCompletionChanged" />
 
           </div>
 
@@ -959,7 +757,7 @@ const goToExercisePage =
               class="exercise-btn"
               @click="goToExercisePage()"
             >
-              🎯 Bài tập
+              <i class="bi bi-pencil-square" aria-hidden="true"></i> Bài tập
             </button>
 
           </div>
@@ -1014,7 +812,7 @@ const goToExercisePage =
           <div class="lesson-reading-header">
 
             <div class="lesson-reading-icon">
-              📖
+              <i class="bi bi-book-half" aria-hidden="true"></i>
             </div>
 
             <div>
@@ -1184,19 +982,27 @@ const goToExercisePage =
 
                       </div>
 
-                      <button
-                        v-if="isTryN3 && example.nihongo?.trim()"
-                        type="button"
-                        class="example-speak"
-                        :aria-label="`Nghe phát âm câu ví dụ ${exampleIndex + 1}`"
-                        title="Nghe giọng VOICEVOX; dùng giọng trình duyệt nếu VOICEVOX chưa sẵn sàng"
-                        @click="speakExample(example)"
-                      >
-                        <i class="bi bi-volume-up" aria-hidden="true"></i>
-                        <span>Nghe phát âm</span>
-                      </button>
-                      <button type="button" class="example-speak" :disabled="cardsLoading || bookmarkBusy === `example:${example.exampleId}`" @click="bookmarkExample(example)">{{ saved(`example:${example.exampleId}`) ? 'Đã lưu' : 'Lưu vào sổ tay' }}</button>
-                      <button v-if="example.nihongo?.trim()" type="button" class="example-speak" @click="showPractice(example)">Luyện nghe nói</button>
+                      <div class="example-actions">
+                        <button
+                          v-if="example.nihongo?.trim()"
+                          type="button"
+                          class="example-speak"
+                          :aria-label="`Nghe phát âm câu ví dụ ${exampleIndex + 1}`"
+                          title="Nghe giọng VOICEVOX; dùng giọng trình duyệt nếu VOICEVOX chưa sẵn sàng"
+                          @click="speakExample(example)"
+                        >
+                          <i class="bi bi-volume-up" aria-hidden="true"></i>
+                          <span class="action-text">Nghe</span>
+                        </button>
+                        <button v-if="example.nihongo?.trim()" type="button" class="example-speak" :aria-pressed="practiceExample?.exampleId === example.exampleId" :aria-label="`Luyện nghe nói câu ví dụ ${exampleIndex + 1}`" title="Nghe chậm, ghi âm giọng bạn và so sánh" @click="showPractice(example)">
+                          <i class="bi bi-mic" aria-hidden="true"></i>
+                          <span class="action-text">Luyện nói</span>
+                        </button>
+                        <button type="button" class="example-speak" :aria-pressed="Boolean(saved(`example:${example.exampleId}`))" :aria-label="saved(`example:${example.exampleId}`) ? `Bỏ câu ví dụ ${exampleIndex + 1} khỏi sổ tay` : `Lưu câu ví dụ ${exampleIndex + 1} vào sổ tay`" :title="saved(`example:${example.exampleId}`) ? 'Đã lưu trong sổ tay — bấm để bỏ' : 'Lưu vào sổ tay'" :disabled="cardsLoading || bookmarkBusy === `example:${example.exampleId}`" @click="bookmarkExample(example)">
+                          <i class="bi" :class="saved(`example:${example.exampleId}`) ? 'bi-bookmark-check-fill' : 'bi-bookmark'" aria-hidden="true"></i>
+                          <span class="action-text">{{ saved(`example:${example.exampleId}`) ? 'Đã lưu' : 'Lưu' }}</span>
+                        </button>
+                      </div>
 
                     </div>
                     <div v-if="practiceExample?.exampleId === example.exampleId" class="example-practice">
@@ -1251,13 +1057,13 @@ const goToExercisePage =
 
   background: white;
 
-  color: #334155;
+  color: var(--learn-heading);
 
   font-weight: 600;
 
   font-size: 14px;
 
-  border: 1px solid #e7edf6;
+  border: 1px solid #efeaf3;
 
   box-shadow: 0 4px 12px rgba(
     0,
@@ -1273,7 +1079,7 @@ const goToExercisePage =
 
   transform: translateY(-2px);
 
-  border-color: #c9d7f5;
+  border-color: #dfd7e7;
 
   box-shadow: 0 10px 24px rgba(
     79,
@@ -1289,7 +1095,7 @@ const goToExercisePage =
 }
 
 .sub-title {
-  color: #64748b;
+  color: var(--learn-muted);
   font-size: 14px;
 }
 
@@ -1321,7 +1127,7 @@ const goToExercisePage =
   font-size: 22px;
   font-weight: 700;
 
-  color: #1e293b;
+  color: var(--learn-text);
 
   overflow-wrap: anywhere;
 }
@@ -1349,7 +1155,7 @@ const goToExercisePage =
 
   background: #ffffff;
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--learn-border);
 
   border-radius: 18px;
 
@@ -1360,10 +1166,10 @@ const goToExercisePage =
 
   text-align: center;
 
-  color: #64748b;
+  color: var(--learn-muted);
 }
-.lesson-content-status { margin: 18px 0; padding: 14px 18px; border-radius: 12px; background: #f1f5f9; color: #475569; }
-.lesson-content-status button { margin-left: 10px; border: 0; background: transparent; color: #2563eb; font-weight: 700; cursor: pointer; }
+.lesson-content-status { margin: 18px 0; padding: 14px 18px; border-radius: 12px; background: var(--learn-surface-muted); color: var(--learn-heading); }
+.lesson-content-status button { margin-left: 10px; border: 0; background: transparent; color: var(--learn-primary); font-weight: 700; cursor: pointer; }
 .empty-icon {
   font-size: 48px;
   margin-bottom: 12px;
@@ -1371,7 +1177,7 @@ const goToExercisePage =
 .empty-title {
   font-size: 20px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--learn-text);
 }
 .empty-desc {
   margin-top: 6px;
@@ -1398,9 +1204,9 @@ const goToExercisePage =
 
   border-radius: 10px;
 
-  background: #eef4ff;
+  background: var(--learn-primary-soft);
 
-  color: #2563eb;
+  color: var(--learn-primary);
 
   font-weight: 600;
 
@@ -1420,8 +1226,8 @@ const goToExercisePage =
 
   background: linear-gradient(
     135deg,
-    #eef4ff,
-    #e6edff
+    var(--learn-primary-soft),
+    #f3eff6
   );
 }
 
@@ -1441,7 +1247,7 @@ const goToExercisePage =
 
   border-radius: 14px;
 
-  background: #f8fafc;
+  background: var(--learn-surface-muted);
 
   overflow: hidden;
 }
@@ -1462,7 +1268,7 @@ const goToExercisePage =
 
   background: white;
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--learn-border);
 
   border-radius: 12px;
 }
@@ -1533,8 +1339,8 @@ const goToExercisePage =
 
   background: linear-gradient(
     180deg,
-    #4f8cff,
-    #7b61ff
+    var(--learn-primary),
+    var(--learn-accent)
   );
 }
 
@@ -1559,7 +1365,7 @@ const goToExercisePage =
 
   margin-top: 6px;
 
-  color: #64748b;
+  color: var(--learn-muted);
 
   line-height: 1.7;
 
@@ -1582,7 +1388,7 @@ const goToExercisePage =
 
   border-radius: 50%;
 
-  background: #7b61ff;
+  background: var(--learn-accent);
 }
 
 /* EMPTY */
@@ -1597,7 +1403,7 @@ const goToExercisePage =
 
   background: white;
 
-  border: 1px dashed #d7dfeb;
+  border: 1px dashed var(--learn-border);
 
   color: #8a95a8;
 
@@ -1653,22 +1459,22 @@ const goToExercisePage =
     margin-bottom: 24px;
     padding: 18px 22px;
 
-    background: #f8faff;
+    background: var(--learn-primary-softer);
 
-    border: 1px solid #dbe7ff;
-    border-left: 7px solid #4f8cff;
+    border: 1px solid var(--learn-primary-soft);
+    border-left: 7px solid var(--learn-primary);
 
     border-radius: 14px;
 
     box-shadow:
       0 6px 20px
-      rgba(37, 99, 235, .08);
+      rgba(107, 79, 134, .08);
 
     font-size: 26px;
     font-weight: 800;
     line-height: 1.5;
 
-    color: #172554;
+    color: var(--learn-text);
   }
 
   .lesson-reading-card {
@@ -1684,7 +1490,7 @@ const goToExercisePage =
 
     background: #ffffff;
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--learn-border);
 
     border-radius: 18px;
 
@@ -1709,7 +1515,7 @@ const goToExercisePage =
 .example-count {
 
   font-weight: 700;
-  color: #475569;
+  color: var(--learn-heading);
 }
 
 /* ADD BUTTON */
@@ -1724,8 +1530,8 @@ const goToExercisePage =
 
   background: linear-gradient(
     135deg,
-    #4f8cff,
-    #7b61ff
+    var(--learn-primary),
+    var(--learn-accent)
   );
 
   color: white;
@@ -1761,9 +1567,9 @@ const goToExercisePage =
 
   border: none;
 
-  background: #f8faff;
+  background: var(--learn-primary-softer);
 
-  color: #4f8cff;
+  color: var(--learn-primary);
 
   padding: 8px 14px;
 
@@ -1778,7 +1584,7 @@ const goToExercisePage =
 
 .edit-example-btn:hover {
 
-  background: #eef4ff;
+  background: var(--learn-primary-soft);
 
   transform: translateY(-1px);
 }
@@ -1798,9 +1604,9 @@ const goToExercisePage =
 
   border-radius: 50%;
 
-  background: #eef4ff;
+  background: var(--learn-primary-soft);
 
-  color: #2563eb;
+  color: var(--learn-primary);
 
   font-weight: 700;
 }
@@ -1842,7 +1648,7 @@ const goToExercisePage =
 
 .lesson-tabs::-webkit-scrollbar-thumb {
 
-  background: #d7dfeb;
+  background: var(--learn-border);
 
   border-radius: 999px;
 }
@@ -1857,9 +1663,9 @@ const goToExercisePage =
 
   border-radius: 12px;
 
-  background: #f1f5f9;
+  background: var(--learn-surface-muted);
 
-  color: #475569;
+  color: var(--learn-heading);
 
   font-weight: 600;
 
@@ -1873,16 +1679,16 @@ const goToExercisePage =
 
 .lesson-tab:hover {
 
-  background: #e0e7ff;
-  color: #4f46e5;
+  background: var(--learn-primary-soft);
+  color: var(--learn-primary);
 }
 
 .lesson-tab.active {
 
   background: linear-gradient(
     135deg,
-    #4f8cff,
-    #7b61ff
+    var(--learn-primary),
+    var(--learn-accent)
   );
 
   color: white;
@@ -1899,20 +1705,20 @@ const goToExercisePage =
 
   flex-shrink: 0;
 
-  background: #eef4ff;
+  background: var(--learn-primary-soft);
 
-  color: #3158d8;
+  color: #8565a4;
 
   font-weight: 700;
 
-  border: 1px dashed #9db7ff;
+  border: 1px dashed #cec1db;
 
   transition: all .25s ease;
 }
 
 .lesson-add-tab:hover {
 
-  background: #e5eeff;
+  background: #f2eff5;
 }
 
 
@@ -1920,7 +1726,7 @@ const goToExercisePage =
 
   font-size: 28px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--learn-text);
   overflow-wrap: anywhere;
 }
 
@@ -1935,7 +1741,7 @@ const goToExercisePage =
   margin-bottom: 18px;
   font-size: 20px;
   font-weight: 700;
-  color: #1e293b
+  color: var(--learn-text)
 }
 .grammar-number {
   flex-shrink: 0;
@@ -1953,8 +1759,8 @@ const goToExercisePage =
 
   background: linear-gradient(
     135deg,
-    #2563eb,
-    #7c3aed
+    var(--learn-primary),
+    var(--learn-accent)
   );
 
   color: white;
@@ -1964,13 +1770,13 @@ const goToExercisePage =
 
   box-shadow:
     0 6px 16px
-    rgba(37, 99, 235, .3);
+    rgba(107, 79, 134, .3);
 }
 .grammar-title-text {
   flex: 1;
   min-width: 0;
 
-  color: #172554;
+  color: var(--learn-text);
 
   font-size: 26px;
   font-weight: 800;
@@ -2003,7 +1809,7 @@ const goToExercisePage =
 
 .grammar-description::before {
 
-  content: "📝 Giải thích";
+  content: "Giải thích";
 
   display: block;
 
@@ -2013,7 +1819,7 @@ const goToExercisePage =
 
   font-weight: 700;
 
-  color: #4f46e5;
+  color: var(--learn-primary);
 
   text-transform: uppercase;
 
@@ -2042,7 +1848,7 @@ const goToExercisePage =
   padding: 24px;
 
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--learn-border);
   border-radius: 18px;
 
   overflow: hidden;
@@ -2075,7 +1881,7 @@ const goToExercisePage =
 
   border-radius: 12px;
 
-  background: #e0e7ff;
+  background: var(--learn-primary-soft);
 
   font-size: 22px;
 
@@ -2085,13 +1891,13 @@ const goToExercisePage =
 .lesson-reading-title {
 
   font-weight: 700;
-  color: #1e293b;
+  color: var(--learn-text);
 }
 
 .lesson-reading-subtitle {
 
   font-size: 13px;
-  color: #64748b;
+  color: var(--learn-muted);
 }
 
 .lesson-reading-content {
@@ -2106,7 +1912,7 @@ const goToExercisePage =
 
   font-size: 17px;
   line-height: 1.9;
-  color: #334155;
+  color: var(--learn-heading);
 
   overflow-x: hidden;
   overflow-y: visible;
@@ -2183,7 +1989,7 @@ const goToExercisePage =
 
 .lesson-reading-content::-webkit-scrollbar-thumb {
 
-  background: #d5ddec;
+  background: #e1d9e8;
 
   border-radius: 999px;
 }
@@ -2283,12 +2089,12 @@ const goToExercisePage =
 
   padding: 0 16px;
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--learn-border);
   border-radius: 12px;
 
-  background: #f8fafc;
+  background: var(--learn-surface-muted);
 
-  color: #334155;
+  color: var(--learn-heading);
 
   font-weight: 600;
 
@@ -2316,9 +2122,9 @@ const goToExercisePage =
 }
 .grammar-tab:hover {
 
-  background: #eef4ff;
-  border-color: #4f8cff;
-  color: #2563eb;
+  background: var(--learn-primary-soft);
+  border-color: var(--learn-primary);
+  color: var(--learn-primary);
 
   z-index: 1000;
 }
@@ -2338,7 +2144,7 @@ const goToExercisePage =
 
   border-radius: 10px;
 
-  background: #1e293b;
+  background: var(--learn-text);
   color: white;
 
   font-size: 14px;
@@ -2355,7 +2161,7 @@ const goToExercisePage =
 }
 .grammar-tab.active {
 
-  background: #4f8cff;
+  background: var(--learn-primary);
   color: white;
 }
 .grammar-page {
@@ -2372,8 +2178,14 @@ const goToExercisePage =
 .jp-text, .vn-text { white-space: pre-line; }
 .jp-text :deep(p), .vn-text :deep(p) { margin: 0; }
 .vn-text::before { display: none; }
-.example-speak { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid #c5d9ea; border-radius: 999px; background: #f0f7fd; color: #275b83; font-size: 12px; font-weight: 650; cursor: pointer; white-space: nowrap; }
-.example-speak:hover { background: #deeffb; }
+.example-speak { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid #d8cde2; border-radius: 999px; background: var(--learn-primary-softer); color: #553f6b; font-size: 12px; font-weight: 650; cursor: pointer; white-space: nowrap; }
+.example-speak:hover { background: #ede8f1; }
+.example-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; flex: none; }
+.lesson-tab { display: inline-flex; align-items: center; gap: 6px; max-width: 220px; }
+.lesson-tab-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lesson-done { color: #2f8a57; flex: none; }
+.retry-link { padding: 0; border: 0; background: none; color: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+@media (max-width: 600px) { .example-actions .action-text { display: none; } .example-actions .example-speak { padding: 8px 10px; } }
 .grammar-title, .example-row { flex-wrap: wrap; }
 .grammar-title .example-speak { margin-left: auto; }
 .example-row .example-content { flex: 1 1 230px; }
@@ -2382,9 +2194,9 @@ const goToExercisePage =
 .example-practice .study-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
 .example-practice audio { display: block; max-width: 100%; margin: 8px 0; }
 .example-practice small { color: #71667a; }
-.example-speak:focus-visible { outline: 3px solid #90c5e7; outline-offset: 2px; }
+.example-speak:focus-visible { outline: 3px solid #bcaacd; outline-offset: 2px; }
 .example-speech-error { margin: 8px 0 0; color: #a34141; font-size: 12px; }
-.example-speech-credit { display: block; margin-top: 7px; color: #63748a; font-size: 11px; }
+.example-speech-credit { display: block; margin-top: 7px; color: #77638a; font-size: var(--learn-text-xs); }
 .example-speech-credit a { color: inherit; text-decoration: underline; }
 
 @media (max-width: 768px) {

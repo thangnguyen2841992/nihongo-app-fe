@@ -33,7 +33,7 @@ const emit = defineEmits<{ toggle: [] }>()
 .menu-toggle { display: none; align-items: center; justify-content: center; flex-shrink: 0; width: 36px; height: 36px; margin-right: 8px; border: 1px solid #f8f9fa; border-radius: 6px; background: #f8f9fa; color: #253b68; font-size: 22px; }
 a:focus-visible, button:focus-visible { outline: 2px solid #e99484; outline-offset: 3px; }
 @media (max-width: 768px) { .menu-toggle { display: flex; } }
-@media (max-width: 480px) { .guest-navbar { padding: 0 12px; } .guest-actions { gap: 6px; } .guest-actions a { padding: 7px 9px; font-size: 11px; } }
+@media (max-width: 480px) { .guest-navbar { padding: 0 12px; } .guest-actions { gap: 6px; } .guest-actions a { padding: 7px 9px; font-size: var(--learn-text-xs); } }
 @media (max-width: 360px) { .guest-navbar { padding: 0 8px; } .guest-actions .login-link { display: none; } }
 @media (prefers-reduced-motion: reduce) { .guest-actions a { transition: none; } }
 </style>

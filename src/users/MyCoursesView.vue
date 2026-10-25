@@ -141,11 +141,12 @@ onMounted(loadCourses)
         <div class="study-progress" role="progressbar" :aria-label="`Tiến độ ${course.courseName}`" :aria-valuenow="progressValue(course.progress)" aria-valuemin="0" aria-valuemax="100"><span :style="{ width: `${progressValue(course.progress)}%` }"></span></div>
 
         <div class="study-actions mobile-stack">
-          <RouterLink v-if="isExpired(course.expiredAt)" to="/courses" class="study-button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i>Gia hạn khóa học</RouterLink>
+          <RouterLink v-if="isExpired(course.expiredAt)" :to="{ path: '/courses', query: { renew: String(course.courseId) } }" class="study-button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i>Gia hạn khóa học</RouterLink>
           <button v-else class="study-button" :disabled="openingCourseId !== null" @click="openCourse(course)">
             <i class="bi" :class="course.startedAt ? 'bi-play-circle' : 'bi-book'" aria-hidden="true"></i>{{ openingCourseId === course.courseId ? 'Đang mở...' : course.startedAt ? 'Học tiếp' : 'Bắt đầu học' }}
           </button>
-          <RouterLink v-if="course.packageName.toUpperCase() === 'VIP' && !isExpired(course.expiredAt)" class="study-button secondary" :to="`/course/${course.courseId}/conversation-listening`"><i class="bi bi-headphones" aria-hidden="true"></i>Luyện nghe</RouterLink>
+          <RouterLink v-if="!isExpired(course.expiredAt)" class="study-button secondary" :to="{ path: '/courses', query: { renew: String(course.courseId) } }"><i class="bi bi-calendar-plus" aria-hidden="true"></i>Gia hạn thêm</RouterLink>
+        <RouterLink v-if="course.packageName.toUpperCase() === 'VIP' && !isExpired(course.expiredAt)" class="study-button secondary" :to="`/course/${course.courseId}/conversation-listening`"><i class="bi bi-headphones" aria-hidden="true"></i>Luyện nghe</RouterLink>
         </div>
       </article>
     </div>
@@ -155,12 +156,12 @@ onMounted(loadCourses)
 <style scoped>
 .course-hero { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .course-summary { position: relative; z-index: 1; display: grid; flex: 0 0 154px; padding: 16px 18px; border: 1px solid #e2d6e6; border-radius: 16px; background: #ffffffa8; }
-.course-summary strong { color: #745782; font-size: 28px; line-height: 1; }.course-summary span { margin-top: 7px; color: #8c7c94; font-size: 11px; line-height: 1.5; }
+.course-summary strong { color: #745782; font-size: 28px; line-height: 1; }.course-summary span { margin-top: 7px; color: #8c7c94; font-size: var(--learn-text-xs); line-height: 1.5; }
 .course-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-top: 20px; }
 .course-card { display: flex; flex-direction: column; min-width: 0; padding: 22px; border: 1px solid #e5dce8; border-radius: 18px; background: #fffffff0; box-shadow: 0 8px 24px #55475e0c; }.course-card.expired { background: #fbfafbde; }
 .course-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }.course-card-heading > div { min-width: 0; }.course-card h2 { margin: 10px 0 0; color: #50435e; font-size: 19px; line-height: 1.45; overflow-wrap: anywhere; }
-.course-status { flex-shrink: 0; padding: 5px 9px; border-radius: 999px; background: #f1eef3; color: #817489; font-size: 10px; font-weight: 700; }.course-status.active { background: #eaf5ef; color: #4e8065; }.course-status.complete { background: #eee8f7; color: #705690; }
-.course-details { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 22px 0; }.course-details div { padding: 12px; border-radius: 11px; background: #f8f5f9; }.course-details dt { color: #9b8ca2; font-size: 10px; }.course-details dd { margin: 4px 0 0; color: #695d72; font-size: 12px; font-weight: 650; }.course-details dd.urgent { color: #ad762c; }
+.course-status { flex-shrink: 0; padding: 5px 9px; border-radius: 999px; background: #f1eef3; color: #817489; font-size: var(--learn-text-xs); font-weight: 700; }.course-status.active { background: #eaf5ef; color: #4e8065; }.course-status.complete { background: #eee8f7; color: #705690; }
+.course-details { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 22px 0; }.course-details div { padding: 12px; border-radius: 11px; background: #f8f5f9; }.course-details dt { color: #9b8ca2; font-size: var(--learn-text-xs); }.course-details dd { margin: 4px 0 0; color: #695d72; font-size: 12px; font-weight: 650; }.course-details dd.urgent { color: #ad762c; }
 .course-progress-copy { display: flex; justify-content: space-between; margin-bottom: 8px; color: #817489; font-size: 12px; }.course-progress-copy strong { color: #71567e; }.course-card .study-progress { height: 8px; }.course-card .study-actions { margin-top: auto; padding-top: 22px; }
 .empty-courses { display: grid; justify-items: center; max-width: 620px; margin: 24px auto 0; }.empty-courses h2 { margin: 0; color: #584b62; font-size: 20px; }.empty-courses p { max-width: 450px; margin: 0; }.empty-icon { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 17px; background: #efe5f2; color: #856793; font-size: 24px; }
 @media(max-width:850px) { .course-grid { grid-template-columns: minmax(0,1fr); } }

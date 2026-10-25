@@ -16,7 +16,6 @@ export const userNavigationGroups: UserNavigationGroup[] = [
       { to: '/user/my-courses', icon: 'bi-journals', label: 'Khóa học của tôi', relatedPaths: /^\/course\/(?:\d+(?:\/books)?|book\/\d+)\/?$/ },
       { to: '/user/learning-plan', icon: 'bi-signpost', label: 'Lộ trình của tôi' },
       { to: '/user/notebook', icon: 'bi-journal-bookmark', label: 'Sổ tay' },
-      { to: '/user/english', icon: 'bi-translate', label: 'Tiếng Anh cá nhân' },
     ],
   },
   {
@@ -30,6 +29,12 @@ export const userNavigationGroups: UserNavigationGroup[] = [
     id: 'commerce', icon: 'bi-bag-heart', label: 'Khóa học & thanh toán', items: [
       { to: '/courses', icon: 'bi-compass', label: 'Khám phá khóa học' },
       { to: '/wallet', icon: 'bi-wallet2', label: 'Ví của tôi' },
+    ],
+  },
+  // A personal side tool (files stay in the browser), kept apart from the Japanese course menus.
+  {
+    id: 'extras', icon: 'bi-stars', label: 'Góc tự học khác', items: [
+      { to: '/user/english', icon: 'bi-translate', label: 'Tự học tiếng Anh' },
     ],
   },
 ]

@@ -73,7 +73,7 @@ function courseName(id: number) { return props.courses.find(c => c.courseId === 
   <section v-if="dashboard.reminders.length" class="study-panel study-reminders" aria-label="Nhắc học">
     <h2>Nhắc học</h2>
     <article v-for="reminder in dashboard.reminders" :key="reminder.key" class="study-reminder">
-      <template v-if="reminder.courseId"><p><strong>{{ courseName(reminder.courseId) }}</strong> · {{ reminder.message }}<br><span v-if="reminder.expiresAt" class="study-meta">Hết hạn: {{ new Date(reminder.expiresAt).toLocaleString('vi-VN') }}</span></p><RouterLink class="study-button secondary" to="/user/my-courses">Xem và gia hạn</RouterLink></template>
+      <template v-if="reminder.courseId"><p><strong>{{ courseName(reminder.courseId) }}</strong> · {{ reminder.message }}<br><span v-if="reminder.expiresAt" class="study-meta">Hết hạn: {{ new Date(reminder.expiresAt).toLocaleString('vi-VN') }}</span></p><RouterLink class="study-button secondary" :to="{ path: '/courses', query: { renew: String(reminder.courseId) } }">Gia hạn ngay</RouterLink></template>
       <template v-else><p>{{ reminder.message }}</p><RouterLink class="study-button secondary" to="/user/review">Ôn ngay</RouterLink></template>
     </article>
   </section>

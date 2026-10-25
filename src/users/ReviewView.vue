@@ -19,14 +19,52 @@ const loadingQuestions = ref(false), revealed = ref(false), busy = ref(false), l
 const error = ref(''), feedback = ref('')
 const current = computed(() => cards.value[0])
 let questionRequest = 0, disposed = false
+// Show what the learner recognises (lesson name, question text) instead of database ids. Lesson locations are tiny
+// and cached by the content service; a lesson's questions are fetched once and reused when practising.
+interface LessonInfo { name: string; bookId: number | null }
+const lessonInfo = ref<Record<number, LessonInfo>>({})
+const lessonQuestions = new Map<number, Promise<Question[]>>()
+function questionsOf(lessonId: number) {
+  let request = lessonQuestions.get(lessonId)
+  if (!request) {
+    request = Promise.resolve().then(() => gatewayUrl.get<Question[]>(`/api/staff/getAllExcercisesKeywordOfLesson/${lessonId}`)).then(r => r.data)
+    request.catch(() => lessonQuestions.delete(lessonId))
+    lessonQuestions.set(lessonId, request)
+  }
+  return request
+}
+const questionText = ref<Record<number, string>>({})
+async function describe(lessonIds: number[], wrongItems: WrongAnswer[] = []) {
+  for (const lessonId of new Set(lessonIds)) {
+    if (lessonInfo.value[lessonId]) continue
+    void Promise.resolve().then(() => gatewayUrl.get<{ bookId: number | null; name: string }>(`/api/staff/lessons/${lessonId}/location`))
+      .then(({ data }) => { if (!disposed && data?.name) lessonInfo.value = { ...lessonInfo.value, [lessonId]: { name: data.name, bookId: data.bookId } } })
+      .catch(() => { /* fall back to the generic label */ })
+  }
+  for (const item of wrongItems) {
+    if (questionText.value[item.exerciseId]) continue
+    void questionsOf(item.lessonId).then(rows => {
+      const row = rows.find(q => q.exerciseKeywordId === item.exerciseId)
+      if (row && !disposed) questionText.value = { ...questionText.value, [item.exerciseId]: shorten(plain(row.contentNihongo)) }
+    }).catch(() => {})
+  }
+}
+function shorten(text: string) { return text.length > 90 ? `${text.slice(0, 90)}…` : text }
+function lessonLabel(lessonId: number) { return lessonInfo.value[lessonId]?.name || 'Bài học' }
+function lessonLink(lessonId: number) {
+  const bookId = lessonInfo.value[lessonId]?.bookId
+  return { name: 'course-lesson-exercises', params: { lessonId }, query: bookId ? { bookId: String(bookId) } : {} }
+}
 async function loadWeak(page = weakPage.value) {
   const r = await getWeakPage(page)
   weak.value = r.content; weakPage.value = r.number; weakPages.value = r.totalPages; weakTotal.value = r.totalElements
+  void describe(r.content.map(item => item.lessonId))
 }
 async function loadWrong(page = wrongPage.value): Promise<void> {
   const r = await getWrongPage(page)
   if (!r.content.length && page > 0) return loadWrong(Math.max(0, r.totalPages - 1))
   wrong.value = r.content; wrongPage.value = r.number; wrongPages.value = r.totalPages; wrongTotal.value = r.totalElements
+  void describe(r.content.map(item => item.lessonId), r.content)
 }
 async function load() {
   if (busy.value || loading.value && cards.value.length) return
@@ -60,9 +98,9 @@ async function openWrong(answer: WrongAnswer) {
   loadingQuestions.value = true; error.value = ''
   const id = ++questionRequest
   try {
-    const response = await gatewayUrl.get<Question[]>(`/api/staff/getAllExcercisesKeywordOfLesson/${answer.lessonId}`)
+    const rows = await questionsOf(answer.lessonId)
     if (disposed || id !== questionRequest) return
-    question.value = response.data.find(q => q.exerciseKeywordId === answer.exerciseId) || null
+    question.value = rows.find(q => q.exerciseKeywordId === answer.exerciseId) || null
     if (!question.value) error.value = 'Câu hỏi không còn trong bài học. Bạn có thể bỏ câu khỏi danh sách ôn.'
   } catch { if (!disposed && id === questionRequest) error.value = 'Không tải được câu hỏi. Kiểm tra quyền học hoặc thử lại.' }
   finally { if (!disposed && id === questionRequest) loadingQuestions.value = false }
@@ -120,14 +158,15 @@ onBeforeUnmount(() => { disposed = true; questionRequest++ })
       <div v-else class="study-empty" style="margin-top:20px">Bạn đã ôn hết thẻ đến hạn. <RouterLink to="/user/notebook">Xem sổ tay</RouterLink><div class="study-actions"><button class="study-button secondary" :disabled="busy" @click="load">Kiểm tra thẻ đến hạn</button></div></div>
     </template>
     <template v-else-if="tab === 'lessons'">
-      <div v-if="weak.length" class="study-list"><section v-for="item in weak" :key="item.lessonId" class="study-panel"><h2>Bài {{ item.lessonId }}</h2><p>Lần gần nhất: {{ Math.round(item.score) }} điểm · {{ new Date(item.submittedAt).toLocaleString('vi-VN') }}</p><RouterLink class="study-button" :to="{ name: 'course-lesson-exercises', params: { lessonId: item.lessonId } }">Luyện lại bài</RouterLink></section></div>
+      <div v-if="weak.length" class="study-list"><section v-for="item in weak" :key="item.lessonId" class="study-panel"><h2>{{ lessonLabel(item.lessonId) }}</h2><p>Lần gần nhất: {{ Math.round(item.score) }} điểm · {{ new Date(item.submittedAt).toLocaleString('vi-VN') }}</p><RouterLink class="study-button" :to="lessonLink(item.lessonId)">Luyện lại bài</RouterLink></section></div>
       <p v-else class="study-empty" style="margin-top:20px">Chưa có bài nào dưới 80 điểm.</p>
       <nav v-if="weakPages > 1" class="study-pagination" aria-label="Trang bài yếu"><button class="study-button secondary" :disabled="busy || weakPage === 0" @click="changePage('lessons', weakPage - 1)">Trước</button><span>{{ weakPage + 1 }} / {{ weakPages }}</span><button class="study-button secondary" :disabled="busy || weakPage + 1 >= weakPages" @click="changePage('lessons', weakPage + 1)">Sau</button></nav>
     </template>
     <template v-else>
       <div v-if="wrong.length" class="study-list"><section v-for="item in wrong" :key="item.id" class="study-panel">
-        <h2>Bài {{ item.lessonId }} · Câu {{ item.exerciseId }}</h2>
-        <div class="study-actions"><button class="study-button" :disabled="busy" @click="openWrong(item)">{{ openedId === item.id ? 'Ẩn câu hỏi' : 'Luyện câu này' }}</button><button class="study-button secondary" :disabled="busy" @click="master(item)">Đã nắm vững</button><RouterLink class="study-button secondary" :to="{ name: 'course-lesson-exercises', params: { lessonId: item.lessonId } }">Mở bài học</RouterLink></div>
+        <h2 lang="ja">{{ questionText[item.exerciseId] || 'Câu hỏi đã làm sai' }}</h2>
+        <p class="study-meta">{{ lessonLabel(item.lessonId) }}<template v-if="item.chosenAnswer"> · bạn đã chọn {{ item.chosenAnswer }}</template></p>
+        <div class="study-actions"><button class="study-button" :disabled="busy" @click="openWrong(item)">{{ openedId === item.id ? 'Ẩn câu hỏi' : 'Luyện câu này' }}</button><button class="study-button secondary" :disabled="busy" @click="master(item)">Đã nắm vững</button><RouterLink class="study-button secondary" :to="lessonLink(item.lessonId)">Mở bài học</RouterLink></div>
         <div v-if="openedId === item.id" style="margin-top:16px">
           <p v-if="loadingQuestions" role="status">Đang tải câu hỏi...</p>
           <template v-else-if="question"><h3 lang="ja">{{ plain(question.contentNihongo) }}</h3><p>Chọn đáp án để kiểm tra lại.</p><div class="study-options"><button v-for="choice in ['A','B','C','D']" :key="choice" class="study-button secondary" :disabled="busy" @click="choose(item, choice)">{{ choice }} · {{ answerText(choice) }}</button></div><p v-if="practiceResult" class="study-feedback" role="status">Chưa đúng. Đáp án: {{ practiceResult.correctAnswer }} · {{ answerText(practiceResult.correctAnswer) }}. Đọc lại rồi thử lần nữa.</p></template>

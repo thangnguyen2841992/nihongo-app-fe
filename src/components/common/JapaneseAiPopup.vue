@@ -72,7 +72,7 @@ const enabled = computed(() => isAuthReady.value && isAuthenticated.value && rou
 .ai-popup-mark { display: grid; place-items: center; flex: 0 0 38px; height: 38px; border-radius: 12px; background: linear-gradient(145deg, #6558c9, #8c63c8); color: #fff; font-size: 17px; box-shadow: 0 7px 18px rgb(99 83 197 / 24%); }
 .ai-popup-header div { flex: 1; min-width: 0; }
 .ai-popup-header h2 { margin: 0; color: #28334a; font-size: 15px; font-weight: 800; }
-.ai-popup-header p { margin: 2px 0 0; color: #7b8799; font-size: 11px; }
+.ai-popup-header p { margin: 2px 0 0; color: #7b8799; font-size: var(--learn-text-xs); }
 .ai-popup-header button { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 10px; background: #f2f4f8; color: #68758a; cursor: pointer; }
 .ai-popup-header button:hover { background: #e8ebf2; color: #38445a; }
 .ai-popup-body { flex: 1; min-width: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }

@@ -60,7 +60,12 @@ function toggleAccount() {
   accountOpen.value = !accountOpen.value
   if (accountOpen.value && !profile.value && !profileLoading.value) void loadProfile()
 }
+// Returning to the tab refreshes the balance at most every 30 seconds; wallet changes made in the app
+// ("wallet:changed") and realtime deposit notices still refresh immediately.
+let balanceLoadedAt = 0
+function refreshBalanceOnReturn() { if (Date.now() - balanceLoadedAt >= 30_000) void refreshBalance() }
 async function refreshBalance() {
+  balanceLoadedAt = Date.now()
   const request = ++balanceRequest
   if (!props.isLoggedIn || !props.email || disposed) return
   balanceLoading.value = true
@@ -86,7 +91,7 @@ watch(() => [props.isLoggedIn, props.email], () => {
 onMounted(() => {
   document.addEventListener('pointerdown', closeAccountOnOutsideClick)
   window.addEventListener('wallet:changed', refreshBalance)
-  window.addEventListener('focus', refreshBalance)
+  window.addEventListener('focus', refreshBalanceOnReturn)
 })
 onUnmounted(() => {
   disposed = true
@@ -94,7 +99,7 @@ onUnmounted(() => {
   document.removeEventListener('pointerdown', closeAccountOnOutsideClick)
   ++balanceRequest
   window.removeEventListener('wallet:changed', refreshBalance)
-  window.removeEventListener('focus', refreshBalance)
+  window.removeEventListener('focus', refreshBalanceOnReturn)
 })
 
 /* =========================
@@ -215,7 +220,7 @@ const goToWallet = () => {
     >
 
       <span class="search-icon">
-        🔍
+        <i class="bi bi-search" aria-hidden="true"></i>
       </span>
 
       <input
@@ -290,7 +295,7 @@ const goToWallet = () => {
         >
 
           <span class="wallet-icon">
-            💰
+            <i class="bi bi-wallet2" aria-hidden="true"></i>
           </span>
 
           <div class="wallet-info">
@@ -512,7 +517,7 @@ const goToWallet = () => {
 
   color: white;
 
-  font-size: 11px;
+  font-size: var(--learn-text-xs);
 
   font-weight: 700;
 
@@ -646,7 +651,7 @@ const goToWallet = () => {
 
 .wallet-balance {
 
-  font-size: 11px;
+  font-size: var(--learn-text-xs);
 
   color: #64748b;
 

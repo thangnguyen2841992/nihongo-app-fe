@@ -16,5 +16,5 @@ const total = computed(() => notificationUnread.value + broadcastUnread.value)
 <style scoped>
 .notification-bell { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 21px; cursor: pointer; }
 .notification-bell:hover { background: rgba(128,128,128,.15); }
-.bell-count { position: absolute; top: 0; right: -4px; min-width: 18px; padding: 2px 4px; border-radius: 12px; background: #dc3545; color: white; font-size: 11px; line-height: 14px; }
+.bell-count { position: absolute; top: 0; right: -4px; min-width: 18px; padding: 2px 4px; border-radius: 12px; background: #dc3545; color: white; font-size: var(--learn-text-xs); line-height: 14px; }
 </style>

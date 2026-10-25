@@ -25,15 +25,15 @@ const sourceUrl = (image: string) => `${import.meta.env.BASE_URL}${image}`
 <style scoped>
 .book-exercise-heading { margin-bottom: 24px; }
 .section-title { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
-.section-number { background: #26364a; color: #fff; padding: 6px 15px; border-radius: 6px; font-size: 17px; font-weight: 700; }
-h3 { font-size: 20px; font-weight: 700; margin: 0; color: #24334b; }
-.section-translation { color: #64748b; font-size: 14px; }
+.section-number { background: var(--learn-text); color: #fff; padding: 6px 15px; border-radius: 6px; font-size: 17px; font-weight: 700; }
+h3 { font-size: 20px; font-weight: 700; margin: 0; color: var(--learn-text); }
+.section-translation { color: var(--learn-muted); font-size: 14px; }
 .instruction { margin: 18px 0 8px; font-size: 17px; line-height: 1.9; overflow-wrap: anywhere; }
-.source { margin: 0; font-size: 12px; color: #748296; }
+.source { margin: 0; font-size: 12px; color: var(--learn-muted); }
 .pending-answers { color: #805b20; font-size: 14px; margin: 12px 0; }
-.ai-answers { color: #475569; font-size: 14px; margin: 12px 0; }
+.ai-answers { color: var(--learn-heading); font-size: 14px; margin: 12px 0; }
 .source-pages { margin: 12px 0; }.source-pages summary { cursor: pointer; }.source-pages img { display: block; max-width: 100%; height: auto; margin: 12px auto; }
-.shared-reading { border: 1px dashed #8493a6; padding: 24px; margin-top: 24px; font-size: 18px; line-height: 2.2; white-space: pre-line; overflow-wrap: anywhere; background: #fff; }
-.generic-heading { background: #eef4ff; border-radius: 10px; padding: 16px; font-size: 19px; line-height: 1.8; margin-bottom: 20px; }
+.shared-reading { border: 1px dashed #9584a6; padding: 24px; margin-top: 24px; font-size: 18px; line-height: 2.2; white-space: pre-line; overflow-wrap: anywhere; background: #fff; }
+.generic-heading { background: var(--learn-primary-soft); border-radius: 10px; padding: 16px; font-size: 19px; line-height: 1.8; margin-bottom: 20px; }
 @media (max-width: 600px) { .shared-reading { padding: 18px; font-size: 16px; }.instruction { font-size: 16px; } }
 </style>

@@ -84,10 +84,40 @@ it('plays cached VOICEVOX audio for a TRY! N3 example and shows the voice credit
   expect(synthesis.speak).not.toHaveBeenCalled()
 })
 
-it('does not show TRY! N3 pronunciation controls for another book', async () => {
+it('offers pronunciation for every book, not only TRY! N3', async () => {
   bookName = 'Minna no Nihongo'
   await openBook()
-  expect(wrapper!.find('[aria-label^="Nghe phát âm câu ví dụ"]').exists()).toBe(false)
+  expect(wrapper!.find('[aria-label^="Nghe phát âm câu ví dụ"]').exists()).toBe(true)
+  expect(wrapper!.find('[aria-label^="Luyện nghe nói câu ví dụ"]').exists()).toBe(true)
+})
+
+it('names lesson tabs and marks the lessons a learner finished', async () => {
+  const { useAuthState } = await import('@/services/authState')
+  const role = useAuthState().userRole
+  role.value = 'USER'
+  const base = vi.mocked(gatewayUrl.get).getMockImplementation()!
+  vi.mocked(gatewayUrl.get).mockImplementation(async (url, config) => url === '/api/nihongo-user/study/completions/among'
+    ? { data: [11] } as never : base(url, config))
+  try {
+    await openBook()
+    const tab = wrapper!.get('.lesson-tab')
+    expect(tab.text()).toContain('Bài 1')
+    expect(tab.find('.lesson-done').exists()).toBe(true)
+    expect(gatewayUrl.get).toHaveBeenCalledWith('/api/nihongo-user/study/completions/among', expect.objectContaining({ params: { lessonIds: '11' } }))
+  } finally { role.value = '' }
+})
+
+it('sends a learner without a course back to their courses, not to the staff area', async () => {
+  const router = createRouter({ history: createMemoryHistory(), routes: [
+    { path: '/books/:bookId', name: 'CourseBookDetail', component: CourseBookDetailView },
+    { path: '/user/my-courses', component: { template: '<p>Khóa học của tôi</p>' } },
+    { path: '/staff', component: { template: '<p>Staff</p>' } },
+  ] })
+  await router.push('/books/1')
+  wrapper = mount({ template: '<RouterView />' }, { global: { plugins: [router] } })
+  await flushPromises()
+  await wrapper.get('.back-btn').trigger('click'); await flushPromises()
+  expect(router.currentRoute.value.path).toBe('/user/my-courses')
 })
 
 it('falls back to the browser voice when VOICEVOX is unavailable', async () => {

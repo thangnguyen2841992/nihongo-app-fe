@@ -42,3 +42,14 @@ it('resumes a unit, searches without accents and navigates to the mapped origina
   await view.get('.original-links button:nth-child(2)').trigger('click')
   expect(view.emitted('source')![1]).toEqual([12, 'Unit 1 — am / is / are'])
 })
+
+it('marks units as finished and remembers the last self-check result', async () => {
+  wrapper = mount(EnglishGrammarCompanion, { props: { pack: grammarPackFixture(), doneUnits: [2], quiz: { '1': false } } })
+  expect(wrapper.text()).toContain('đã học 1/115')
+  expect(wrapper.get('.quiz-history').text()).toContain('nên làm lại')
+  await wrapper.get('.unit-done-toggle').trigger('click')
+  expect(wrapper.emitted('toggleDone')).toEqual([[1]])
+  await wrapper.findAll('input[type="radio"]')[2]!.setValue()
+  await wrapper.get('.grammar-practice').trigger('submit')
+  expect(wrapper.emitted('quizResult')).toEqual([[1, true]])
+})

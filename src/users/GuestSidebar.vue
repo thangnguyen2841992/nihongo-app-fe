@@ -14,6 +14,14 @@ const emit = defineEmits<{ close: [] }>()
         <i class="bi bi-compass" aria-hidden="true"></i><span>Khám phá khóa học</span>
       </RouterLink>
     </nav>
+    <section class="guest-features" aria-label="Học gì ở Nihongo">
+      <p class="features-title">Học gì ở Nihongo</p>
+      <ul>
+        <li><i class="bi bi-journals" aria-hidden="true"></i><span>Giáo trình theo cấp độ N5–N1, đọc kèm ngữ pháp và ví dụ</span></li>
+        <li><i class="bi bi-volume-up" aria-hidden="true"></i><span>Nghe phát âm mẫu và luyện nói theo từng câu</span></li>
+        <li><i class="bi bi-arrow-repeat" aria-hidden="true"></i><span>Ôn tập theo lịch, luyện lại đúng câu bạn làm sai</span></li>
+      </ul>
+    </section>
     <div class="guest-account">
       <div class="account-icon" aria-hidden="true"><i class="bi bi-person-circle"></i></div>
       <h2>Chào mừng đến Nihongo</h2>
@@ -28,10 +36,15 @@ const emit = defineEmits<{ close: [] }>()
 <style scoped src="./learningSidebar.css"></style>
 <style scoped>
 .guest-sidebar { display: flex; flex-direction: column; }
+.guest-features { margin: 18px 4px 16px; padding-top: 14px; border-top: 1px solid #e2d7df; }
+.features-title { margin: 0 0 10px 6px; color: #9a8aa3; font-size: var(--learn-text-xs); font-weight: 650; letter-spacing: .04em; }
+.guest-features ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.guest-features li { display: flex; gap: 10px; align-items: flex-start; padding: 0 6px; color: #75687e; font-size: var(--learn-text-sm); line-height: 1.55; }
+.guest-features i { flex: none; color: #a07894; font-size: 15px; line-height: 1.4; }
 .guest-account { margin-top: auto; padding: 18px 12px 12px; border: 1px solid #e3d5df; border-radius: 14px; background: linear-gradient(140deg, #ffffffb0, #f7edf380); }
 .account-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: #f0e2eb; color: #a07894; font-size: 24px; margin-bottom: 12px; }
 .guest-account h2 { font-size: 12px; font-weight: 650; color: #5d4968; line-height: 1.6; margin: 0 0 8px; }
-.guest-account p { color: #7c6d85; font-size: 11px; line-height: 1.8; margin: 0 0 16px; }
+.guest-account p { color: #7c6d85; font-size: var(--learn-text-xs); line-height: 1.8; margin: 0 0 16px; }
 .guest-account a { display: block; border-radius: 9px; padding: 10px 8px; text-align: center; font-size: 12px; font-weight: 600; text-decoration: none; }
 .account-login { color: #fff; background: linear-gradient(110deg, #8e7999, #a1849d); box-shadow: 0 3px 12px #73627b15; }
 .account-login:hover { background: #806b8c; }

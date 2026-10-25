@@ -65,11 +65,17 @@ export interface EnglishStudyEntry {
   completedUnits: number
   totalUnits: number
   notes: string
+  /** Units the learner marked as finished (used by the built-in grammar course). */
+  doneUnits: number[]
+  /** Last self-check result per unit id: true = answered correctly. */
+  quiz: Record<string, boolean>
 }
 export type EnglishStudyRecord = Record<EnglishBookId, EnglishStudyEntry>
 export interface LocalStudyMedia {
   name: string
   url: string
+  /** The file itself, kept so it can be remembered on this device when the learner asks for it. */
+  blob?: Blob
 }
 
 export function emptyEnglishStudy(): EnglishStudyRecord {
@@ -82,6 +88,8 @@ export function emptyEnglishStudy(): EnglishStudyRecord {
         completedUnits: 0,
         totalUnits: 0,
         notes: '',
+        doneUnits: [],
+        quiz: {},
       },
     ]),
   ) as EnglishStudyRecord
@@ -98,7 +106,7 @@ const integer = (value: unknown, fallback: number, min = 0) =>
     ? value
     : fallback
 
-function normalizeRecord(value: unknown): EnglishStudyRecord {
+export function normalizeRecord(value: unknown): EnglishStudyRecord {
   const result = emptyEnglishStudy()
   if (!value || typeof value !== 'object') return result
   for (const book of englishBooks) {
@@ -113,6 +121,19 @@ function normalizeRecord(value: unknown): EnglishStudyRecord {
       completedUnits: totalUnits ? Math.min(completedUnits, totalUnits) : completedUnits,
       totalUnits,
       notes: typeof data.notes === 'string' ? data.notes.slice(0, 20000) : '',
+      doneUnits: Array.isArray(data.doneUnits)
+        ? [...new Set(data.doneUnits.filter((id): id is number => integer(id, -1, 1) !== -1 && id <= 1000))]
+            .sort((a, b) => a - b)
+            .slice(0, 1000)
+        : [],
+      quiz:
+        data.quiz && typeof data.quiz === 'object' && !Array.isArray(data.quiz)
+          ? Object.fromEntries(
+              Object.entries(data.quiz as Record<string, unknown>)
+                .filter(([id, value]) => /^\d{1,4}$/.test(id) && typeof value === 'boolean')
+                .slice(0, 1000),
+            ) as Record<string, boolean>
+          : {},
     }
   }
   return result
@@ -178,10 +199,78 @@ export function createLocalAudio(files: File[]): LocalStudyMedia[] {
     for (const file of [...files].sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { numeric: true }),
     ))
-      tracks.push({ name: file.name, url: URL.createObjectURL(file) })
+      tracks.push({ name: file.name, url: URL.createObjectURL(file), blob: file })
     return tracks
   } catch (error) {
     tracks.forEach((track) => URL.revokeObjectURL(track.url))
     throw error
   }
+}
+
+/** Sync bookkeeping kept next to the local copy: the server revision it is based on and unsent edits. */
+export interface EnglishSyncMeta {
+  version: number
+  pending: boolean
+}
+export function loadSyncMeta(email: string): EnglishSyncMeta {
+  try {
+    const raw = JSON.parse(localStorage.getItem(`${storageKey(email)}:sync`) || 'null') as Partial<EnglishSyncMeta> | null
+    return {
+      version: typeof raw?.version === 'number' && Number.isInteger(raw.version) && raw.version >= 0 ? raw.version : 0,
+      pending: raw?.pending === true,
+    }
+  } catch {
+    return { version: 0, pending: false }
+  }
+}
+export function saveSyncMeta(email: string, meta: EnglishSyncMeta) {
+  try {
+    localStorage.setItem(`${storageKey(email)}:sync`, JSON.stringify(meta))
+  } catch {
+    /* the notebook itself is what matters; sync simply retries */
+  }
+}
+
+const OTHER_DEVICE = '\n\n——— Ghi chú từ thiết bị khác ———\n'
+
+/**
+ * Combines two edited copies of the notebook (this device and another one) without losing either: notes that
+ * differ are kept one after the other, finished units are united, and this device's reading position wins.
+ */
+export function mergeStudy(local: EnglishStudyRecord, remote: EnglishStudyRecord): EnglishStudyRecord {
+  const merged = emptyEnglishStudy()
+  for (const book of englishBooks) {
+    const mine = local[book.id]
+    const theirs = remote[book.id]
+    let notes = mine.notes
+    if (theirs.notes && theirs.notes !== mine.notes) {
+      if (theirs.notes.includes(mine.notes)) notes = theirs.notes
+      else if (!mine.notes.includes(theirs.notes)) notes = `${mine.notes}${OTHER_DEVICE}${theirs.notes}`.slice(0, 20000)
+    }
+    const doneUnits = [...new Set([...mine.doneUnits, ...theirs.doneUnits])].sort((a, b) => a - b)
+    const totalUnits = Math.max(mine.totalUnits, theirs.totalUnits)
+    merged[book.id] = {
+      page: mine.page,
+      currentUnit: mine.currentUnit || theirs.currentUnit,
+      totalUnits,
+      completedUnits: Math.min(
+        Math.max(mine.completedUnits, theirs.completedUnits, doneUnits.length),
+        totalUnits || Number.MAX_SAFE_INTEGER,
+      ),
+      notes,
+      doneUnits,
+      quiz: { ...theirs.quiz, ...mine.quiz },
+    }
+  }
+  return merged
+}
+
+/** True when the learner has entered nothing worth uploading (a fresh device). The unit total is filled in by the
+ * built-in course and does not count. */
+export function isEmptyStudy(record: EnglishStudyRecord) {
+  return englishBooks.every(({ id }) => {
+    const entry = record[id]
+    return entry.page === 1 && !entry.currentUnit && !entry.completedUnits && !entry.notes &&
+      !entry.doneUnits.length && !Object.keys(entry.quiz).length
+  })
 }

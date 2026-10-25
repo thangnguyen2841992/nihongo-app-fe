@@ -29,6 +29,41 @@ const createSubmissionId = () => {
 }
 const remainSeconds = ref(0)
 let timer: number | null = null
+// The countdown is computed from an absolute deadline: browsers slow down timers in background tabs, so counting
+// ticks would give a learner who switched tabs extra time.
+let deadline: number | null = null
+const timed = ref(true)
+const confirmingSubmit = ref(false)
+const draftNotice = ref('')
+const answeredCount = computed(() => exercises.value.filter(e => selectedAnswers.value[e.exerciseKeywordId]).length)
+const unansweredNow = computed(() => exercises.value.length - answeredCount.value)
+// An attempt in progress survives a reload or leaving the page (same tab): answers and the deadline are kept until
+// the attempt is submitted or restarted.
+type Draft = { answers: Record<number, string>; deadline: number | null; timed: boolean }
+const draftKey = () => `exercise-draft:${lessonId.value}`
+const saveDraft = () => {
+  if (!started.value || submitted.value) return
+  try { sessionStorage.setItem(draftKey(), JSON.stringify({ answers: selectedAnswers.value, deadline, timed: timed.value } satisfies Draft)) } catch { /* optional */ }
+}
+const clearDraft = () => { try { sessionStorage.removeItem(draftKey()) } catch { /* optional */ } }
+const readDraft = (): Draft | null => {
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(draftKey()) || 'null') as Draft | null
+    return draft && typeof draft.answers === 'object' ? draft : null
+  } catch { return null }
+}
+const tick = () => {
+  if (deadline === null) return
+  remainSeconds.value = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
+  if (remainSeconds.value <= 0) void submitExercise(true)
+}
+const startTimer = () => {
+  if (timer !== null) clearInterval(timer)
+  timer = null
+  if (deadline === null) return
+  tick()
+  if (!submitted.value && !submitting.value) timer = window.setInterval(tick, 500)
+}
 const showResult = ref(false)
 const showTimeUp = ref(false)
 const unansweredCount = ref(0)
@@ -102,7 +137,7 @@ const comment = computed(() => {
   if (percent.value >= 60)
     return "Khá ổn. Hãy luyện thêm để đạt điểm cao hơn.";
 
-  return "Đừng nản! Làm lại một lần nữa nhé 💪";
+  return "Đừng nản! Làm lại một lần nữa nhé.";
 
 })
 
@@ -120,11 +155,6 @@ const exercises =
 const loadingExercises =
   ref(true)
 const exerciseLoadError = ref(false)
-const showCreateModal =
-  ref(false)
-
-const editingExercise =
-  ref(null)
 
 const lesson =
   ref<Lesson | null>(null)
@@ -144,31 +174,19 @@ const formattedTime = computed(() => {
   return `${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`
 
 })
-const startExercise = () => {
+const startExercise = (withTimer = true) => {
 
   if (answersPending.value || started.value || submitted.value || submitting.value || submitFailed.value || !exercises.value.length) {
     return
   }
 
   started.value = true
-
-  remainSeconds.value = exercises.value.length * 30
-
-  timer = window.setInterval(async () => {
-
-    if (remainSeconds.value <= 0) {
-
-      remainSeconds.value = 0
-
-      await submitExercise(true)
-
-      return
-
-    }
-
-    remainSeconds.value--
-
-  }, 1000)
+  timed.value = withTimer
+  draftNotice.value = ''
+  deadline = withTimer ? Date.now() + exercises.value.length * 30_000 : null
+  remainSeconds.value = withTimer ? exercises.value.length * 30 : 0
+  startTimer()
+  saveDraft()
 
 }
 const percent = computed(() => {
@@ -187,6 +205,10 @@ const restartExercise = () => {
   started.value = false
   submitted.value = false
   submitFailed.value = false
+  confirmingSubmit.value = false
+  draftNotice.value = ''
+  deadline = null
+  clearDraft()
 
   pendingSubmission = null
   unansweredCount.value = 0
@@ -214,11 +236,17 @@ const restartExercise = () => {
     behavior: "smooth"
   })
 }
-const submitExercise = async (isTimeUp = false) => {
+const submitExercise = async (isTimeUp = false, confirmed = false) => {
 
   if (answersPending.value || submitted.value || submitting.value) {
     return
   }
+  // Unanswered questions count as wrong: ask once on the page before submitting (never when time is up).
+  if (!isTimeUp && !confirmed && !submitFailed.value && unansweredNow.value > 0) {
+    confirmingSubmit.value = true
+    return
+  }
+  confirmingSubmit.value = false
 
   submitting.value = true
   started.value = false
@@ -238,9 +266,10 @@ const submitExercise = async (isTimeUp = false) => {
     exercises.value.forEach(e => { e.correctAnswer = data.correctAnswers[e.exerciseKeywordId]; e.aiSolution = data.aiSolutions?.[e.exerciseKeywordId] })
     submitted.value = true
     submitFailed.value = false
+    deadline = null
+    clearDraft()
   } catch {
     submitFailed.value = true
-    alert("Chưa lưu được bài làm. Vui lòng thử nộp lại.")
     return
   } finally {
     submitting.value = false
@@ -272,6 +301,8 @@ const selectAnswer = (
   }
 
   selectedAnswers.value[exerciseId] = answer
+  confirmingSubmit.value = false
+  saveDraft()
 
 }
 const scrollToListening = () => {
@@ -421,10 +452,6 @@ const fetchLesson =
     } catch (e) {
 
       console.error(e)
-
-      alert(
-        "Không tải được lesson"
-      )
     }
   }
 onMounted(async () => {
@@ -443,8 +470,25 @@ onMounted(async () => {
       groupedExercises.value[0]!.exerciseTypeId
   }
   handleScroll()
+  restoreDraft()
 
 })
+function restoreDraft() {
+  const draft = readDraft()
+  if (!draft || !exercises.value.length || answersPending.value) return
+  const known = new Set(exercises.value.map(e => e.exerciseKeywordId))
+  selectedAnswers.value = Object.fromEntries(Object.entries(draft.answers).filter(([id]) => known.has(Number(id))))
+  started.value = true
+  timed.value = draft.timed
+  deadline = draft.timed ? draft.deadline : null
+  if (deadline !== null && deadline <= Date.now()) {
+    draftNotice.value = 'Đã hết giờ trong lúc bạn rời trang, bài làm dở được nộp tự động.'
+    void submitExercise(true)
+    return
+  }
+  draftNotice.value = 'Đã khôi phục bài làm dở của bạn.'
+  startTimer()
+}
 onUnmounted(() => {
   if (timer !== null) clearInterval(timer)
 
@@ -454,40 +498,15 @@ onUnmounted(() => {
   )
 })
 
-const reloadExercises =
-  async (
-    exerciseId?: number
-  ) => {
-
-    await fetchExercises()
-
-    if (!exerciseId) {
-      return
-    }
-
-    activeExerciseId.value =
-      exerciseId
-
-    await nextTick()
-
-    document
-      .getElementById(
-        `exercise-${exerciseId}`
-      )
-      ?.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      })
-
-    setTimeout(() => {
-      activeExerciseId.value =
-        null
-    }, 3000)
-  }
-
+// Opened from Review or a bookmark there may be no in-app history: go to the lesson itself instead of leaving the app.
 const goBack = () => {
-
-  router.back()
+  const bookId = Number(route.query.bookId || lesson.value?.bookId)
+  if (window.history.state?.back) { router.back(); return }
+  if (Number.isInteger(bookId) && bookId > 0) {
+    void router.push({ name: 'CourseBookDetail', params: { bookId }, query: { ...(route.query.courseId ? { courseId: String(route.query.courseId) } : {}), lessonId: String(lessonId.value) } })
+    return
+  }
+  void router.push('/user/my-courses')
 }
 
 const groupedExercises = computed<ExerciseGroup[]>(() => exerciseGroups(exercises.value, exerciseTypes.value))
@@ -555,7 +574,7 @@ const scrollToGroup =
       <div>
 
         <h2 class="page-title">
-          📘 Bài tập:
+          <i class="bi bi-journal-text" aria-hidden="true"></i> Bài tập:
           {{
             lesson?.name ||
             "Đang tải..."
@@ -572,7 +591,7 @@ const scrollToGroup =
           class="history-btn"
           @click="goToHistory"
         >
-          📊 Lịch sử làm bài
+          <i class="bi bi-bar-chart-line" aria-hidden="true"></i> Lịch sử làm bài
         </button>
 
         <!-- Quay lại -->
@@ -615,8 +634,8 @@ const scrollToGroup =
 
       </div>
 
-      <div v-if="started && !submitted" class="timer" :class="{ warning: remainSeconds <= 60 }">
-        ⏰ {{ formattedTime }}
+      <div v-if="started && !submitted" class="timer" :class="{ warning: timed && remainSeconds <= 60 }" role="timer">
+        <template v-if="timed"><i class="bi bi-alarm" aria-hidden="true"></i> {{ formattedTime }} · </template>Đã làm {{ answeredCount }}/{{ exercises.length }}
       </div>
 
       <button
@@ -624,14 +643,23 @@ const scrollToGroup =
         class="restart-btn"
         @click="restartExercise">
 
-        🔄 Làm lại
+        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Làm lại
 
       </button>
       <div class="submit-wrap">
 
         <button
+          v-if="!started && !submitted && !submitFailed"
+          type="button"
+          class="practice-btn"
+          title="Làm bài không giới hạn thời gian; kết quả vẫn được lưu"
+          :disabled="answersPending || submitting || !exercises.length"
+          @click="startExercise(false)">
+          Luyện không tính giờ
+        </button>
+        <button
           class="start-btn"
-          @click="startExercise"
+          @click="startExercise(true)"
           :disabled="answersPending || started || submitted || submitting || submitFailed || !exercises.length">
 
           {{
@@ -639,7 +667,7 @@ const scrollToGroup =
               ? "Đã kết thúc"
               : started
                 ? "Đang làm bài"
-                : "Bắt đầu"
+                : "Bắt đầu (tính giờ)"
           }}
 
         </button>
@@ -654,6 +682,15 @@ const scrollToGroup =
 
       </div>
     </div>
+    <div v-if="confirmingSubmit" class="exercise-notice warning" role="alert">
+      <span>Còn {{ unansweredNow }} câu chưa trả lời; câu bỏ trống được tính là sai.</span>
+      <span class="notice-actions">
+        <button type="button" class="confirm-submit-btn" @click="submitExercise(false, true)">Vẫn nộp bài</button>
+        <button type="button" class="keep-working-btn" @click="confirmingSubmit = false">Làm tiếp</button>
+      </span>
+    </div>
+    <p v-if="submitFailed && !submitting" class="exercise-notice error" role="alert">Chưa lưu được bài làm. Đáp án vẫn được giữ, hãy bấm “Nộp lại”.</p>
+    <p v-if="draftNotice" class="exercise-notice" role="status">{{ draftNotice }}</p>
 
     <!-- CONTENT -->
 
@@ -674,7 +711,7 @@ const scrollToGroup =
       </div>
 
       <div v-else-if="!exercises.length" class="empty-state" role="status">
-        <div class="empty-state-icon" aria-hidden="true">📝</div>
+        <div class="empty-state-icon" aria-hidden="true"><i class="bi bi-journal-check" aria-hidden="true"></i></div>
         <div class="empty-state-title">Không có bài tập</div>
         <p>Bài học này hiện chưa có bài tập. Bạn có thể quay lại nội dung bài học.</p>
         <button type="button" class="back-btn" @click="goBack">← Quay lại bài học</button>
@@ -827,7 +864,7 @@ const scrollToGroup =
     <div class="result-dialog">
 
       <div class="result-icon">
-        🎉
+        <i class="bi bi-stars" aria-hidden="true"></i>
       </div>
 
       <h2>Kết quả bài làm</h2>
@@ -866,7 +903,7 @@ const scrollToGroup =
           class="restart-btn"
           @click="restartExercise">
 
-          🔄 Làm lại
+          <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Làm lại
 
         </button>
 
@@ -891,7 +928,7 @@ const scrollToGroup =
     <div class="result-dialog">
 
       <div class="result-icon">
-        🏆
+        <i class="bi bi-trophy" aria-hidden="true"></i>
       </div>
 
       <h2>Hoàn thành bài tập</h2>
@@ -982,14 +1019,14 @@ const scrollToGroup =
           class="restart-btn"
           @click="restartExercise">
 
-          🔄 Làm lại
+          <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Làm lại
 
         </button>
 
         <button
           class="answer-btn" @click="showResult=false">
 
-          📖 Xem đáp án
+          <i class="bi bi-book-half" aria-hidden="true"></i> Xem đáp án
 
         </button>
 
@@ -1010,6 +1047,13 @@ const scrollToGroup =
 </template>
 
 <style scoped>
+.exercise-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; padding: 10px 14px; border: 1px solid #ded6e6; border-radius: 10px; background: var(--learn-primary-softer); color: var(--learn-heading); font-size: 14px; }
+.exercise-notice.warning { border-color: #f3d19c; background: #fff8eb; color: #7a4b00; }
+.exercise-notice.error { border-color: #f1b4b4; background: #fff1f1; color: #9b1c1c; }
+.notice-actions { display: flex; gap: 8px; }
+.notice-actions button, .practice-btn { padding: 7px 12px; border: 1px solid #c9b8d6; border-radius: 9px; background: #fff; color: #5b4370; font-weight: 600; cursor: pointer; }
+.confirm-submit-btn { background: #6b4f86 !important; border-color: #6b4f86 !important; color: #fff !important; }
+.practice-btn:disabled { opacity: .5; cursor: not-allowed; }
 .start-btn:disabled, .submit-btn:disabled { opacity: .5; cursor: not-allowed; }
 
 .page-title {
@@ -1037,10 +1081,10 @@ const scrollToGroup =
 
   border-radius: 22px;
 
-  border: 1px solid rgba(37, 99, 235, .15);
+  border: 1px solid rgba(107, 79, 134, .15);
 
-  box-shadow: 0 12px 40px rgba(15, 23, 42, .12),
-  0 2px 8px rgba(15, 23, 42, .08);
+  box-shadow: 0 12px 40px rgba(63, 53, 72, .12),
+  0 2px 8px rgba(63, 53, 72, .08);
 
   margin-bottom: 30px;
 }
@@ -1060,9 +1104,9 @@ const scrollToGroup =
 }
 
 .exercise-tab:hover {
-  background: #eef4ff;
+  background: var(--learn-primary-soft);
 
-  color: #2563eb;
+  color: var(--learn-primary);
 
   transform: translateY(-1px);
 }
@@ -1071,8 +1115,8 @@ const scrollToGroup =
 
   background: linear-gradient(
     135deg,
-    #4f8cff,
-    #7b61ff
+    var(--learn-primary),
+    var(--learn-accent)
   );
 
   color: white;
@@ -1084,12 +1128,12 @@ const scrollToGroup =
 
   text-align: center;
 
-  color: #64748b;
+  color: var(--learn-muted);
 }
 .empty-state-icon { font-size: 36px; margin-bottom: 12px; }
-.empty-state-title { color: #334155; font-size: 20px; font-weight: 700; }
+.empty-state-title { color: var(--learn-heading); font-size: 20px; font-weight: 700; }
 .empty-state p { margin: 10px 0 20px; }
-.empty-retry-btn { margin-top: 16px; padding: 10px 18px; border: 0; border-radius: 10px; background: #e6efff; color: #2454a6; font-weight: 600; cursor: pointer; }
+.empty-retry-btn { margin-top: 16px; padding: 10px 18px; border: 0; border-radius: 10px; background: #f3eff6; color: var(--learn-primary); font-weight: 600; cursor: pointer; }
 
 .page-title {
 
@@ -1099,7 +1143,7 @@ const scrollToGroup =
 
   margin: 0;
 
-  color: #1e293b;
+  color: var(--learn-text);
 }
 
 .exercise-list {
@@ -1115,7 +1159,7 @@ const scrollToGroup =
 
   background: white;
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--learn-border);
 
   border-radius: 18px;
 
@@ -1126,7 +1170,7 @@ const scrollToGroup =
 
 .exercise-card.highlight {
 
-  border: 2px solid #4f8cff;
+  border: 2px solid var(--learn-primary);
 
   box-shadow: 0 0 0 6px rgba(
     79,
@@ -1192,23 +1236,23 @@ const scrollToGroup =
 
 .answer-item {
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--learn-border);
   border-radius: 12px;
   padding: 12px 14px;
-  background: #f8fafc;
+  background: var(--learn-surface-muted);
   cursor: pointer;
   transition: all .2s;
 }
 
 .answer-item:hover {
-  background: #eef4ff;
-  border-color: #4f8cff;
+  background: var(--learn-primary-soft);
+  border-color: var(--learn-primary);
 }
 
 .answer-item.selected {
-  background: #dbeafe;
-  border-color: #2563eb;
-  color: #1d4ed8;
+  background: var(--learn-primary-soft);
+  border-color: var(--learn-primary);
+  color: var(--learn-primary);
   font-weight: 700;
 }
 
@@ -1231,7 +1275,7 @@ const scrollToGroup =
 
   font-weight: 700;
 
-  color: #1e293b;
+  color: var(--learn-text);
 }
 
 .action-group {
@@ -1259,8 +1303,8 @@ const scrollToGroup =
 
   background: linear-gradient(
     135deg,
-    #4f8cff,
-    #7b61ff
+    var(--learn-primary),
+    var(--learn-accent)
   );
 
   color: white;
@@ -1291,9 +1335,9 @@ const scrollToGroup =
 
   border-radius: 999px;
 
-  background: #eef4ff;
+  background: var(--learn-primary-soft);
 
-  color: #2563eb;
+  color: var(--learn-primary);
 
   font-size: 14px;
   font-weight: 700;
@@ -1324,7 +1368,7 @@ const scrollToGroup =
 }
 
 .tabs-left::-webkit-scrollbar-thumb {
-  background: #d7dfeb;
+  background: var(--learn-border);
   border-radius: 999px;
 }
 
@@ -1347,7 +1391,7 @@ const scrollToGroup =
   font-weight: 600;
   cursor: pointer;
   font-size: 18px;
-  background: linear-gradient(135deg, #2563eb, #4f8cff);
+  background: linear-gradient(135deg, var(--learn-primary), var(--learn-primary));
   color: white;
 }
 
@@ -1358,8 +1402,8 @@ const scrollToGroup =
   gap: 10px;
   padding: 10px 20px;
   border-radius: 14px;
-  background: #f8fafc;
-  border: 2px solid #2563eb;
+  background: var(--learn-surface-muted);
+  border: 2px solid var(--learn-primary);
   font-size: 18px;
   font-weight: 700;
 }
@@ -1432,7 +1476,7 @@ const scrollToGroup =
 
   font-weight: 700;
 
-  color: #1e293b;
+  color: var(--learn-text);
 
 }
 
@@ -1442,7 +1486,7 @@ const scrollToGroup =
 
   font-size: 18px;
 
-  color: #475569;
+  color: var(--learn-heading);
 
 }
 
@@ -1454,7 +1498,7 @@ const scrollToGroup =
 
   font-weight: 800;
 
-  color: #2563eb;
+  color: var(--learn-primary);
 
 }
 
@@ -1472,8 +1516,8 @@ const scrollToGroup =
 
   background: linear-gradient(
     135deg,
-    #2563eb,
-    #4f8cff
+    var(--learn-primary),
+    var(--learn-primary)
   );
 
   color: white;
@@ -1492,7 +1536,7 @@ const scrollToGroup =
 
   transform: translateY(-2px);
 
-  box-shadow: 0 10px 20px rgba(37, 99, 235, .35);
+  box-shadow: 0 10px 20px rgba(107, 79, 134, .35);
 
 }
 
@@ -1537,7 +1581,7 @@ const scrollToGroup =
 
   border-radius: 50%;
 
-  background: #eef4ff;
+  background: var(--learn-primary-soft);
 
   display: flex;
   justify-content: center;
@@ -1563,7 +1607,7 @@ const scrollToGroup =
 
 .summary-item {
 
-  background: #f8fafc;
+  background: var(--learn-surface-muted);
 
   padding: 15px;
 
@@ -1575,7 +1619,7 @@ const scrollToGroup =
 
   display: block;
 
-  color: #64748b;
+  color: var(--learn-muted);
 
   margin-bottom: 8px;
 
@@ -1732,7 +1776,7 @@ const scrollToGroup =
 
 .item {
 
-  background: #f8fafc;
+  background: var(--learn-surface-muted);
 
   border-radius: 18px;
 
@@ -1767,13 +1811,13 @@ const scrollToGroup =
   justify-content: center;
   align-items: center;
 
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  background: linear-gradient(135deg, var(--learn-primary), var(--learn-accent));
 
   color: white;
 
   font-weight: 800;
 
-  box-shadow: 0 18px 40px rgba(37, 99, 235, .35);
+  box-shadow: 0 18px 40px rgba(107, 79, 134, .35);
 
   animation: zoom .5s ease;
 
@@ -1791,7 +1835,7 @@ const scrollToGroup =
 
   overflow: hidden;
 
-  background: #f1f5f9;
+  background: var(--learn-surface-muted);
 
   margin-top: 20px;
 
@@ -1883,7 +1927,7 @@ const scrollToGroup =
 
   margin-top: 18px;
 
-  color: #64748b;
+  color: var(--learn-muted);
 
   font-size: 17px;
 
@@ -1908,9 +1952,9 @@ const scrollToGroup =
 
   border-radius: 12px;
 
-  background: #eef4ff;
+  background: var(--learn-primary-soft);
 
-  color: #2563eb;
+  color: var(--learn-primary);
 
   font-weight: 600;
 
@@ -1922,7 +1966,7 @@ const scrollToGroup =
 
 .history-btn:hover {
 
-  background: #dbeafe;
+  background: var(--learn-primary-soft);
 
   transform: translateY(-1px);
 
@@ -1938,7 +1982,7 @@ const scrollToGroup =
 
   background: white;
 
-  color: #334155;
+  color: var(--learn-heading);
 
   font-weight: 600;
 
@@ -1950,7 +1994,7 @@ const scrollToGroup =
 
 .back-btn:hover {
 
-  background: #f1f5f9;
+  background: var(--learn-surface-muted);
 
   transform: translateY(-1px);
 
@@ -1983,19 +2027,19 @@ const scrollToGroup =
 
 }
 
-.book-review .exercise-list { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 28px; }
+.book-review .exercise-list { background: #fff; border: 1px solid var(--learn-border); border-radius: 12px; padding: 28px; }
 .book-review .exercise-group { margin-bottom: 36px; }
-.book-review .exercise-card { border: 0; border-radius: 0; box-shadow: none; padding: 20px 0; margin: 0; border-bottom: 1px solid #edf0f5; background: #fff; }
+.book-review .exercise-card { border: 0; border-radius: 0; box-shadow: none; padding: 20px 0; margin: 0; border-bottom: 1px solid #f1edf5; background: #fff; }
 .book-review .exercise-header { gap: 16px; }
-.book-review .question-number { min-width: 34px; width: 34px; height: 28px; padding: 0; display: grid; place-items: center; border: 1px solid #94a3b8; border-radius: 0; background: #fff; color: #24334b; font-size: 16px; flex-shrink: 0; }
+.book-review .question-number { min-width: 34px; width: 34px; height: 28px; padding: 0; display: grid; place-items: center; border: 1px solid var(--learn-subtle); border-radius: 0; background: #fff; color: var(--learn-text); font-size: 16px; flex-shrink: 0; }
 .book-review .exercise-title { font-size: 18px; font-weight: 400; line-height: 1.9; }
 .book-review .answer-grid { grid-template-columns: repeat(var(--choice-columns, 2), minmax(0, 1fr)); margin-top: 16px; gap: 12px; }
 .book-review .answer-item { font-size: 16px; line-height: 1.8; padding: 8px 12px; overflow-wrap: anywhere; }
 .book-review .page-header { flex-wrap: wrap; gap: 16px; }
 .book-review .exercise-card:hover { transform: none; }
 @media (max-width: 800px) { .book-review .exercise-list { padding: 20px; }.book-review .answer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.book-review .exercise-title { font-size: 16px; } }
-.book-review-title { font-size: 24px; font-weight: 700; color: #24334b; margin: 0 0 30px; }.book-review-title small { font-size: 16px; font-weight: 400; color: #64748b; margin-left: 12px; }
-.listening-instruction { margin: 0 0 24px; font-size: 17px; line-height: 1.9; color: #24334b; }
+.book-review-title { font-size: 24px; font-weight: 700; color: var(--learn-text); margin: 0 0 30px; }.book-review-title small { font-size: 16px; font-weight: 400; color: var(--learn-muted); margin-left: 12px; }
+.listening-instruction { margin: 0 0 24px; font-size: 17px; line-height: 1.9; color: var(--learn-text); }
 .result-grid, .result-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 @media (max-width: 768px) {

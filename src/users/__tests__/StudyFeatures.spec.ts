@@ -73,6 +73,18 @@ it('practices a single wrong answer without revealing its key before the first a
   expect(wrapper.text()).toContain('Chưa có câu sai')
 })
 
+it('names wrong answers by lesson and question instead of database ids', async () => {
+  vi.mocked(study.getWrongPage).mockResolvedValue({ content: [wrong], number: 0, totalElements: 1, totalPages: 1 })
+  vi.mocked(gatewayUrl.get).mockImplementation(async (url: string) => ({ data: url.endsWith('/location')
+    ? { bookId: 7, levelId: 1, name: '第3課 形容詞' }
+    : [{ exerciseKeywordId: wrong.exerciseId, contentNihongo: '<ruby>日本<rt>にほん</rt></ruby>は？', answerA: 'A', answerB: 'B', answerC: 'C', answerD: 'D' }] }) as never)
+  wrapper = mount(ReviewView, { global }); await flushPromises()
+  await wrapper.findAll('[role="tab"]')[2]!.trigger('click')
+  expect(wrapper.text()).toContain('日本は？')
+  expect(wrapper.text()).toContain('第3課 形容詞')
+  expect(wrapper.text()).not.toContain(`Câu ${wrong.exerciseId}`)
+})
+
 it('loads notebook filters from the server and requests subsequent pages', async () => {
   vi.mocked(study.getCardPage).mockResolvedValue({ content: [card], number: 0, totalElements: 21, totalPages: 2 })
   wrapper = mount(NotebookView, { global }); await flushPromises()

@@ -61,14 +61,14 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.book-audio { margin: 16px 0; padding: 16px 20px; border: 1px solid #dce6f3; border-radius: 12px; background: #f5f8fd; min-width: 0; }
-.audio-heading { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 12px; font-size: 15px; color: #31547c; }.audio-heading span { color: #64748b; font-size: 13px; }
+.book-audio { margin: 16px 0; padding: 16px 20px; border: 1px solid #e8e1ee; border-radius: 12px; background: var(--learn-primary-softer); min-width: 0; }
+.audio-heading { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 12px; font-size: 15px; color: var(--learn-heading); }.audio-heading span { color: var(--learn-muted); font-size: 13px; }
 audio { width: 100%; height: 40px; display: block; }
-.audio-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: 12px; color: #526479; font-size: 13px; }
-select { margin-left: 8px; border: 1px solid #d3deed; border-radius: 6px; background: #fff; color: #334155; padding: 4px 6px; }
-button { background: #fff; border: 1px solid #d3deed; border-radius: 6px; color: #31547c; padding: 5px 10px; font-size: 13px; }
+.audio-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: 12px; color: #665279; font-size: 13px; }
+select { margin-left: 8px; border: 1px solid var(--learn-border); border-radius: 6px; background: #fff; color: var(--learn-heading); padding: 4px 6px; }
+button { background: #fff; border: 1px solid var(--learn-border); border-radius: 6px; color: var(--learn-heading); padding: 5px 10px; font-size: 13px; }
 .audio-error { color: #a34141; font-size: 13px; margin: 12px 0 0; }
-.listening-figure { margin: 16px 0 0; color: #334155; line-height: 1.8; }
+.listening-figure { margin: 16px 0 0; color: var(--learn-heading); line-height: 1.8; }
 .listening-hint { margin: 0 0 12px; font-size: 15px; line-height: 1.8; }
 .listening-figure img { display: block; width: 280px; max-width: 100%; height: auto; margin: 12px auto 0; border-radius: 8px; }
 </style>

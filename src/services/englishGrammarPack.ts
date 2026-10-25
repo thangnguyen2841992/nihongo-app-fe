@@ -99,17 +99,32 @@ export function parseEnglishGrammarPack(raw: string): EnglishGrammarPack {
   return pack
 }
 
+// Decoded 1 MB of Base64 at a time (a multiple of 4 characters): the PDF (up to ~45 MB) is never held as one huge
+// binary string next to its Base64 text, which roughly halves peak memory and avoids freezing phones.
+const BASE64_CHUNK = 1 << 20
+
 export function grammarPackPdf(pack: EnglishGrammarPack): Blob {
-  let decoded: string
+  let data = pack.source.dataBase64
+  if (/\s/.test(data)) data = data.replace(/\s+/g, '')
+  const parts: Uint8Array[] = []
   try {
-    decoded = atob(pack.source.dataBase64)
+    for (let offset = 0; offset < data.length; offset += BASE64_CHUNK) {
+      const decoded = atob(data.slice(offset, offset + BASE64_CHUNK))
+      const bytes = new Uint8Array(decoded.length)
+      for (let i = 0; i < decoded.length; i++) bytes[i] = decoded.charCodeAt(i)
+      parts.push(bytes)
+    }
   } catch {
     throw new Error('PDF trong bản học bị hỏng. Hãy chọn lại gói gốc.')
   }
-  if (!decoded.startsWith('%PDF-')) throw new Error('Bản học không chứa PDF hợp lệ.')
-  const bytes = new Uint8Array(decoded.length)
-  for (let i = 0; i < decoded.length; i++) bytes[i] = decoded.charCodeAt(i)
-  return new Blob([bytes], { type: 'application/pdf' })
+  const head = parts[0] ?? new Uint8Array()
+  if (String.fromCharCode(...head.subarray(0, 5)) !== '%PDF-') throw new Error('Bản học không chứa PDF hợp lệ.')
+  return new Blob(parts, { type: 'application/pdf' })
+}
+
+/** The pack without its embedded PDF text, to keep in memory once the PDF blob has been built. */
+export function withoutEmbeddedPdf(pack: EnglishGrammarPack): EnglishGrammarPack {
+  return { ...pack, source: { ...pack.source, dataBase64: '' } }
 }
 
 export function filterGrammarUnits(units: GrammarUnit[], query: string) {

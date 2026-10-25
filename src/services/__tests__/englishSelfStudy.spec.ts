@@ -1,5 +1,6 @@
 import { beforeEach, afterEach, expect, it, vi } from 'vitest'
 import {
+  mergeStudy,
   checkLocalPdf,
   createLocalAudio,
   emptyEnglishStudy,
@@ -18,6 +19,8 @@ it('keeps notes and progress separate for different signed-in identities', () =>
     completedUnits: 3,
     totalUnits: 20,
     notes: 'My private notes',
+    doneUnits: [1, 2, 4],
+    quiz: { '4': true },
   }
   saveEnglishStudy(' First@Example.Test ', first)
   expect(loadEnglishStudy('first@example.test')['essential-grammar']).toEqual(
@@ -66,6 +69,8 @@ it('sanitizes unsupported stored fields and bounds progress from old data', () =
     totalUnits: 10,
     notes: '<script>text</script>',
     currentUnit: '',
+    doneUnits: [],
+    quiz: {},
   })
 })
 
@@ -113,4 +118,20 @@ it('releases partially allocated URLs if opening a playlist fails', () => {
     'Failed',
   )
   expect(revoke).toHaveBeenCalledWith('blob:partial')
+})
+
+it('merges two devices without losing notes or finished units', () => {
+  const phone = emptyEnglishStudy()
+  const laptop = emptyEnglishStudy()
+  phone['essential-grammar'] = { ...phone['essential-grammar'], notes: 'from phone', doneUnits: [1, 3], page: 12, totalUnits: 115, completedUnits: 2, quiz: { '3': false } }
+  laptop['essential-grammar'] = { ...laptop['essential-grammar'], notes: 'from laptop', doneUnits: [2, 3], page: 40, totalUnits: 115, completedUnits: 2, quiz: { '3': true, '2': true } }
+  const merged = mergeStudy(phone, laptop)['essential-grammar']
+  expect(merged.notes).toContain('from phone')
+  expect(merged.notes).toContain('from laptop')
+  expect(merged.doneUnits).toEqual([1, 2, 3])
+  expect(merged.completedUnits).toBe(3)
+  expect(merged.page).toBe(12)
+  expect(merged.quiz).toEqual({ '2': true, '3': false })
+  const extended = { ...laptop, 'essential-grammar': { ...laptop['essential-grammar'], notes: 'from laptop + more' } }
+  expect(mergeStudy({ ...laptop }, extended)['essential-grammar'].notes).toBe('from laptop + more')
 })
