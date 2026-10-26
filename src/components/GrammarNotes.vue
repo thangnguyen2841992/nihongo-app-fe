@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { grammarDescriptionHtml } from '@/services/grammarDescription'
 import { grammarConnections } from '@/services/grammarConnections'
+import { japaneseReadingPrefs, vJapaneseReadings } from '@/services/japaneseReadings'
 
 const props = defineProps<{ description?: string | null; examples?: { nihongo: string; vietnamese?: string }[] }>()
 const notes = computed(() => {
@@ -11,7 +12,20 @@ const notes = computed(() => {
   const formula = first?.tagName === 'P' && first.textContent?.startsWith('Cấu trúc: ')
     ? first.textContent.slice('Cấu trúc: '.length) : ''
   if (formula) first?.remove()
-  return { formula, html: formula ? document.body.innerHTML : html }
+  // Translations in the notes (Cách dùng / Plus examples, written as <em>) get their own "Xem nghĩa / Ẩn nghĩa"
+  // button, like the example sentences.
+  const translations = [...document.body.querySelectorAll('em')]
+  for (const translation of translations) {
+    const wrapper = document.createElement('span')
+    wrapper.className = 'note-meaning'
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'meaning-toggle-btn note-meaning-btn'
+    button.innerHTML = '<i class="bi bi-eye" aria-hidden="true"></i><span class="when-hidden">Xem nghĩa</span><span class="when-shown">Ẩn nghĩa</span>'
+    translation.replaceWith(wrapper)
+    wrapper.append(translation, button)
+  }
+  return { formula, html: formula || translations.length ? document.body.innerHTML : html }
 })
 const displayFormula = computed(() => notes.value.formula.replace(
   /\bV\s*(?:bỏ\s+(?:ます|masu)|ます\s*[（(]\s*bỏ\s+(?:ます|masu)\s*[）)])/giu,
@@ -21,6 +35,19 @@ const formulaParts = computed(() => displayFormula.value.split(/\s+\+\s+/))
 const hasMasuStem = computed(() => displayFormula.value.includes('Vます形（−ます）'))
 const connections = computed(() => grammarConnections(displayFormula.value))
 const sentenceExample = computed(() => props.examples?.find(example => example.nihongo?.trim()))
+// null = follow the "Hiện/Ẩn nghĩa" button; true/false = the learner showed or hid this example's meaning.
+const meaningOverride = ref<boolean | null>(null)
+const meaningShown = computed(() => meaningOverride.value ?? japaneseReadingPrefs.meaning)
+// A note translation whose button was pressed shows the opposite of the "Hiện/Ẩn nghĩa" setting ("flip").
+const noteBody = ref<HTMLElement | null>(null)
+function toggleNoteMeaning(event: MouseEvent) {
+  const button = event.target instanceof Element ? event.target.closest('.note-meaning-btn') : null
+  button?.closest('.note-meaning')?.classList.toggle('flip')
+}
+watch(() => [japaneseReadingPrefs.meaning, sentenceExample.value], () => {
+  meaningOverride.value = null
+  noteBody.value?.querySelectorAll('.note-meaning.flip').forEach((item) => item.classList.remove('flip'))
+})
 </script>
 
 <template>
@@ -47,13 +74,19 @@ const sentenceExample = computed(() => props.examples?.find(example => example.n
       </div>
       <div v-if="sentenceExample" class="sentence-example">
         <span class="note-label">Ví dụ trong bài</span>
-        <div class="sentence-jp" lang="ja" v-html="grammarDescriptionHtml(sentenceExample.nihongo)"></div>
-        <div v-if="sentenceExample.vietnamese" class="sentence-vn" v-html="grammarDescriptionHtml(sentenceExample.vietnamese)"></div>
+        <div v-japanese-readings class="sentence-jp" lang="ja" v-html="grammarDescriptionHtml(sentenceExample.nihongo)"></div>
+        <template v-if="sentenceExample.vietnamese">
+          <template v-if="meaningShown">
+            <div class="sentence-vn" v-html="grammarDescriptionHtml(sentenceExample.vietnamese)"></div>
+            <button type="button" class="meaning-toggle-btn hide" @click="meaningOverride = false"><i class="bi bi-eye-slash" aria-hidden="true"></i> Ẩn nghĩa</button>
+          </template>
+          <button v-else type="button" class="meaning-toggle-btn" @click="meaningOverride = true"><i class="bi bi-eye" aria-hidden="true"></i> Xem nghĩa</button>
+        </template>
       </div>
     </section>
     <div class="meaning">
       <span class="note-label"><i class="bi bi-journal-text" aria-hidden="true"></i>Cách dùng</span>
-      <div class="note-body" v-html="notes.html"></div>
+      <div ref="noteBody" v-japanese-readings="'mixed'" class="note-body" :class="{ 'meaning-hidden': !japaneseReadingPrefs.meaning }" v-html="notes.html" @click="toggleNoteMeaning"></div>
     </div>
   </section>
 </template>
@@ -77,16 +110,23 @@ const sentenceExample = computed(() => props.examples?.find(example => example.n
 .connection-meta { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 10px; }
 .connection-meta > span { color: #665274; font-size: 12px; font-weight: 700; }
 .connection-meta small { font-size: var(--learn-text-xs); color: #8b8095; }
-.word-transformation { font-size: 16px; line-height: 1.9; margin: 0; overflow-wrap: anywhere; }
+.word-transformation { font-size: 17px; line-height: 1.9; margin: 0; overflow-wrap: anywhere; }
 .word-transformation strong { color: #6b4e88; font-weight: 650; }
 .connection-arrow { color: #a294af; }
 .word-meaning { font-size: 12px; color: #82768e; margin: 4px 0 0; }
-.combined-example { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid #eae4f0; color: #514163; font-size: 14px; line-height: 1.9; overflow-wrap: anywhere; }
+.combined-example { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid #eae4f0; color: #514163; font-family: var(--learn-jp-font); font-size: var(--learn-jp-size-combined); line-height: 1.9; overflow-wrap: anywhere; }
 .sentence-example { margin-top: 12px; padding: 16px; border-left: 3px solid #baa6cf; border-radius: 0 10px 10px 0; background: #f7f4fb; }
 .sentence-example .note-label { margin-bottom: 6px; }
-.sentence-jp { font-size: 16px; line-height: 2; color: #514163; overflow-wrap: anywhere; }
-.sentence-vn { margin-top: 6px; font-size: 14px; line-height: 1.8; color: #7b7087; overflow-wrap: anywhere; }
+.sentence-jp { font-family: var(--learn-jp-font); font-size: var(--learn-jp-size-note-example); font-weight: var(--learn-jp-weight); line-height: 2; color: var(--learn-jp-ink); overflow-wrap: anywhere; }
+.sentence-vn { margin-top: 6px; font-size: var(--learn-vn-size); font-weight: 500; line-height: 1.8; color: var(--learn-vn-ink); overflow-wrap: anywhere; }
 .sentence-jp :deep(p), .sentence-vn :deep(p) { margin: 0; }
+/* Note translations: hidden behind "Xem nghĩa" unless shown (setting on and not flipped, or setting off and flipped). */
+.note-body :deep(.note-meaning em), .note-body :deep(.note-meaning .when-shown) { display: none; }
+.note-body:not(.meaning-hidden) :deep(.note-meaning:not(.flip) em), .note-body.meaning-hidden :deep(.note-meaning.flip em) { display: inline-block; }
+.note-body:not(.meaning-hidden) :deep(.note-meaning:not(.flip) .when-shown), .note-body.meaning-hidden :deep(.note-meaning.flip .when-shown) { display: inline; }
+.note-body:not(.meaning-hidden) :deep(.note-meaning:not(.flip) .when-hidden), .note-body.meaning-hidden :deep(.note-meaning.flip .when-hidden) { display: none; }
+.note-body:not(.meaning-hidden) :deep(.note-meaning:not(.flip) .note-meaning-btn), .note-body.meaning-hidden :deep(.note-meaning.flip .note-meaning-btn) { margin-left: 6px; padding: 2px 10px; border-color: transparent; background: transparent; color: #8a7d93; font-weight: 600; }
+.note-body :deep(.note-meaning-btn) { white-space: nowrap; vertical-align: middle; }
 .meaning { padding: 0 2px; }
 .note-body { font-size: 16px; line-height: 1.95; white-space: pre-line; overflow-wrap: anywhere; }
 .note-body :deep(p) { margin: 0 0 14px; }
@@ -96,7 +136,7 @@ const sentenceExample = computed(() => props.examples?.find(example => example.n
 .note-body :deep(li) { padding: 4px 0 12px 6px; margin-bottom: 8px; border-bottom: 1px solid #f0edf3; }
 .note-body :deep(li)::marker { color: #a597b6; }
 .note-body :deep(li:last-child) { margin-bottom: 0; border-bottom: 0; }
-.note-body :deep(em) { display: inline-block; color: var(--learn-muted); font-size: 14px; font-style: normal; }
+.note-body :deep(em) { display: inline-block; color: var(--learn-vn-ink); font-size: 15px; font-weight: 500; font-style: normal; }
 .note-body :deep(ruby) { line-height: 2.4; }.note-body :deep(rt) { font-size: .6em; color: var(--learn-muted); }
 @media (max-width: 600px) { .formula { padding: 14px; border-radius: 14px; margin-bottom: 20px; }.formula-expression { font-size: 16px; gap: 6px; }.formula-part { padding: 7px 10px; }.formula-join { font-size: 18px; }.note-body :deep(h4) { padding: 10px 12px; } }
 </style>

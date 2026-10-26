@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { bookLessonOrder } from '@/services/bookLessonOrder'
 import { bookAdditionalAudio } from '@/services/bookAdditionalAudio'
-import {computed, nextTick, onMounted, onUnmounted, ref} from "vue"
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue"
 
 import {useRoute, useRouter} from "vue-router"
 import { useAuthState } from '@/services/authState'
@@ -15,6 +15,8 @@ import ContentReport from '@/components/operations/ContentReport.vue'
 import GrammarStructure from '@/components/GrammarStructure.vue'
 import { importedAudioUrl } from '@/services/bookImport'
 import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
+import JapaneseReadingToggle from '@/components/common/JapaneseReadingToggle.vue'
+import { japaneseReadingPrefs, vJapaneseReadings } from '@/services/japaneseReadings'
 import { bookReadingAudioTrack } from '@/services/bookReadingAudio'
 import { japaneseSpeechText, useJapaneseSpeech } from '@/services/japaneseSpeech'
 import { getCards, saveCard, deleteCard, type StudyCard, type CardInput } from '@/api/study'
@@ -72,6 +74,13 @@ const { userRole } = useAuthState()
 const pageError = ref('')
 // Lessons the learner marked as done, shown in the lesson tabs (one request for the whole book).
 const completedLessons = ref<Set<number>>(new Set())
+// Vietnamese meaning of each example: follows the "Hiện/Ẩn nghĩa" button unless the learner showed or hid that one.
+const meaningOverrides = ref<Map<number, boolean>>(new Map())
+const meaningShown = (exampleId: number) => meaningOverrides.value.get(exampleId) ?? japaneseReadingPrefs.meaning
+function setMeaning(exampleId: number, shown: boolean) {
+  meaningOverrides.value = new Map(meaningOverrides.value).set(exampleId, shown)
+}
+watch(() => japaneseReadingPrefs.meaning, () => { meaningOverrides.value = new Map() })
 async function loadCompletedLessons() {
   const ids = lessons.value.map(lesson => lesson.lessonId)
   if (!ids.length || userRole.value !== 'USER') return
@@ -675,12 +684,15 @@ const goToExercisePage =
 
         </div>
 
-        <button
-          class="back-btn"
-          @click="goBack"
-        >
-          ← Quay lại
-        </button>
+        <div class="book-head-actions">
+          <JapaneseReadingToggle />
+          <button
+            class="back-btn"
+            @click="goBack"
+          >
+            ← Quay lại
+          </button>
+        </div>
 
       </div>
 
@@ -832,6 +844,7 @@ const goToExercisePage =
           <BookAudioPlayer v-if="readingAudioSource || readingTrack" :key="readingAudioSource || readingTrack" :source="readingAudioSource" :track="readingAudioSource ? undefined : readingTrack" />
           <BookAudioPlayer v-for="audio in bookAdditionalAudio(book?.bookName, selectedLesson.name)" :key="audio.source" :source="audio.source" :label="audio.label" />
           <div
+            v-japanese-readings
             class="lesson-reading-content"
             v-html="selectedLesson.reading"
           />
@@ -956,19 +969,34 @@ const goToExercisePage =
                       <div class="example-content">
 
                         <div
+                          v-japanese-readings
                           class="jp-text"
                           v-html="
                             example.nihongo
                           "
                         />
 
-                        <div
-                          v-if="example.vietnamese"
-                          class="vn-text"
-                          v-html="
-                            example.vietnamese
-                          "
-                        />
+                        <template v-if="example.vietnamese">
+                          <template v-if="meaningShown(example.exampleId)">
+                            <div
+                              class="vn-text"
+                              v-html="
+                                example.vietnamese
+                              "
+                            />
+                            <button type="button" class="meaning-toggle-btn hide" @click="setMeaning(example.exampleId, false)">
+                              <i class="bi bi-eye-slash" aria-hidden="true"></i> Ẩn nghĩa
+                            </button>
+                          </template>
+                          <button
+                            v-else
+                            type="button"
+                            class="meaning-toggle-btn"
+                            @click="setMeaning(example.exampleId, true)"
+                          >
+                            <i class="bi bi-eye" aria-hidden="true"></i> Xem nghĩa
+                          </button>
+                        </template>
 
                         <p
                           v-if="activeSpokenExampleId === example.exampleId && speechError"
@@ -1348,13 +1376,15 @@ const goToExercisePage =
 
 .jp-text {
 
-  font-family:
-    "Noto Sans JP",
-    sans-serif;
+  font-family: var(--learn-jp-font);
 
-  font-size: 18px;
+  font-weight: var(--learn-jp-weight);
 
-  line-height: 1.8;
+  color: var(--learn-jp-ink);
+
+  font-size: var(--learn-jp-size-example);
+
+  line-height: 1.9;
 
   overflow-wrap: anywhere;
 }
@@ -1365,7 +1395,11 @@ const goToExercisePage =
 
   margin-top: 6px;
 
-  color: var(--learn-muted);
+  color: var(--learn-vn-ink);
+
+  font-size: var(--learn-vn-size);
+
+  font-weight: 500;
 
   line-height: 1.7;
 
@@ -1910,9 +1944,11 @@ const goToExercisePage =
 
   box-sizing: border-box;
 
-  font-size: 17px;
+  font-size: var(--learn-jp-size-reading);
   line-height: 1.9;
-  color: var(--learn-heading);
+  font-family: var(--learn-jp-font);
+  font-weight: var(--learn-jp-weight);
+  color: var(--learn-jp-ink);
 
   overflow-x: hidden;
   overflow-y: visible;
@@ -1998,7 +2034,7 @@ const goToExercisePage =
 
   .lesson-reading-content {
 
-    font-size: 16px;
+    font-size: var(--learn-jp-size-reading);
 
     line-height: 2;
 
@@ -2217,7 +2253,7 @@ const goToExercisePage =
   .grammar-card, .lesson-reading-card { padding: 16px; margin-bottom: 16px; border-radius: 16px; }
   .lesson-reading-header { padding: 0; gap: 10px; margin-bottom: 14px; }
   .lesson-reading-header > div:last-child { min-width: 0; }
-  .lesson-reading-content { padding: 0; font-size: 16px; line-height: 1.95; }
+  .lesson-reading-content { padding: 0; font-size: var(--learn-jp-size-reading); line-height: 1.95; }
   .lesson-reading-content :deep(table) { display: block; overflow-x: auto; table-layout: auto; }
   .grammar-title { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 10px; padding: 12px; margin-bottom: 16px; border-left-width: 4px; border-radius: 12px; }
   .grammar-number { width: 32px; height: 32px; font-size: 16px; border-radius: 10px; }
@@ -2230,12 +2266,15 @@ const goToExercisePage =
   .example-row .example-content { grid-column: 1 / -1; min-width: 0; }
   .example-row .example-speak:last-child { grid-column: 1 / -1; }
   .example-speak { min-height: 44px; justify-content: center; border-radius: 10px; white-space: normal; line-height: 1.5; }
-  .jp-text { font-size: 17px; line-height: 1.9; }
-  .vn-text { font-size: 14px; line-height: 1.8; }
+  .jp-text { font-size: var(--learn-jp-size-example); line-height: 1.9; }
+  .vn-text { font-size: var(--learn-vn-size); line-height: 1.8; }
   .example-practice { padding: 12px; font-size: 14px; }
   .example-practice .study-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .example-practice audio { width: 100%; min-width: 0; }
   .grammar-card { scroll-margin-top: 80px; }
 }
 
+</style>
+<style scoped>
+.book-head-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
 </style>

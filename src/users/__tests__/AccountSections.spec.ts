@@ -6,7 +6,7 @@ import AccountLayout from '../AccountLayout.vue'
 import AccountMenu from '@/components/common/AccountMenu.vue'
 import { accountSections } from '@/services/accountSections'
 import { readFeature } from '@/services/additionalFeatures'
-vi.mock('@/api/authApi', () => ({ gatewayUrl: { put: vi.fn() }, refreshAccessToken: vi.fn() }))
+vi.mock('@/api/authApi', () => ({ gatewayUrl: { put: vi.fn() }, refreshAccessToken: vi.fn(), resumeAuthRecovery: vi.fn() }))
 vi.mock('@/services/authState', () => ({ setAuth: vi.fn() }))
 vi.mock('@/services/additionalFeatures', () => ({ readFeature: vi.fn(), writeFeature: vi.fn(), featureError: () => 'Lỗi tải dữ liệu' }))
 let wrapper: ReturnType<typeof mount> | undefined

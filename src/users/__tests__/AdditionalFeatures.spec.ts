@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
 const mocks=vi.hoisted(()=>({get:vi.fn(),post:vi.fn(),put:vi.fn(),delete:vi.fn(),setAuth:vi.fn()}))
-vi.mock('@/api/authApi',()=>({gatewayUrl:{get:mocks.get,post:mocks.post,put:mocks.put,delete:mocks.delete},refreshAccessToken:vi.fn()}))
+vi.mock('@/api/authApi',()=>({gatewayUrl:{get:mocks.get,post:mocks.post,put:mocks.put,delete:mocks.delete},refreshAccessToken:vi.fn(),resumeAuthRecovery:vi.fn()}))
 vi.mock('@/services/authState',()=>({setAuth:mocks.setAuth}))
 import RecoveryView from '@/components/auth/RecoveryView.vue'
 import LoginView from '@/components/auth/LoginView.vue'

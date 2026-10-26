@@ -32,11 +32,35 @@ const onEstablished = (event: Event) => {
   sessionId = session.sessionId
   recoveryStopped = false
   if (typeof session.accessExpiresAt === 'number') accessExpiresAt = Math.max(accessExpiresAt ?? 0, session.accessExpiresAt)
+  scheduleRefresh()
 }
+
+// Refresh about a minute before the access token expires while the tab is visible, so opening a page after a pause
+// does not start with a rejected request. A hidden tab (or a sleeping laptop) refreshes as soon as it is visible again.
+const REFRESH_AHEAD_MS = 60_000
+let refreshTimer: ReturnType<typeof setTimeout> | null = null
+function scheduleRefresh() {
+  if (refreshTimer !== null) clearTimeout(refreshTimer)
+  refreshTimer = null
+  if (accessExpiresAt === null || recoveryStopped) return
+  const delay = accessExpiresAt - REFRESH_AHEAD_MS - Date.now()
+  if (delay <= 0) return
+  refreshTimer = setTimeout(() => {
+    refreshTimer = null
+    if (document.visibilityState !== 'hidden') void recoverAccess().catch(() => { /* handled by the next request */ })
+  }, Math.min(delay, 2_147_000_000))
+}
+const refreshOnReturn = () => {
+  if (document.visibilityState === 'hidden' || recoveryStopped || accessExpiresAt === null) return
+  if (accessExpiresAt - Date.now() <= REFRESH_AHEAD_MS) void recoverAccess().catch(() => { /* handled by the next request */ })
+}
+document.addEventListener('visibilitychange', refreshOnReturn)
 window.addEventListener('auth:expired', onExpired)
 window.addEventListener('auth:established', onEstablished)
 if (import.meta.hot) import.meta.hot.dispose(() => {
   onExpired()
+  if (refreshTimer !== null) clearTimeout(refreshTimer)
+  document.removeEventListener('visibilitychange', refreshOnReturn)
   window.removeEventListener('auth:expired', onExpired)
   window.removeEventListener('auth:established', onEstablished)
 })
@@ -48,18 +72,40 @@ const expireSession = async () => {
   if (router.currentRoute.value.path !== '/login') await router.replace('/login')
 }
 
+/**
+ * An explicit session check (page load, returning to the app, opening a private page) may recover a session that an
+ * earlier failure gave up on: e.g. a refresh that failed while the network or the auth database was down. Without
+ * this the tab kept showing "please log in" until F5 although the cookies were still valid.
+ */
+export function resumeAuthRecovery() {
+  recoveryStopped = false
+}
+
+// A refresh that fails because the network or the auth service is briefly unavailable is retried before giving up;
+// only a 401 (no longer valid) ends the session.
+const REFRESH_RETRY_DELAYS_MS = [400, 1200]
+const transient = (error: unknown) => !axios.isAxiosError(error) || !error.response || error.response.status >= 500
+
 // Initialization, HTTP retries and socket handshakes share the same refresh.
 export function refreshAccessToken(): Promise<void> {
   if (refreshPromise) return refreshPromise
   if (recoveryStopped) return Promise.reject(new Error('Authentication recovery stopped'))
   const generation = authGeneration
-  const pending = publicClient.post<{ accessExpiresAt?: number }>('/api/auth/refresh')
-    .then(response => {
+  const attempt = async (retry: number): Promise<void> => {
+    try {
+      const response = await publicClient.post<{ accessExpiresAt?: number }>('/api/auth/refresh')
       if (generation !== authGeneration || recoveryStopped) throw new Error('Authentication changed during refresh')
       ++refreshGeneration
       accessExpiresAt = response.data?.accessExpiresAt ?? null
-    })
-    .finally(() => { if (refreshPromise === pending) refreshPromise = null })
+      scheduleRefresh()
+    } catch (error) {
+      if (retry >= REFRESH_RETRY_DELAYS_MS.length || !transient(error) || !axios.isAxiosError(error)) throw error
+      await new Promise(resolve => setTimeout(resolve, REFRESH_RETRY_DELAYS_MS[retry]))
+      if (generation !== authGeneration || recoveryStopped) throw error
+      return attempt(retry + 1)
+    }
+  }
+  const pending = attempt(0).finally(() => { if (refreshPromise === pending) refreshPromise = null })
   refreshPromise = pending
   return pending
 }

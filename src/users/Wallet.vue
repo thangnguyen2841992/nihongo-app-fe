@@ -236,16 +236,16 @@ button:focus-visible, input:focus-visible { outline: 3px solid #cfc3db; outline-
 fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .field-label { display: block; font-size: 12px; font-weight: 650; margin-bottom: 9px; }
 .amount-input { position: relative; }
-.amount-input input { width: 100%; padding: 15px 60px 15px 15px; font-size: 21px; font-weight: 650; border: 1px solid var(--learn-border); border-radius: 12px; color: #503b65; background: var(--learn-primary-softer); }
-.amount-input input::placeholder { font-size: 16px; font-weight: 400; color: #b5a8c2; }
-.amount-input > span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: var(--learn-text-xs); color: #ac9bbd; pointer-events: none; }
+.amount-input input { width: 100%; padding: 15px 60px 15px 15px; font-size: 21px; font-weight: 700; border: 1px solid #d9cfe2; border-radius: 12px; color: #1f1a26; background: #fff; }
+.amount-input input::placeholder { font-size: 16px; font-weight: 400; color: #8a7e95; }
+.amount-input > span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: var(--learn-text-sm); font-weight: 650; color: #5f5269; pointer-events: none; }
 .field-hint { font-size: var(--learn-text-xs); color: #a595b4; margin: 8px 0 14px; }
 .quick-amounts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 25px; }
 .quick-amounts button { border: 1px solid #ede8f1; background: white; color: #87719d; border-radius: 9px; padding: 10px 3px; font-size: var(--learn-text-xs); }
 .quick-amounts button.selected, .quick-amounts button:hover:not(:disabled) { color: #8869a6; background: var(--learn-primary-soft); border-color: #d2c6dd; }
 .optional { font-size: var(--learn-text-xs); font-weight: 400; color: #a99ab8; }
-.note-input { width: 100%; padding: 12px 13px; font-size: 12px; border: 1px solid var(--learn-border); border-radius: 10px; color: #5a4271; }
-.note-input::placeholder { color: #b3a6bf; }
+.note-input { width: 100%; padding: 12px 13px; font-size: 14px; border: 1px solid #d9cfe2; border-radius: 10px; color: #1f1a26; }
+.note-input::placeholder { color: #8a7e95; }
 .submit-button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; background: #8564a4; border: 0; color: white; padding: 14px; border-radius: 11px; font-size: 13px; font-weight: 600; margin-top: 24px; }
 .submit-button:hover:not(:disabled) { background: #72548e; }
 .form-footnote { text-align: center; margin: 12px 0 0; color: #a798b6; font-size: var(--learn-text-xs); }

@@ -1,14 +1,14 @@
 import { beforeEach, expect, it, vi } from 'vitest'
 
 const state = vi.hoisted(() => ({
-  isAuthReady: { value: true }, isAuthenticated: { value: false }, userRole: { value: '' }, init: vi.fn(),
+  isAuthReady: { value: true }, isAuthenticated: { value: false }, userRole: { value: '' }, hadSession: { value: false }, init: vi.fn(),
 }))
 vi.mock('../authState', () => ({ initAuth: state.init, useAuthState: () => state }))
 import { authorizeRoute } from '../routeAuthorization'
 
 beforeEach(() => {
   vi.clearAllMocks()
-  state.isAuthReady.value = true; state.isAuthenticated.value = false; state.userRole.value = ''
+  state.isAuthReady.value = true; state.isAuthenticated.value = false; state.userRole.value = ''; state.hadSession.value = false
 })
 const staff = { fullPath: '/staff/monitoring/vps/performance', meta: { requiresAuth: true, roles: ['ADMIN', 'STAFF'] } }
 
@@ -28,6 +28,12 @@ it('checks the role before entering staff pages', async () => {
 it('restores the session before authorizing a direct private URL', async () => {
   state.isAuthReady.value = false
   state.init.mockImplementationOnce(async () => { state.isAuthenticated.value = true; state.userRole.value = 'ADMIN' })
+  expect(await authorizeRoute(staff)).toBe(true)
+  expect(state.init).toHaveBeenCalledOnce()
+})
+it('checks the session again when this tab lost it, instead of sending the learner to the login page', async () => {
+  state.hadSession.value = true
+  state.init.mockImplementationOnce(async () => { state.isAuthenticated.value = true; state.userRole.value = 'STAFF' })
   expect(await authorizeRoute(staff)).toBe(true)
   expect(state.init).toHaveBeenCalledOnce()
 })

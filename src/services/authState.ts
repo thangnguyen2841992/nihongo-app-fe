@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import axios from 'axios'
-import { gatewayUrl, publicClient, refreshAccessToken } from '@/api/authApi'
+import { gatewayUrl, publicClient, refreshAccessToken, resumeAuthRecovery } from '@/api/authApi'
 import { wsService } from '@/services/websocketService'
 import { clearAuthenticationStorage } from './authStorage'
 
@@ -9,6 +9,9 @@ const isAuthReady = ref(false)
 const userName = ref('')
 const userEmail = ref('')
 const userRole = ref('')
+// This tab had a signed-in session: when it is lost, checks are retried (navigation, returning to the tab) instead of
+// leaving the learner on "please log in" until F5.
+const hadSession = ref(false)
 // Logout and session replacement are pushed over the auth WebSocket; polling is only a fallback.
 export const SESSION_POLL_MS = 60_000
 // While the realtime logout channel is open the server pushes session replacement instantly and every token
@@ -39,6 +42,7 @@ window.addEventListener('auth:expired', expireAuth)
 const applySession = (session: Session) => {
   if (!session.isLoggedIn || !session.sessionId) { clearAuth(); return }
   isAuthenticated.value = true
+  hadSession.value = true
   userName.value = session.name ?? ''
   userEmail.value = session.email ?? ''
   userRole.value = session.role ?? ''
@@ -71,7 +75,9 @@ const checkSession = async () => {
 }
 
 const recheckOnReturn = () => {
-  if (document.visibilityState !== 'hidden' && Date.now() - lastCheckedAt >= SESSION_RECHECK_MIN_MS) void checkSession()
+  if (document.visibilityState === 'hidden' || Date.now() - lastCheckedAt < SESSION_RECHECK_MIN_MS) return
+  if (isAuthenticated.value) void checkSession()
+  else if (hadSession.value && !isLoggingOut) { lastCheckedAt = Date.now(); void initAuth() }
 }
 document.addEventListener('visibilitychange', recheckOnReturn)
 window.addEventListener('focus', recheckOnReturn)
@@ -82,6 +88,7 @@ export const logout = async () => {
   ++sessionVersion
   try {
     await publicClient.post('/api/auth/logout')
+    hadSession.value = false
     expireAuth()
     if (window.location.pathname !== '/login') window.location.replace('/login')
   } finally { isLoggingOut = false }
@@ -89,6 +96,7 @@ export const logout = async () => {
 
 const loadAuth = async () => {
   const version = sessionVersion
+  resumeAuthRecovery()
   try {
     const { data } = await publicClient.get<Session>('/api/auth/checkLogin').catch(async error => {
       if (!axios.isAxiosError(error) || error.response?.status !== 401) throw error
@@ -121,4 +129,4 @@ if (import.meta.hot) {
     window.removeEventListener('focus', recheckOnReturn)
   })
 }
-export const useAuthState = () => ({ isAuthenticated, isAuthReady, userName, userEmail, userRole })
+export const useAuthState = () => ({ isAuthenticated, isAuthReady, userName, userEmail, userRole, hadSession })

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AxiosError } from 'axios'
 const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), refresh: vi.fn(), privateGet: vi.fn(), connect: vi.fn(), disconnect: vi.fn(), connected: false }))
-vi.mock('@/api/authApi', () => ({ publicClient: { get: mocks.get, post: mocks.post }, gatewayUrl: { get: mocks.privateGet }, refreshAccessToken: mocks.refresh }))
+vi.mock('@/api/authApi', () => ({ publicClient: { get: mocks.get, post: mocks.post }, gatewayUrl: { get: mocks.privateGet }, refreshAccessToken: mocks.refresh, resumeAuthRecovery: vi.fn() }))
 vi.mock('@/services/websocketService', () => ({ wsService: { connect: mocks.connect, disconnect: mocks.disconnect, isConnected: () => mocks.connected } }))
 import { initAuth, useAuthState, SESSION_POLL_MS, SESSION_POLL_CONNECTED_MS, SESSION_RECHECK_MIN_MS } from '../authState'
 beforeEach(() => { vi.useFakeTimers(); vi.clearAllMocks(); mocks.connected = false; sessionStorage.clear(); window.dispatchEvent(new Event('auth:expired')); vi.spyOn(console, 'log').mockImplementation(() => {}) })

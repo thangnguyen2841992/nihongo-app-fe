@@ -3,7 +3,7 @@ import { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 const mocks = vi.hoisted(() => ({ replace: vi.fn() }))
 vi.mock('@/router', () => ({ default: { currentRoute: { value: { path: '/wallet' } }, replace: mocks.replace } }))
 vi.mock('@/services/endpoints', () => ({ gatewayBaseUrl: 'http://localhost:8082' }))
-import { gatewayUrl, publicClient } from '@/api/authApi'
+import { gatewayUrl, publicClient, refreshAccessToken, resumeAuthRecovery } from '@/api/authApi'
 const failure = (config: InternalAxiosRequestConfig, status: number) => new AxiosError('failed', 'ERR_BAD_RESPONSE', config, undefined, { config, status, statusText: 'failed', headers: {}, data: {} })
 beforeEach(() => {
   vi.clearAllMocks(); sessionStorage.clear()
@@ -74,4 +74,30 @@ it('keeps the session on refresh 503 and clears it only on 401', async () => {
   publicClient.defaults.adapter = async config => { throw failure(config, 401) }
   await expect(gatewayUrl.get('/private')).rejects.toBeDefined()
   expect(sessionStorage.getItem('sessionId')).toBeNull(); expect(mocks.replace).toHaveBeenCalledWith('/login')
+})
+
+it('retries a refresh that failed because the auth service was briefly unavailable', async () => {
+  let calls = 0
+  publicClient.defaults.adapter = async config => {
+    if (++calls === 1) throw failure(config, 503)
+    return { config, status: 200, statusText: 'OK', headers: {}, data: {} }
+  }
+  gatewayUrl.defaults.adapter = async config => {
+    if (!config._retry) throw failure(config, 401)
+    return { config, status: 200, statusText: 'OK', headers: {}, data: 'ok' }
+  }
+  expect((await gatewayUrl.get('/private')).data).toBe('ok')
+  expect(calls).toBe(2)
+  expect(mocks.replace).not.toHaveBeenCalled()
+})
+it('lets an explicit session check recover after the session was given up on', async () => {
+  gatewayUrl.defaults.adapter = async config => { throw failure(config, 401) }
+  publicClient.defaults.adapter = async config => { throw failure(config, 401) }
+  await expect(gatewayUrl.get('/private')).rejects.toBeDefined()
+  await expect(refreshAccessToken()).rejects.toThrow('Authentication recovery stopped')
+  const refresh = vi.fn(async config => ({ config, status: 200, statusText: 'OK', headers: {}, data: {} }))
+  publicClient.defaults.adapter = refresh
+  resumeAuthRecovery()
+  await expect(refreshAccessToken()).resolves.toBeUndefined()
+  expect(refresh).toHaveBeenCalledOnce()
 })
