@@ -82,6 +82,13 @@ const recheckOnReturn = () => {
 document.addEventListener('visibilitychange', recheckOnReturn)
 window.addEventListener('focus', recheckOnReturn)
 
+/**
+ * Signing in replaces the user's previous session and the server pushes FORCE_LOGOUT to it. When this very tab still
+ * holds that previous session (e.g. it was sent to /login while its cookies were still valid), its own socket would
+ * receive the push and bounce the fresh login back to /login. Drop the old session here before signing in.
+ */
+export const beginLogin = () => { clearAuth() }
+
 export const logout = async () => {
   if (isLoggingOut) return
   isLoggingOut = true

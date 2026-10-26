@@ -2,7 +2,7 @@
 import {ref, nextTick, onMounted} from 'vue'
 import {useRoute,useRouter} from 'vue-router'
 import {gatewayUrl} from '@/api/authApi'
-import {setAuth} from '@/services/authState.ts'
+import {beginLogin, initAuth, setAuth, useAuthState} from '@/services/authState.ts'
 
 type LoginType = 'LOCAL' | 'GOOGLE' | null
 const router = useRouter()
@@ -11,7 +11,7 @@ const mfaRequired = ref(route.query.mfa === '1'), mfaCode = ref('')
 const verifyMfa = async () => {
   if (loading.value) return
   loading.value = true; error.value = ''
-  try { await gatewayUrl.post('/api/auth/mfa/verify', { code: mfaCode.value }); mfaCode.value = ''; const session = await gatewayUrl.get('/api/auth/checkLogin'); await setAuth(); await redirectByRole(session.data.role) }
+  try { beginLogin(); await gatewayUrl.post('/api/auth/mfa/verify', { code: mfaCode.value }); mfaCode.value = ''; const session = await gatewayUrl.get('/api/auth/checkLogin'); await setAuth(); await redirectByRole(session.data.role) }
   catch (cause: any) { error.value = cause.response?.data?.message || 'Mã xác thực không hợp lệ hoặc đã hết hạn.' }
   finally { loading.value = false }
 }
@@ -96,6 +96,7 @@ const login = async () => {
   }
   loading.value = true
   try {
+    beginLogin()
     const sessionId = getSessionId()
     const loginResponse = await gatewayUrl.post(
       '/api/auth/login',
@@ -240,6 +241,13 @@ const handleSubmit = async () => {
 // =========================
 
 onMounted(async () => {
+  // Already signed in (valid cookies): go to the app instead of signing in again over the live session.
+  const { isAuthReady, isAuthenticated, userRole } = useAuthState()
+  if (!isAuthReady.value) await initAuth()
+  if (isAuthenticated.value && !mfaRequired.value) {
+    await redirectByRole(userRole.value)
+    return
+  }
 
   await nextTick()
 

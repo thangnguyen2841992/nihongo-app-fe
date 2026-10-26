@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
 }
 .quick-course > i {
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 14px;
   margin-top: 2px;
   color: #a083ad;
 }
@@ -237,14 +237,14 @@ onBeforeUnmount(() => {
   flex: 1;
 }
 .quick-course strong {
-  font-size: var(--learn-text-xs);
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
 .quick-course small {
-  font-size: var(--learn-text-xs);
-  color: #a392ad;
+  font-size: var(--learn-text-sm);
+  color: #85768f;
 }
 .quick-course:hover,
 .quick-course.selected {
@@ -275,11 +275,11 @@ onBeforeUnmount(() => {
   padding: 6px;
   border-radius: 7px;
   color: #84728e;
-  font-size: var(--learn-text-xs);
+  font-size: var(--learn-text-sm);
   line-height: 1.5;
   text-decoration: none;
 }
-.course-section i { flex-shrink: 0; font-size: 12px; }
+.course-section i { flex-shrink: 0; font-size: 14px; }
 .course-section span { min-width: 0; overflow-wrap: anywhere; }
 .course-section:hover,
 .course-section.selected { color: #73538a; background: #ece0f1; }
@@ -288,7 +288,7 @@ onBeforeUnmount(() => {
   padding: 7px 5px;
   margin: 0;
   color: #a18dab;
-  font-size: var(--learn-text-xs);
+  font-size: var(--learn-text-sm);
   line-height: 1.6;
 }
 .course-error {

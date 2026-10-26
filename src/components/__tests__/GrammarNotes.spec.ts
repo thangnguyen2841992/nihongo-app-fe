@@ -36,13 +36,28 @@ it('keeps Vない and already-written formulas intact', () => {
   expect(wrapper.find('.formula-help').exists()).toBe(false)
 })
 
-it('shows the saved sentence for a conversational structure while removing active content', () => {
+it('shows the saved sentence for a conversational structure while removing active content', async () => {
   const wrapper = mount(GrammarNotes, { props: {
     description: '<p>Cấu trúc: ～ている → ～てる</p><p>Dạng rút gọn trong hội thoại.</p>',
     examples: [{ nihongo: '<p>何してる？</p><script>bad()</script>', vietnamese: '<p>Bạn đang làm gì?</p>' }]
   } })
   expect(wrapper.get('.sentence-jp').text()).toBe('何してる？')
+  // The meaning is hidden until the learner asks for it, and can be hidden again.
+  expect(wrapper.find('.sentence-vn').exists()).toBe(false)
+  await wrapper.get('.meaning-toggle-btn').trigger('click')
   expect(wrapper.get('.sentence-vn').text()).toBe('Bạn đang làm gì?')
+  await wrapper.get('.meaning-toggle-btn.hide').trigger('click')
+  expect(wrapper.find('.sentence-vn').exists()).toBe(false)
   expect(wrapper.find('.sentence-jp script').exists()).toBe(false)
   expect(wrapper.find('.connection-card').exists()).toBe(false)
+})
+it('gives each Plus translation its own show / hide button', async () => {
+  const wrapper = mount(GrammarNotes, { props: { description: '<h4>Plus: ～終わる</h4><ul><li>読み終わった<br><em>Đọc xong</em></li></ul>' } })
+  const item = wrapper.get('.note-meaning')
+  expect(item.get('em').text()).toBe('Đọc xong')
+  expect(item.classes()).not.toContain('flip')
+  await item.get('.note-meaning-btn').trigger('click')
+  expect(wrapper.get('.note-meaning').classes()).toContain('flip')
+  await wrapper.get('.note-meaning-btn').trigger('click')
+  expect(wrapper.get('.note-meaning').classes()).not.toContain('flip')
 })

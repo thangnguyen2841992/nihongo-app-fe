@@ -15,6 +15,8 @@ import ContentReport from '@/components/operations/ContentReport.vue'
 import GrammarStructure from '@/components/GrammarStructure.vue'
 import { importedAudioUrl } from '@/services/bookImport'
 import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
+import LessonAudioTracks from '@/components/LessonAudioTracks.vue'
+import type { LessonTrack } from '@/services/bookImport'
 import JapaneseReadingToggle from '@/components/common/JapaneseReadingToggle.vue'
 import { japaneseReadingPrefs, vJapaneseReadings } from '@/services/japaneseReadings'
 import { bookReadingAudioTrack } from '@/services/bookReadingAudio'
@@ -40,6 +42,7 @@ interface Lesson {
   reading: string
   audioTrack?: string | null
   audioUrl?: string | null
+  tracks?: LessonTrack[]
   bookId: number
 }
 
@@ -813,6 +816,10 @@ const goToExercisePage =
 
         </div>
 
+
+        <!-- LISTENING TRACKS (e.g. Minna no Nihongo: ことば, 文型, 例文, 練習 A/B/C) -->
+
+        <LessonAudioTracks v-if="selectedLesson.tracks?.length" :key="selectedLesson.lessonId" :tracks="selectedLesson.tracks" />
 
         <!-- READING -->
 
@@ -2009,6 +2016,33 @@ const goToExercisePage =
   white-space: pre-wrap;
 
   word-break: break-word;
+}
+
+/* Textbook lessons (e.g. Minna no Nihongo): 文型 list and 会話 lines with the speaker in front. */
+.lesson-reading-content :deep(h4) {
+  margin: 18px 0 8px;
+  font-family: inherit;
+  font-size: 0.82em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--learn-muted);
+}
+.lesson-reading-content :deep(h4:first-child) {
+  margin-top: 0;
+}
+.lesson-reading-content :deep(ol) {
+  margin: 0 0 6px;
+  padding-left: 1.6em;
+}
+.lesson-reading-content :deep(ol li) {
+  margin: 2px 0;
+}
+.lesson-reading-content :deep(p) {
+  margin: 0 0 4px;
+}
+.lesson-reading-content :deep(p > strong:first-child) {
+  font-weight: 700;
+  color: var(--learn-accent, inherit);
 }
 
 .lesson-reading-content :deep(code) {
