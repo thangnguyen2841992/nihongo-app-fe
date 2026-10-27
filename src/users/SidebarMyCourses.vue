@@ -40,8 +40,9 @@ function destination(course: MyCourse) {
 function isCurrent(course: MyCourse) {
   return Number(route.query.courseId || route.params.courseId) === course.courseId
 }
-function isN3(course: MyCourse) {
-  return /\bN\s*3\b/i.test(course.courseName.normalize('NFKC'))
+// N3 and N4 courses have their textbook, vocabulary flashcards and listening sections.
+function hasSections(course: MyCourse) {
+  return /\bN\s*[34]\b/i.test(course.courseName.normalize('NFKC'))
 }
 function sections(course: MyCourse) {
   const params = { courseId: course.courseId }
@@ -171,7 +172,7 @@ onBeforeUnmount(() => {
           :href="router.resolve(destination(course)).href"
           class="quick-course"
           :class="{ selected: isCurrent(course) }"
-          :aria-current="isCurrent(course) ? (isN3(course) ? 'location' : 'page') : undefined"
+          :aria-current="isCurrent(course) ? (hasSections(course) ? 'location' : 'page') : undefined"
           :aria-busy="opening === course.courseId"
           :title="course.courseName"
           @click="openCourse($event, course)"
@@ -185,7 +186,7 @@ onBeforeUnmount(() => {
             }}</small></span
           ></a
         >
-        <ul v-if="isN3(course)" class="course-sections" :aria-label="`Nội dung ${course.courseName}`">
+        <ul v-if="hasSections(course)" class="course-sections" :aria-label="`Nội dung ${course.courseName}`">
           <li v-for="section in sections(course)" :key="section.name">
             <a
               :href="router.resolve(section.to).href"

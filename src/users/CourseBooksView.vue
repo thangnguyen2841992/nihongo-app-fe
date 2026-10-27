@@ -13,7 +13,8 @@ const books = ref<Book[]>([])
 const loading = ref(true)
 const error = ref('')
 const courseId = computed(() => Number(route.params.courseId))
-const isN3 = computed(() => books.value.some(book => book.levelName.toUpperCase() === 'N3'))
+// Courses whose textbook has a vocabulary deck: Mimi Kara Oboeru (N3), Minna no Nihongo II (N4).
+const deckLevel = computed(() => ['N3', 'N4'].find(level => books.value.some(book => book.levelName.toUpperCase() === level)))
 
 async function loadBooks() {
   loading.value = true
@@ -38,7 +39,7 @@ onMounted(loadBooks)
     </header>
 
     <nav class="course-tools" aria-label="Công cụ khóa học">
-      <RouterLink v-if="isN3" :to="`/course/${courseId}/vocabulary-flashcards`"><i class="bi bi-card-text" aria-hidden="true"></i><span><strong>Flashcard từ vựng N3</strong><small>Ôn từ theo giáo trình</small></span></RouterLink>
+      <RouterLink v-if="deckLevel" :to="`/course/${courseId}/vocabulary-flashcards`"><i class="bi bi-card-text" aria-hidden="true"></i><span><strong>Flashcard từ vựng {{ deckLevel }}</strong><small>{{ deckLevel === 'N4' ? 'Minna no Nihongo bài 26–50' : 'Ôn từ theo giáo trình' }}</small></span></RouterLink>
       <RouterLink :to="`/course/${courseId}/conversation-listening`"><i class="bi bi-headphones" aria-hidden="true"></i><span><strong>Luyện nghe hội thoại</strong><small>Dành cho gói VIP còn hạn</small></span></RouterLink>
     </nav>
 

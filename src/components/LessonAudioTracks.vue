@@ -9,7 +9,8 @@ const props = defineProps<{ tracks: LessonTrack[] }>()
 const groupName = (label: string) => {
   const japanese = label.split(' · ')[0] ?? label
   const practice = japanese.match(/^練習\s*([ABC])/)
-  return practice ? `練習 ${practice[1]}` : japanese
+  if (practice) return `練習 ${practice[1]}`
+  return japanese.startsWith('問題') ? '問題' : japanese
 }
 const groupTitle: Record<string, string> = {
   'ことば': 'Từ vựng', '文型': 'Mẫu câu', '例文': 'Câu ví dụ', '会話': 'Hội thoại',
@@ -25,7 +26,7 @@ const groups = computed(() => {
 })
 const shortLabel = (track: LessonTrack) => {
   const japanese = track.label.split(' · ')[0] ?? track.label
-  const practice = japanese.match(/^練習\s*([ABC]\d*)/)
+  const practice = japanese.match(/^練習\s*([ABC]\d*)/) ?? japanese.match(/^問題\s*(\d+)/)
   return practice ? practice[1]! : japanese
 }
 const selectedId = ref<number | null>(props.tracks[0]?.id ?? null)

@@ -26,6 +26,8 @@ const error = ref('')
 const cards = computed(() => deck.value?.cards.filter(card => card.unit === unit.value) ?? [])
 const current = computed(() => cards.value[index.value])
 const units = computed(() => [...new Set(deck.value?.cards.map(card => card.unit) ?? [])])
+// Mimi Kara N3 is split into units; Minna no Nihongo into its lessons (第26課 … 第50課).
+const unitLabel = (value: number) => (deck.value?.level === 'N3' ? `Unit ${value}` : `Bài ${value}`)
 
 function resetCard() { index.value = 0; flipped.value = false }
 function previous() {
@@ -56,8 +58,8 @@ async function load() {
   } catch (e) {
     const status = (e as { response?: { status?: number } }).response?.status
     error.value = status === 403
-      ? 'Bạn cần khóa học N3 còn hạn để học bộ flashcard này.'
-      : status === 404 ? 'Bộ flashcard này chỉ có trong khóa học N3.' : 'Không thể tải bộ flashcard. Vui lòng thử lại.'
+      ? 'Bạn cần khóa học còn hạn để học bộ flashcard này.'
+      : status === 404 ? 'Khóa học này chưa có bộ flashcard từ vựng.' : 'Không thể tải bộ flashcard. Vui lòng thử lại.'
   } finally { loading.value = false }
 }
 watch(unit, resetCard)
@@ -68,8 +70,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 <template>
   <main class="study-page flashcard-page">
     <header class="study-hero">
-      <p class="eyebrow">Khóa học N3 · Từ vựng</p>
-      <h1>{{ deck?.title || 'Mimi Kara Oboeru N3 - Từ vựng' }}</h1>
+      <p class="eyebrow">{{ deck ? `Khóa học ${deck.level} · Từ vựng` : 'Từ vựng' }}</p>
+      <h1>{{ deck?.title || 'Flashcard từ vựng' }}</h1>
       <p>Chạm vào thẻ để lật đáp án. Dùng phím ← → để chuyển thẻ và phím cách để lật.</p>
     </header>
 
@@ -86,7 +88,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
       <section class="deck-toolbar" aria-label="Chọn phần học">
         <label for="flashcard-unit">Phần học</label>
         <select id="flashcard-unit" v-model.number="unit">
-          <option v-for="value in units" :key="value" :value="value">Unit {{ value }}</option>
+          <option v-for="value in units" :key="value" :value="value">{{ unitLabel(value) }}</option>
         </select>
         <span>{{ cards.length }} từ · {{ deck.totalCards }} từ toàn bộ sách</span>
       </section>
@@ -95,19 +97,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         <button class="flip-card" :class="{ flipped }" type="button" :aria-label="flipped ? 'Ẩn đáp án' : 'Lật thẻ để xem đáp án'" @click="flipped = !flipped">
           <span class="flip-card-inner">
             <span class="card-face card-front">
-              <span class="card-number">{{ current.number }} · Unit {{ current.unit }}</span>
+              <span class="card-number">{{ current.number }} · {{ unitLabel(current.unit) }}</span>
               <strong lang="ja">{{ current.word }}</strong>
               <span class="flip-hint">Chạm để xem đáp án</span>
             </span>
             <span class="card-face card-back">
               <span class="card-number">{{ current.number }} · Đáp án</span>
-              <strong class="answer-reading" lang="ja">{{ current.reading }}</strong>
+              <strong class="answer-reading" lang="ja">{{ current.reading || current.word }}</strong>
               <span v-if="current.sinoVietnamese" class="sino-vietnamese">
                 <span>Hán Việt</span>
                 {{ current.sinoVietnamese }}
               </span>
               <span class="meaning">{{ current.meaning }}</span>
-              <span class="example-block">
+              <span v-if="current.exampleJapanese" class="example-block">
                 <span class="example-label">Ví dụ</span>
                 <span class="example-japanese" lang="ja">{{ current.exampleJapanese }}</span>
                 <span class="example-vietnamese">{{ current.exampleVietnamese }}</span>
@@ -126,7 +128,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
       <div class="progress-track" role="progressbar" :aria-valuenow="index + 1" aria-valuemin="1" :aria-valuemax="cards.length">
         <span :style="{ width: `${((index + 1) / cards.length) * 100}%` }"></span>
       </div>
-      <RouterLink class="back-link" :to="`/course/${route.params.courseId}/books`">← Quay lại khóa học N3</RouterLink>
+      <RouterLink class="back-link" :to="`/course/${route.params.courseId}/books`">← Quay lại khóa học</RouterLink>
     </template>
   </main>
 </template>

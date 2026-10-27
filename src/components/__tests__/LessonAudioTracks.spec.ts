@@ -22,3 +22,14 @@ it('groups the tracks by part and plays one at a time', async () => {
   expect(practice.attributes('aria-pressed')).toBe('true')
   expect(wrapper.get('audio').attributes('src')).toBe('http://localhost:8082/api/staff/imported-audio/lesson-tracks/4')
 })
+
+it('shows the conversation and both listening exercises of the textbook CD', () => {
+  const wrapper = mount(LessonAudioTracks, { props: { tracks: [
+    { id: 6, label: '会話 · Hội thoại', url: '/api/staff/imported-audio/lesson-tracks/6' },
+    { id: 7, label: '問題 1 · Bài tập nghe 1', url: '/api/staff/imported-audio/lesson-tracks/7' },
+    { id: 8, label: '問題 2 · Bài tập nghe 2', url: '/api/staff/imported-audio/lesson-tracks/8' },
+  ] } })
+  expect(wrapper.findAll('.track-group').map((group) => group.get('.group-name').text()))
+    .toEqual(['会話Hội thoại', '問題Bài tập nghe'])
+  expect(wrapper.findAll('.track-group')[1]!.findAll('button').map((button) => button.text())).toEqual(['1', '2'])
+})

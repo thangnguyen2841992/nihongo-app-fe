@@ -46,3 +46,17 @@ it('switches unit and starts at its first card', async () => {
   expect(wrapper.text()).toContain('1 / 1')
 })
 
+
+it('shows Minna no Nihongo cards by lesson, with the word itself when it has no kanji', async () => {
+  mocks.get.mockResolvedValue({ data: { id: 'minna', title: 'Minna no Nihongo II', level: 'N4', totalCards: 2, cards: [
+    { number: 1, unit: 26, word: '運動会', reading: 'うんどうかい', meaning: 'hội thao', sinoVietnamese: 'VẬN ĐỘNG HỘI', exampleJapanese: '', exampleVietnamese: '' },
+    { number: 2, unit: 26, word: 'ごみ', reading: '', meaning: 'rác', sinoVietnamese: '', exampleJapanese: '', exampleVietnamese: '' },
+  ] } })
+  const wrapper = open(); await flushPromises()
+  expect(wrapper.text()).toContain('Khóa học N4 · Từ vựng')
+  expect(wrapper.get('select').text()).toBe('Bài 26')
+  expect(wrapper.get('.card-number').text()).toBe('1 · Bài 26')
+  expect(wrapper.find('.example-block').exists()).toBe(false)
+  await wrapper.findAll('button').find(button => button.text().includes('Thẻ tiếp'))!.trigger('click')
+  expect(wrapper.get('.answer-reading').text()).toBe('ごみ')
+})

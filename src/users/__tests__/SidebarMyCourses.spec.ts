@@ -204,7 +204,7 @@ it('deduplicates starting the same course while letting the latest selection fin
   expect(wrapper!.findAll('[aria-busy="true"]')).toHaveLength(0)
 })
 
-it('shows the three N3 sections and switches from a saved book to flashcards, conversation and books', async () => {
+it('shows the sections of N3 and N4 courses and switches from a saved book to flashcards, conversation and books', async () => {
   vi.mocked(getMyCourses).mockResolvedValue([
     course(42, { courseName: 'Tiếng Nhật N3', lastBookId: 12, lastLessonId: 24 }),
     course(4, { courseName: 'Tiếng Nhật N4' }),
@@ -212,13 +212,14 @@ it('shows the three N3 sections and switches from a saved book to flashcards, co
     course(43, { courseName: 'N3 hết hạn', expiredAt: date(-1) }),
   ])
   const router = await open()
-  expect(wrapper!.findAll('.course-sections')).toHaveLength(1)
-  expect(wrapper!.findAll('.course-section').map(link => link.text())).toEqual([
+  const lists = wrapper!.findAll('.course-sections')
+  expect(lists.map(list => list.attributes('aria-label'))).toEqual(['Nội dung Tiếng Nhật N3', 'Nội dung Tiếng Nhật N4'])
+  expect(lists[0]!.findAll('.course-section').map(link => link.text())).toEqual([
     'Giáo trình sách', 'Flashcard từ vựng', 'Hội thoại',
   ])
   await router.push('/course/book/12?courseId=42&lessonId=24')
   expect(wrapper!.get('[aria-current="page"]').text()).toBe('Giáo trình sách')
-  const links = wrapper!.findAll('.course-section')
+  const links = wrapper!.findAll('.course-sections')[0]!.findAll('.course-section')
   for (const [index, path] of [[1, 'vocabulary-flashcards'], [2, 'conversation-listening'], [0, 'books']] as const) {
     await links[index]!.trigger('click')
     await flushPromises()
