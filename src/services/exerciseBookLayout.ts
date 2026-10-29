@@ -70,3 +70,50 @@ export function exerciseGroups<T extends { exerciseTypeId: number; exerciseTypeN
     return left && right ? left.number - right.number : a.exerciseTypeId - b.exerciseTypeId
   })
 }
+
+export interface AudioBlock<T> {
+  key: string
+  /** Shared listening file of every question in the block; empty for questions without an uploaded file. */
+  audioUrl: string
+  label: string
+  /** Opening paragraphs (instruction, worked example) that every question of the block repeats; shown once. */
+  shared: string
+  /** `content` is the question without the shared paragraphs. */
+  items: { exercise: T; index: number; content: string }[]
+}
+
+const paragraphs = (html: string) => html.match(/<p\b[^>]*>[\s\S]*?<\/p>/g) ?? (html.trim() ? [html] : [])
+/** "Câu 3" only numbers a question that is otherwise just its choices; the page numbers questions itself. */
+const numberOnly = /^<p\b[^>]*>\s*Câu \d+\s*<\/p>$/
+
+/**
+ * Puts the questions of one exercise group that play the same listening file together, in the order the first of
+ * them appears, so the page shows one player per file instead of one per question. `index` is the question's
+ * position in the regrouped list (used for numbering). Questions without an uploaded file stay on their own.
+ */
+export function audioBlocks<T extends { exerciseKeywordId: number; audioUrl?: string | null; audioLabel?: string | null; contentNihongo?: string | null }>(exercises: T[]): AudioBlock<T>[] {
+  const blocks: AudioBlock<T>[] = []
+  const byUrl = new Map<string, AudioBlock<T>>()
+  for (const exercise of exercises) {
+    const url = exercise.audioUrl || ''
+    let block = url ? byUrl.get(url) : undefined
+    if (!block) {
+      block = { key: url || `q-${exercise.exerciseKeywordId}`, audioUrl: url, label: exercise.audioLabel || '', shared: '', items: [] }
+      blocks.push(block)
+      if (url) byUrl.set(url, block)
+    }
+    block.items.push({ exercise, index: 0, content: exercise.contentNihongo || '' })
+  }
+  let index = 0
+  for (const block of blocks) {
+    for (const item of block.items) item.index = index++
+    if (block.items.length < 2) continue
+    const parts = block.items.map(item => paragraphs(item.content))
+    let common = 0
+    while (parts.every(p => p.length > common && p[common] === parts[0]![common])) common++
+    if (!common) continue
+    block.shared = parts[0]!.slice(0, common).join('')
+    block.items.forEach((item, i) => { item.content = parts[i]!.slice(common).filter(p => !numberOnly.test(p)).join('') })
+  }
+  return blocks
+}

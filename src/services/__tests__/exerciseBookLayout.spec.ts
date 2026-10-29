@@ -62,3 +62,29 @@ it('retains a shared passage for the four cloze questions and original choice ro
   expect(bookChoiceColumns(layout.sections[0]!.typeName, 0)).toBe(4)
   expect(bookChoiceColumns(layout.sections[0]!.typeName, 2)).toBe(2)
 })
+
+it('puts questions that share a listening file together and numbers them in the new order', async () => {
+  const { audioBlocks } = await import('../exerciseBookLayout')
+  const questions = [
+    { exerciseKeywordId: 1, audioUrl: '/a', audioLabel: '練習 B1', contentNihongo: '<p>Đổi sang 〜んです。</p><p>例: …</p><p>山へ 行きます → ？</p>' },
+    { exerciseKeywordId: 2, audioUrl: '/b', audioLabel: '練習 B2', contentNihongo: '<p>B2</p>' },
+    { exerciseKeywordId: 3, audioUrl: '/a', audioLabel: '練習 B1', contentNihongo: '<p>Đổi sang 〜んです。</p><p>例: …</p><p>眠いです → ？</p>' },
+    { exerciseKeywordId: 4, audioUrl: null, contentNihongo: '<p>x</p>' },
+    { exerciseKeywordId: 5, audioUrl: null, contentNihongo: '<p>y</p>' },
+  ]
+  const blocks = audioBlocks(questions)
+  expect(blocks.map(b => [b.audioUrl, b.label, b.shared, b.items.map(i => [i.exercise.exerciseKeywordId, i.index, i.content])])).toEqual([
+    ['/a', '練習 B1', '<p>Đổi sang 〜んです。</p><p>例: …</p>', [[1, 0, '<p>山へ 行きます → ？</p>'], [3, 1, '<p>眠いです → ？</p>']]],
+    ['/b', '練習 B2', '', [[2, 2, '<p>B2</p>']]],
+    ['', '', '', [[4, 3, '<p>x</p>']]],
+    ['', '', '', [[5, 4, '<p>y</p>']]],
+  ])
+  expect(questions.map(q => q.exerciseKeywordId)).toEqual([1, 2, 3, 4, 5])
+})
+
+it('drops a bare question number once the instruction is shared', async () => {
+  const { audioBlocks } = await import('../exerciseBookLayout')
+  const [block] = audioBlocks([1, 2].map(n => ({ exerciseKeywordId: n, audioUrl: '/m', contentNihongo: `<p>問題 1 – Nghe CD. Chọn câu trả lời phù hợp.</p><p>Câu ${n}</p>` })))
+  expect(block!.shared).toBe('<p>問題 1 – Nghe CD. Chọn câu trả lời phù hợp.</p>')
+  expect(block!.items.map(i => i.content)).toEqual(['', ''])
+})

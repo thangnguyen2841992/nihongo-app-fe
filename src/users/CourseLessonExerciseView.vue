@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, nextTick, onMounted, onUnmounted, ref} from "vue"
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue"
 import {useRoute, useRouter} from "vue-router"
 import {gatewayUrl} from "@/api/authApi.ts";
 
@@ -10,7 +10,7 @@ import type { AiAnswer } from '@/services/bookAiAnswers'
 import BookListeningPreview from '@/components/BookListeningPreview.vue'
 import { importedAudioUrl } from '@/services/bookImport'
 import BookAudioPlayer from '@/components/BookAudioPlayer.vue'
-import { exerciseBookLayout, exerciseGroups, bookChoiceColumns, bookAudioTrack, bookListeningItem, bookAnswersPending, tryN3Listening } from '@/services/exerciseBookLayout'
+import { exerciseBookLayout, exerciseGroups, bookChoiceColumns, bookAudioTrack, bookListeningItem, bookAnswersPending, tryN3Listening, audioBlocks } from '@/services/exerciseBookLayout'
 
 const route = useRoute()
 const router = useRouter()
@@ -105,6 +105,7 @@ interface ScoreResult {
 interface ExerciseKeyword {
   aiSolution?: AiAnswer | null
   audioUrl?: string | null
+  audioLabel?: string | null
   exerciseKeywordId: number
 
   contentNihongo: string
@@ -509,6 +510,24 @@ const goBack = () => {
   void router.push('/user/my-courses')
 }
 
+// Shared listening players stick just below the sticky toolbar, whose height changes with the screen width.
+const tabsBar = ref<HTMLElement | null>(null)
+const audioStickyTop = ref(170)
+let tabsObserver: ResizeObserver | null = null
+const measureTabs = () => {
+  const bar = tabsBar.value
+  if (!bar) return
+  audioStickyTop.value = Math.round((parseFloat(getComputedStyle(bar).top) || 0) + bar.offsetHeight + 8)
+}
+watch(tabsBar, bar => {
+  tabsObserver?.disconnect()
+  tabsObserver = null
+  if (!bar) return
+  measureTabs()
+  if (typeof ResizeObserver !== 'undefined') { tabsObserver = new ResizeObserver(measureTabs); tabsObserver.observe(bar) }
+})
+onUnmounted(() => tabsObserver?.disconnect())
+
 const groupedExercises = computed<ExerciseGroup[]>(() => exerciseGroups(exercises.value, exerciseTypes.value))
 const isBookReview = computed(() => exercises.value.some(e => exerciseBookLayout(e.exerciseTypeName)))
 const answersPending = computed(() => exercises.value.some(e => bookAnswersPending(e.exerciseTypeName)))
@@ -556,7 +575,7 @@ const scrollToGroup =
 
 <template>
 
-  <div class="container-fluid py-4 exercise-page" :class="{ 'book-review': isBookReview }">
+  <div class="container-fluid py-4 exercise-page" :class="{ 'book-review': isBookReview }" :style="{ '--audio-sticky-top': `${audioStickyTop}px` }">
     <ContentReport :lesson-id="lessonId" style="margin-bottom:16px" />
 
     <!-- HEADER -->
@@ -609,7 +628,7 @@ const scrollToGroup =
 
     <!-- MENU -->
 
-    <div v-if="!loadingExercises && exercises.length" class="exercise-tabs">
+    <div v-if="!loadingExercises && exercises.length" ref="tabsBar" class="exercise-tabs">
 
       <div class="tabs-left">
 
@@ -729,11 +748,22 @@ const scrollToGroup =
           :id="`group-${group.exerciseTypeId}`"
           class="exercise-group">
           <BookExerciseHeading :type-name="group.exerciseTypeName" :index="groupIndex" />
+          <!-- Questions that play the same listening file are shown together under one player. -->
           <div
-            v-for="
-  (exercise, index)
-  in group.exercises
-"
+            v-for="block in audioBlocks(group.exercises)"
+            :key="block.key"
+            :class="{ 'audio-block': importedAudioUrl(block.audioUrl) }"
+          >
+          <!-- The player stays in view below the toolbar while the questions of its file are answered. -->
+          <div v-if="importedAudioUrl(block.audioUrl)" class="audio-block-player">
+            <BookAudioPlayer :source="importedAudioUrl(block.audioUrl)" :label="block.label ? `Nghe: ${block.label}` : undefined" />
+          </div>
+          <div v-if="block.shared || (importedAudioUrl(block.audioUrl) && block.items.length > 1)" class="audio-block-intro">
+            <div v-if="block.shared" class="audio-block-shared" v-html="block.shared" />
+            <p v-if="importedAudioUrl(block.audioUrl) && block.items.length > 1" class="audio-block-note">{{ block.items.length }} câu dùng chung file nghe này.</p>
+          </div>
+          <div
+            v-for="{ exercise, index, content } in block.items"
             :key="
       exercise.exerciseKeywordId
     "
@@ -742,6 +772,7 @@ const scrollToGroup =
     "
             class="exercise-card"
             :class="{
+      compact: block.items.length > 1,
       highlight:
         activeExerciseId ===
         exercise.exerciseKeywordId
@@ -757,20 +788,19 @@ const scrollToGroup =
               <div class="exercise-title-wrapper">
 
                 <div class="question-number">
-                  {{ exerciseBookLayout(group.exerciseTypeName) ? (bookListeningItem(bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo))?.item ?? index + 1) : 'Câu ' + (index + 1) }}
+                  {{ exerciseBookLayout(group.exerciseTypeName) ? (bookListeningItem(bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo))?.item ?? index + 1) : (block.items.length > 1 ? '' : 'Câu ') + (index + 1) }}
                 </div>
 
                 <div
-                  v-if="!bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo)" class="exercise-title"
-                  v-html="exercise.contentNihongo"/>
+                  v-if="content && !bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo)" class="exercise-title"
+                  v-html="content"/>
 
               </div>
               <div class="action-group">
               </div>
             </div>
 
-            <BookAudioPlayer v-if="importedAudioUrl(exercise.audioUrl)" :source="importedAudioUrl(exercise.audioUrl)" />
-            <BookAudioPlayer v-else-if="bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo)" :track="bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo)!" />
+            <BookAudioPlayer v-if="!importedAudioUrl(exercise.audioUrl) && bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo)" :track="bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo)!" />
             <div class="answer-grid" :style="{ '--choice-columns': bookChoiceColumns(group.exerciseTypeName, index, exercise.answerD ? 4 : 3) }">
 
               <div
@@ -809,7 +839,8 @@ const scrollToGroup =
                 {{ (bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) === '06' || (bookAudioTrack(group.exerciseTypeName, exercise.contentNihongo) && exercise.answerB === '2')) ? '' : (exerciseBookLayout(group.exerciseTypeName) ? '2' : 'B.') }} {{ exercise.answerB }}
               </div>
 
-              <div
+              <!-- ○/× questions have only A and B. -->
+              <div v-if="exercise.answerC"
                 class="answer-item"
                 :class="{
 
@@ -847,6 +878,7 @@ const scrollToGroup =
 
             </div>
             <BookAiSolution :exercise="exercise" :visible="submitted || answersPending" :answer-key-hidden="!submitted" />
+          </div>
           </div>
 
         </div>
@@ -1290,6 +1322,59 @@ const scrollToGroup =
 .exercise-group {
   margin-bottom: 40px;
   scroll-margin-top: 90px;
+}
+
+/* One listening file shared by several questions: one player, the instruction once, compact questions. */
+.audio-block {
+  border: 1px solid var(--learn-border);
+  border-left: 4px solid var(--learn-primary);
+  border-radius: 16px;
+  padding: 0 0 6px;
+  margin: 16px 0;
+  background: #fff;
+}
+.audio-block-player {
+  position: sticky;
+  top: var(--audio-sticky-top, 170px);
+  z-index: 20;
+  background: var(--learn-primary-softer);
+  border-bottom: 1px solid var(--learn-border);
+  border-radius: 12px 12px 0 0;
+  padding: 6px 14px 4px;
+}
+.audio-block-intro { padding: 10px 16px 4px; }
+.audio-block-shared { font-size: 15px; line-height: 1.6; color: var(--learn-text); }
+.audio-block-shared :deep(p) { margin: 0 0 2px; }
+.audio-block-note { margin: 4px 0 0; font-size: 13px; color: var(--learn-muted); }
+.exercise-card.compact {
+  border: 0;
+  border-top: 1px dashed var(--learn-border);
+  border-radius: 0;
+  padding: 10px 16px;
+  margin: 0;
+  box-shadow: none;
+  transform: none;
+}
+.exercise-card.compact:hover { transform: none; box-shadow: none; background: var(--learn-primary-softer); }
+.exercise-card.compact.highlight { box-shadow: inset 3px 0 0 var(--learn-primary); transform: none; }
+.exercise-card.compact .exercise-title-wrapper { align-items: baseline; gap: 10px; }
+.exercise-card.compact .question-number { min-width: 30px; padding: 2px 8px; font-size: 13px; }
+.exercise-card.compact .exercise-title { font-size: 16px; font-weight: 600; }
+.exercise-card.compact .exercise-title :deep(p) { margin: 0; }
+.exercise-card.compact .answer-grid,
+.book-review .exercise-card.compact .answer-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: 6px;
+  margin: 8px 0 0 40px;
+}
+.exercise-card.compact .answer-item { padding: 6px 10px; border-radius: 10px; font-size: 15px; line-height: 1.4; }
+@media (max-width: 768px) {
+  .audio-block-player { padding: 4px 10px 2px; }
+  .audio-block-intro { padding: 8px 12px 2px; }
+  .exercise-card.compact { padding: 10px 12px; }
+  .exercise-card.compact .exercise-header { flex-direction: row; }
+  .exercise-card.compact .answer-grid,
+  .book-review .exercise-card.compact .answer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-left: 0; }
 }
 
 .group-header {
